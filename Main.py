@@ -26,18 +26,13 @@ remain = 2
 
 
 def main():
-    title = Title()
-    stage_1 = Stage_1()
-
     while 1:
         # タイトル画面
         if game_state == 0:
-            title.main()
+            Title()
         # ステージ 1-1
         elif game_state == 1:
-            stage_1.main()
-
-        pygame.display.update()
+            Stage_1()
 
 
 # 画像データの読み込み
@@ -72,7 +67,7 @@ def stage_load(stage_place):
         messagebox.showerror("エラー", "ステージデータが見つかりませんでした")
         return
 
-    # シート名を取得
+    # 番号からシート名を取得
     for count, sheet_name in enumerate(file.sheet_names()):
         if count == (stage_place - 1):
             break
@@ -202,33 +197,39 @@ class Title:
             screen.blit(block[0], (29 * i, 365))
             screen.blit(block[1], (29 * i, 394))
 
-    def main(self):
-        for event in pygame.event.get():
-            # 「×」ボタンが押されたら終了
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
+        self.main()
 
-            if event.type == KEYDOWN:
-                # ESCキーが押されたら終了
-                if event.key == K_ESCAPE:
+    def main(self):
+        while 1:
+            pygame.display.update()
+
+            for event in pygame.event.get():
+                # 「×」ボタンが押されたら終了
+                if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
 
-                # ステージ選択
-                if event.key == K_1:
-                    self.goto_stage = 1
-                if event.key == K_2:
-                    self.goto_stage = 2
-                if event.key == K_3:
-                    self.goto_stage = 3
-                if event.key == K_4:
-                    self.goto_stage = 4
+                if event.type == KEYDOWN:
+                    # ESCキーが押されたら終了
+                    if event.key == K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
 
-                # ENTERキーが押されたらスタート
-                if event.key == 13:
-                    global game_state
-                    game_state = self.goto_stage
+                    # ステージ選択
+                    if event.key == K_1:
+                        self.goto_stage = 1
+                    if event.key == K_2:
+                        self.goto_stage = 2
+                    if event.key == K_3:
+                        self.goto_stage = 3
+                    if event.key == K_4:
+                        self.goto_stage = 4
+
+                    # ENTERキーが押されたらスタート
+                    if event.key == 13:
+                        global game_state
+                        game_state = self.goto_stage
+                        return
 
 
 # ステージ1-1
@@ -242,46 +243,51 @@ class Stage_1:
         self.init_flag = True
         self.scroll = 0
 
+        self.main()
+
     def main(self):
-        self.stage_init()
-        screen.fill((160, 180, 250))
-        stage_draw(self.stage_data, self.scroll)
+        while 1:
+            self.stage_init()
+            screen.fill((160, 180, 250))
+            stage_draw(self.stage_data, self.scroll)
 
-        # @TODO プレイヤーの追加
+            # @TODO プレイヤーの追加
 
-        # 矢印キー入力
-        pressed_key = pygame.key.get_pressed()
-        if pressed_key[K_UP]:
-            pass
-        if pressed_key[K_DOWN]:
-            pass
-        if pressed_key[K_LEFT]:
-            self.scroll -= 2
-        if pressed_key[K_RIGHT]:
-            self.scroll += 2
+            pygame.display.update()
 
-        # スクロールの範囲
-        if self.scroll <= 0:
-            self.scroll = 0
-        elif self.scroll >= 3610:
-            self.scroll = 3610
+            # 矢印キー入力
+            pressed_key = pygame.key.get_pressed()
+            if pressed_key[K_UP]:
+                pass
+            if pressed_key[K_DOWN]:
+                pass
+            if pressed_key[K_LEFT]:
+                self.scroll -= 2
+            if pressed_key[K_RIGHT]:
+                self.scroll += 2
 
-        for event in pygame.event.get():
-            # 「×」ボタンが押されたら終了
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
+            # スクロールの範囲
+            if self.scroll <= 0:
+                self.scroll = 0
+            elif self.scroll >= 3610:
+                self.scroll = 3610
 
-            if event.type == KEYDOWN:
-                # ESCキーが押されたら終了
-                if event.key == K_ESCAPE:
+            for event in pygame.event.get():
+                # 「×」ボタンが押されたら終了
+                if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
-                # F1キーが押されたらタイトルに戻る
-                if event.key == K_F1:
-                    global game_state
-                    game_state = 0
-                    main()
+
+                if event.type == KEYDOWN:
+                    # ESCキーが押されたら終了
+                    if event.key == K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
+                    # F1キーが押されたらタイトルに戻る
+                    if event.key == K_F1:
+                        global game_state
+                        game_state = 0
+                        return
 
     # 初回のみ実行
     def stage_init(self):
