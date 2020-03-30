@@ -243,11 +243,11 @@ class Stage_1:
         self.init_flag = True
         self.scroll = 0
 
+        remain_show()
         self.main()
 
     def main(self):
         while 1:
-            self.stage_init()
             screen.fill((160, 180, 250))
             stage_draw(self.stage_data, self.scroll)
 
@@ -288,12 +288,6 @@ class Stage_1:
                         global game_state
                         game_state = 0
                         return
-
-    # 初回のみ実行
-    def stage_init(self):
-        if self.init_flag:
-            self.init_flag = False
-            remain_show()
 
 
 if __name__ == "__main__":
