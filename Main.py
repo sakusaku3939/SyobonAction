@@ -143,23 +143,29 @@ class Title:
 class Stage_1:
     def __init__(self):
         self.stage = Stage(screen, 1, '1-1')
+        self.stage.draw()
+
         self.init_flag = True
         self.scroll = 0
 
         remain_show()
 
-        self.player = Player()
+        self.player = Player(screen)
+
         self.main()
 
     def main(self):
         while 1:
             screen.fill((160, 180, 250))
 
-            self.stage.update(self.scroll)
-            self.scroll = self.player.update(screen)
+            self.stage.update(self.player)
+            self.player.update(self.stage)
 
-            pygame.display.update()
-            clock.tick(FPS)
+            # スペースキーで3倍速
+            variable_FPS = FPS * (3 if pygame.key.get_pressed()[K_SPACE] else 1)
+            clock.tick(variable_FPS)
+
+            pygame.display.update(Rect(0, 0, 480, 420))
 
             for event in pygame.event.get():
                 # 「×」ボタンが押されたら終了

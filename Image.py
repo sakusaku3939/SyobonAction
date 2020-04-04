@@ -28,19 +28,26 @@ class LoadImage:
         LoadImage.image_list = self.image_list
 
 
-class Image(pygame.sprite.Sprite):
+class Sprite(pygame.sprite.Sprite):
     def __init__(self, screen, img_name, x, y, tweak_x=0, tweak_y=0):
         self.screen = screen
+        self.name = img_name
+
         pygame.sprite.Sprite.__init__(self)
 
         self.image = LoadImage.image_list[img_name]
         width = self.image.get_width()
         height = self.image.get_height()
-        self.rect = Rect(x * 29 + tweak_x, y * 29 - 12 + tweak_y, width, height)
+        self.x = x * 29 + tweak_x
+        self.y = y * 29 - 12 + tweak_y
+        self.rect = Rect(self.x, self.y, width, height)
 
         screen.blit(self.image, self.rect)
 
     # 画面スクロール
     def update(self, scroll):
-        self.rect.left -= scroll
-        self.screen.blit(self.image, self.rect)
+        # 画面内の領域のみ描画
+        if self.rect.left > -150:
+            self.rect.left -= scroll
+            if self.rect.left < 480:
+                self.screen.blit(self.image, self.rect)

@@ -4,8 +4,7 @@ import sys
 import tkinter
 from tkinter import messagebox
 
-from Image import LoadImage
-from Image import Image
+from Image import Sprite
 
 
 class Stage:
@@ -35,31 +34,23 @@ class Stage:
             sys.exit()
 
         # ステージデータを読み込む
-        sheet_data = [sheet.row_values(row) for row in range(16)]
+        sheet_data = [sheet.col_values(row) for row in range(sheet.ncols)]
         self.stage_data = [[int(item) for item in row if item != ''] for row in sheet_data]
         self.draw()
 
-        # 画面スクロール量の合計
+        # スクロール量の合計
         self.scroll_sum = 0
 
-    # ステージを描画
     def draw(self):
-
-        img = LoadImage.image_list
-
-        # 画像の描画
-        def iDraw(img_data, img_x, img_y, tweak_x=0, tweak_y=0):
-            self.screen.blit(img_data, (tweak_x + img_x * 29, tweak_y + img_y * 29 - 12))
-
         # ステージデータから取得
-        for y, list_data in enumerate(self.stage_data):
-            for x, data in enumerate(list_data):
+        for x, list_data in enumerate(self.stage_data):
+            for y, data in enumerate(list_data):
                 # 一つ前のステージデータを取得
                 try:
-                    stage_position_top = self.stage_data[y - 1][x]
-                    stage_position_down = self.stage_data[y + 1][x]
-                    stage_position_left = self.stage_data[y][x - 1]
-                    stage_position_right = self.stage_data[y][x + 1]
+                    stage_position_top = self.stage_data[x][y - 1]
+                    stage_position_down = self.stage_data[x][y + 1]
+                    stage_position_left = self.stage_data[x - 1][y]
+                    stage_position_right = self.stage_data[x + 1][y]
                 except IndexError:
                     pass
 
@@ -112,6 +103,9 @@ class Stage:
                 # 中間地点
                 self.add('halfway', data, x, y, 95)
 
+                # ゴール塔
+                self.add('end', data, x, y, 96)
+
                 # まるい敵
                 self.add('enemy', data, x, y, range(99, 102))
 
@@ -123,8 +117,7 @@ class Stage:
         # ブロックの色を変更
         name = f'block{int(img_name[-1:]) + self.mode}' if color else img_name
 
-        # インスタンスを生成してリストに格納
-        append = (lambda: self.image_object_list.append(Image(self.screen, name, img_x, img_y, tweak_x, tweak_y)))
+        append = (lambda: self.image_object_list.append(Sprite(self.screen, name, img_x, img_y, tweak_x, tweak_y)))
 
         # dataと一致しているか確認する場合
         if type(range_function) is int:
@@ -140,6 +133,6 @@ class Stage:
                 if data == i:
                     append()
 
-    def update(self, scroll):
+    def update(self, player):
         for image in self.image_object_list:
-            image.update(scroll)
+            image.update(player.scroll)
