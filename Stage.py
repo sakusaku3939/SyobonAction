@@ -38,9 +38,6 @@ class Stage:
         self.stage_data = [[int(item) for item in row if item != ''] for row in sheet_data]
         self.draw()
 
-        # スクロール量の合計
-        self.scroll_sum = 0
-
     def draw(self):
         # ステージデータから取得
         for x, list_data in enumerate(self.stage_data):
@@ -85,6 +82,7 @@ class Stage:
 
                 # ポール
                 self.add('block4', data, x, y, range(48, 50))
+                self.add('goal_pole', data, x, y, range(50, 52), False, 3, -10)
 
                 # 顔付きの雲
                 self.add('cloud2', data, x, y, 75)

@@ -28,13 +28,13 @@ class Player(pygame.sprite.Sprite):
         self.player_x = self.rect.left
         self.player_y = self.rect.top
 
-        x_speed: float
-        y_speed: float
         self.x_speed = self.y_speed = 0.0  # 速度
-        self.ACCELERATION = 0.08  # 加速度
-        self.DASH_ACCELERATION = 0.26  # 反転ダッシュ時の加速度
+        self.ACCELERATION = 0.07  # 加速度
+        self.DASH_ACCELERATION = 0.25  # 反転ダッシュ時の加速度
         self.FRICTION_ACCELERATION = 0.13  # 地面摩擦時の減速度
-        self.MAX_SPEED = 4.0  # 最大速度
+        self.MAX_SPEED_X = 4  # x方向の最大速度
+        self.MAX_SPEED_Y = 8  # y方向の最大速度
+        self.max_speed = 0  # 最大速度 （変数）
 
         self.SCROLL_LIMIT = 3605  # 画面スクロール上限
         self.scroll_sum = 0  # 画面スクロール量の合計
@@ -43,8 +43,8 @@ class Player(pygame.sprite.Sprite):
         self.FALL_ACCELERATION = 0.3  # 落下加速度
 
         self.isJump = False  # ジャンプモーション中か
-        self.JUMP_SPEED = -7.0  # ジャンプ速度
-        self.ADD_JUMP_SPEED = -2.0  # 追加のジャンプ速度
+        self.JUMP_SPEED = -7.2  # ジャンプ速度
+        self.ADD_JUMP_SPEED = -2.4  # 追加のジャンプ速度
         self.ADD_DASH_JUMP_SPEED = -1.2  # 追加のダッシュジャンプ速度
         self.jump_time = 0  # ジャンプ時間
 
@@ -53,6 +53,9 @@ class Player(pygame.sprite.Sprite):
 
         self.img_number = 0  # x座標が20変わるごとに画像を切り替え
         self.animation = None  # 向きに応じて画像を切り替え
+
+        self.rect_size_x = 4  # x方向の当たり判定の大きさ
+        self.rect_size_y = 6  # y方向の当たり判定の大きさ
 
     def update(self, stage):
         pressed_key = pygame.key.get_pressed()
@@ -66,8 +69,9 @@ class Player(pygame.sprite.Sprite):
         if jump_key and self.isGrounding:
             self.isJump = True
             self.jump_time = 0
-            self.player_y -= 3
             self.y_speed = self.JUMP_SPEED
+            if abs(self.x_speed) < self.MAX_SPEED_X - 2:
+                self.max_speed = self.MAX_SPEED_X - 1
 
         # 8フレーム以内にキーを離した場合小ジャンプ
         if not jump_key:
@@ -79,7 +83,7 @@ class Player(pygame.sprite.Sprite):
                 self.y_speed += self.ADD_JUMP_SPEED
                 self.isJump = False
                 # 移動スピードが最大の時、更にジャンプの高さを追加
-                if abs(self.x_speed) == self.MAX_SPEED:
+                if abs(self.x_speed) == self.MAX_SPEED_X:
                     self.y_speed += self.ADD_DASH_JUMP_SPEED
             else:
                 self.jump_time += 1
@@ -101,10 +105,18 @@ class Player(pygame.sprite.Sprite):
 
         # 地面摩擦
         elif self.isGrounding:
-            self.x_speed -= self.FRICTION_ACCELERATION * np.sign(self.x_speed)
+            if abs(self.x_speed) > 0.1:
+                self.x_speed -= self.FRICTION_ACCELERATION * np.sign(self.x_speed)
+            else:
+                self.x_speed = 0.0
+
+        # 地面判定
+        if self.isGrounding:
+            self.max_speed = self.MAX_SPEED_X
 
         # 最大速度
-        self.x_speed = np.clip(self.x_speed, -self.MAX_SPEED, self.MAX_SPEED)
+        self.x_speed = np.clip(self.x_speed, -self.max_speed, self.max_speed)
+        self.y_speed = np.clip(self.y_speed, -self.MAX_SPEED_Y, self.MAX_SPEED_Y)
 
         # 画面外に出ないようにする
         if (self.player_x + self.x_speed < 0) and not (pressed_key[K_RIGHT] and self.x_speed >= 0):
@@ -114,45 +126,25 @@ class Player(pygame.sprite.Sprite):
             self.x_speed = 0.0
             self.player_x = 450
 
+        # 当たり判定
+        bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
+              'triangle', 'goal_pole']
+        self.isGrounding = self.collision_y(stage, bg)
+        self.collision_x(stage, bg)
+
+        self.y_speed += self.FALL_ACCELERATION
+        self.player_y += self.y_speed
+        self.player_x += self.x_speed
+
         # 画面スクロール
         if self.player_x >= 210:
             # スクロール上限
             if self.scroll_sum < self.SCROLL_LIMIT:
-                self.player_x = 210
+                self.player_x = 210.0
                 self.scroll = int(self.x_speed)
                 self.scroll_sum += self.scroll
             else:
                 self.scroll = 0
-
-        # 当たり判定
-        bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
-              'triangle']
-        collision_name_x, sign_x = self.collision_x(stage, bg)
-        collision_name_y, sign_y = self.collision_y(stage, bg)
-
-        print(collision_name_y)
-
-        # 地面判定
-        if collision_name_y == '':
-            self.player_y += self.y_speed
-            self.isGrounding = False
-            self.y_speed += self.FALL_ACCELERATION
-            self.img_number = 2
-        else:
-            # 頭上にブロックがあった場合
-            if sign_y == -1:
-                self.isHIT_Head = True
-                self.player_y += 5
-                self.y_speed = 0
-            else:
-                self.y_speed = 0.0
-                self.isHIT_Head = False
-                self.isGrounding = True
-            self.isJump = False
-
-        # x方向の当たり判定
-        if collision_name_x == '':
-            self.player_x += self.x_speed
 
         self.draw()
 
@@ -164,39 +156,68 @@ class Player(pygame.sprite.Sprite):
 
     # x方向の当たり判定
     def collision_x(self, stage, bg):
+        if self.x_speed == 0:
+            return False
+
         width = self.rect.width
         height = self.rect.height
-        sign = np.sign(int(self.x_speed))
 
-        # x方向の移動先の座標と矩形を求める
-        new_x = self.player_x + self.x_speed
-        new_rect = Rect(new_x + 5, self.player_y + 5, width - 5, height - 10)
+        # 移動先の座標と矩形を求める
+        start_x = (self.player_x + self.x_speed) + self.rect_size_x
+        start_y = self.player_y + self.rect_size_y
+        end_x = width - self.rect_size_x
+        end_y = height - self.rect_size_y
 
-        # ブロックとの衝突判定
+        new_rect = Rect(start_x, start_y, end_x, end_y)
+
         for block in stage.image_object_list:
             collide = new_rect.colliderect(block.rect)
-            # 衝突するブロックあり
-            if collide and block.name not in bg and sign != 0:
-                self.x_speed = 0.0
-                return block.name, sign
-        return '', 0
+            if collide and block.name not in bg:
+                # 右にあるブロック
+                if self.x_speed > 0.0:
+                    self.player_x = block.rect.left - width
+                    self.x_speed = 0.0
+                    return True
+
+                # 左にあるブロック
+                elif self.x_speed < 0.0:
+                    self.player_x = block.rect.right - self.rect_size_x
+                    self.x_speed = 0.0
+                    return True
+
+        return False
 
     # y方向の当たり判定
     def collision_y(self, stage, bg):
+        if self.y_speed == 0:
+            return False
+
         width = self.rect.width
         height = self.rect.height
 
-        sign = np.sign(int(self.y_speed))
+        # 移動先の座標と矩形を求める
+        start_x = self.player_x + self.rect_size_x
+        start_y = (self.player_y + self.y_speed + self.FALL_ACCELERATION*2) + self.rect_size_y
+        end_x = width - self.rect_size_x
+        end_y = height - self.rect_size_y
 
-        # y方向の移動先の座標と矩形を求める
-        new_y = self.player_y + self.y_speed
-        new_rect = Rect(self.player_x + 6, new_y + 5, width - 12, height - 5)
+        new_rect = Rect(start_x, start_y, end_x, end_y)
 
-        # ブロックとの衝突判定
         for block in stage.image_object_list:
             collide = new_rect.colliderect(block.rect)
-            # 衝突するブロックあり
-            if collide and block.name not in bg and sign != 0:
-                self.player_y = block.y - 34.0 * sign
-                return block.name, sign
-        return '', 0
+            if collide and block.name not in bg:
+                # 下にあるブロック
+                if self.y_speed > 0.0:
+                    self.player_y = block.rect.top - height
+                    self.y_speed = 0.0
+                    return True
+
+                # 上にあるブロック
+                elif self.y_speed < 0.0:
+                    self.player_y = block.rect.bottom
+                    self.y_speed = 0.0
+                    self.img_number = 2
+                    return False
+
+        self.img_number = 2
+        return False

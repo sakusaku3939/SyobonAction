@@ -145,13 +145,8 @@ class Stage_1:
         self.stage = Stage(screen, 1, '1-1')
         self.stage.draw()
 
-        self.init_flag = True
-        self.scroll = 0
-
         remain_show()
-
         self.player = Player(screen)
-
         self.main()
 
     def main(self):
@@ -161,8 +156,8 @@ class Stage_1:
             self.stage.update(self.player)
             self.player.update(self.stage)
 
-            # スペースキーで3倍速
-            variable_FPS = FPS * (3 if pygame.key.get_pressed()[K_SPACE] else 1)
+            # スペースキーで2倍速
+            variable_FPS = FPS * (2 if pygame.key.get_pressed()[K_SPACE] else 1)
             clock.tick(variable_FPS)
 
             pygame.display.update(Rect(0, 0, 480, 420))

@@ -19,6 +19,9 @@ class LoadImage:
             for file in file_list:
                 image_name = os.path.splitext(file.name)[0]
                 image = pygame.image.load(f"res/{folder}/{file.name}").convert()
+                if image_name == 'goal_pole':
+                    image.set_colorkey((160, 180, 250), RLEACCEL)
+
                 self.image_list[image_name] = image
 
         # 画像の透過
