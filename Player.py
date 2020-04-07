@@ -29,8 +29,8 @@ class Player(pygame.sprite.Sprite):
         self.player_y = self.rect.top
 
         self.x_speed = self.y_speed = 0.0  # 速度
-        self.ACCELERATION = 0.07  # 加速度
-        self.DASH_ACCELERATION = 0.25  # 反転ダッシュ時の加速度
+        self.ACCELERATION = 0.08  # 加速度
+        self.DASH_ACCELERATION = 0.23  # 反転ダッシュ時の加速度
         self.FRICTION_ACCELERATION = 0.13  # 地面摩擦時の減速度
         self.MAX_SPEED_X = 4  # x方向の最大速度
         self.MAX_SPEED_Y = 8  # y方向の最大速度
@@ -40,11 +40,11 @@ class Player(pygame.sprite.Sprite):
         self.scroll_sum = 0  # 画面スクロール量の合計
 
         self.isGrounding = True  # 落下しているか
-        self.FALL_ACCELERATION = 0.3  # 落下加速度
+        self.FALL_ACCELERATION = 0.27  # 落下加速度
 
         self.isJump = False  # ジャンプモーション中か
-        self.JUMP_SPEED = -7.2  # ジャンプ速度
-        self.ADD_JUMP_SPEED = -2.4  # 追加のジャンプ速度
+        self.JUMP_SPEED = -6.7  # ジャンプ速度
+        self.ADD_JUMP_SPEED = -2.2  # 追加のジャンプ速度
         self.ADD_DASH_JUMP_SPEED = -1.2  # 追加のダッシュジャンプ速度
         self.jump_time = 0  # ジャンプ時間
 
@@ -64,14 +64,20 @@ class Player(pygame.sprite.Sprite):
         self.img_number = int((self.player_x + self.scroll_sum) / 20) % 2
         self.animation = (lambda num: self.img_left[num] if self.isLeft else self.img_right[num])
 
+        # 地面判定
+        if self.isGrounding:
+            self.max_speed = self.MAX_SPEED_X
+
         # ジャンプ
         jump_key = pressed_key[K_UP] or pressed_key[K_z]
         if jump_key and self.isGrounding:
             self.isJump = True
             self.jump_time = 0
             self.y_speed = self.JUMP_SPEED
-            if abs(self.x_speed) < self.MAX_SPEED_X - 2:
+            if abs(self.x_speed) < self.MAX_SPEED_X - 1:
                 self.max_speed = self.MAX_SPEED_X - 1
+            else:
+                self.max_speed = abs(self.x_speed)
 
         # 8フレーム以内にキーを離した場合小ジャンプ
         if not jump_key:
@@ -110,10 +116,6 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.x_speed = 0.0
 
-        # 地面判定
-        if self.isGrounding:
-            self.max_speed = self.MAX_SPEED_X
-
         # 最大速度
         self.x_speed = np.clip(self.x_speed, -self.max_speed, self.max_speed)
         self.y_speed = np.clip(self.y_speed, -self.MAX_SPEED_Y, self.MAX_SPEED_Y)
@@ -141,7 +143,7 @@ class Player(pygame.sprite.Sprite):
             # スクロール上限
             if self.scroll_sum < self.SCROLL_LIMIT:
                 self.player_x = 210.0
-                self.scroll = int(self.x_speed)
+                self.scroll = np.round(self.x_speed)
                 self.scroll_sum += self.scroll
             else:
                 self.scroll = 0
