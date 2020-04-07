@@ -45,7 +45,7 @@ class Player(pygame.sprite.Sprite):
         self.isJump = False  # ジャンプモーション中か
         self.JUMP_SPEED = -6.7  # ジャンプ速度
         self.ADD_JUMP_SPEED = -2.2  # 追加のジャンプ速度
-        self.ADD_DASH_JUMP_SPEED = -1.2  # 追加のダッシュジャンプ速度
+        self.ADD_DASH_JUMP_SPEED = -1.1  # 追加のダッシュジャンプ速度
         self.jump_time = 0  # ジャンプ時間
 
         self.isLeft = False  # 左を向いているかどうか
