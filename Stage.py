@@ -8,8 +8,10 @@ from Image import Sprite
 
 
 class Stage:
-    # 画像オブジェクトを格納するリスト
-    image_object_list = []
+    # ブロックオブジェクトを格納するリスト
+    block_object_list = []
+    # 敵オブジェクトを格納するリスト
+    enemy_object_list = []
 
     def __init__(self, screen, block_color, sheet_name):
         # ステージのブロックの色 （1～4）
@@ -38,6 +40,9 @@ class Stage:
         self.stage_data = [[int(item) for item in row if item != ''] for row in sheet_data]
         self.draw()
 
+        # プレイヤークラスのインスタンス
+        self.player = None
+
     def draw(self):
         # ステージデータから取得
         for x, list_data in enumerate(self.stage_data):
@@ -52,71 +57,81 @@ class Stage:
                     pass
 
                 # 壊れるブロック
-                self.add('block1', data, x, y, range(1, 17), True)
+                self.block_add('block1', data, x, y, range(1, 17), True)
 
                 # はてなブロック
-                self.add('block2', data, x, y, range(17, 29), True)
+                self.block_add('block2', data, x, y, range(17, 29), True)
 
                 # 隠しブロック
-                self.add('block3', data, x, y, range(29, 41), True)
+                self.block_add('block3', data, x, y, range(29, 41), True)
 
                 # 硬いブロック
-                self.add('block4', data, x, y, range(41, 43), True)
+                self.block_add('block4', data, x, y, range(41, 43), True)
 
                 # 足場ブロック
                 if data == 43:
                     if stage_position_top != 43:
-                        self.add('block5', data, x, y, None, True)
+                        self.block_add('block5', data, x, y, None, True)
                     else:
-                        self.add('block6', data, x, y, None, True)
+                        self.block_add('block6', data, x, y, None, True)
 
                 # 落ちる足場ブロック
                 if data == 44:
                     if stage_position_top != 44:
-                        self.add('block5', data, x, y, None, True)
+                        self.block_add('block5', data, x, y, None, True)
                     else:
-                        self.add('block6', data, x, y, None, True)
+                        self.block_add('block6', data, x, y, None, True)
 
                 # 針
-                self.add('block7', data, x, y, 47, True)
+                self.block_add('block7', data, x, y, 47, True)
 
                 # ポール
-                self.add('block4', data, x, y, range(48, 50))
-                self.add('goal_pole', data, x, y, range(50, 52), False, 3, -10)
+                self.block_add('block4', data, x, y, range(48, 50))
+                self.block_add('goal_pole', data, x, y, range(50, 52), False, 3, -10)
 
                 # 顔付きの雲
-                self.add('cloud2', data, x, y, 75)
+                self.block_add('cloud2', data, x, y, 75)
 
                 # 土管
-                self.add('dokan1', data, x, y, range(81, 85))
-                self.add('dokan1', data, x, y, 79)
-                self.add('dokan2', data, x, y, 80, False, -1, 1)
+                self.block_add('dokan1', data, x, y, range(81, 85))
+                self.block_add('dokan1', data, x, y, 79)
+                self.block_add('dokan2', data, x, y, 80, False, -1, 1)
 
                 # 草
-                self.add('grass', data, x, y, 88)
+                self.block_add('grass', data, x, y, 88)
 
                 # 山
-                self.add('mountain', data, x, y, 89)
+                self.block_add('mountain', data, x, y, 89)
 
                 # 中間地点
-                self.add('halfway', data, x, y, 95)
+                self.block_add('halfway', data, x, y, 95)
 
                 # ゴール塔
-                self.add('end', data, x, y, 96)
+                self.block_add('end', data, x, y, 96)
 
                 # まるい敵
-                self.add('enemy', data, x, y, range(99, 102))
+                self.enemy_add('enemy', data, x, y, range(99, 102))
 
                 # 甲羅亀
-                self.add('koura1', data, x, y, range(102, 104), False, 0, -12)
+                self.enemy_add('koura1', data, x, y, range(102, 104), 0, -12)
 
-    # 画像データをImageクラスに追加
-    def add(self, img_name, data, img_x, img_y, range_function, color=False, tweak_x=0, tweak_y=0):
+    # ブロックデータをImageクラスに追加
+    def block_add(self, img_name, data, img_x, img_y, range_function, color=False, tweak_x=0, tweak_y=0):
         # ブロックの色を変更
         name = f'block{int(img_name[-1:]) + self.mode}' if color else img_name
 
-        append = (lambda: self.image_object_list.append(Sprite(self.screen, name, img_x, img_y, tweak_x, tweak_y)))
+        # Imageクラスに画像を追加
+        append = (lambda: self.block_object_list.append(Sprite(self.screen, name, img_x, img_y, tweak_x, tweak_y)))
+        self._add(data, range_function, append)
 
+    # 敵データをImageクラスに追加
+    def enemy_add(self, img_name, data, img_x, img_y, range_function, tweak_x=0, tweak_y=0):
+        # Imageクラスに画像を追加
+        append = (lambda: self.enemy_object_list.append(Sprite(self.screen, img_name, img_x, img_y, tweak_x, tweak_y)))
+        self._add(data, range_function, append)
+
+    # Imageクラスに画像を追加
+    def _add(self, data, range_function, append):
         # dataと一致しているか確認する場合
         if type(range_function) is int:
             if data == range_function:
@@ -131,6 +146,6 @@ class Stage:
                 if data == i:
                     append()
 
-    def update(self, player):
-        for image in self.image_object_list:
-            image.update(player.scroll)
+    def update(self):
+        for image in self.block_object_list:
+            image.update(self.player.scroll)

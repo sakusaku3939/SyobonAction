@@ -3,6 +3,7 @@ from pygame.locals import *
 import sys
 from time import *
 
+from Enemy import Enemy
 from Image import LoadImage
 from Stage import Stage
 from Player import Player
@@ -143,18 +144,20 @@ class Title:
 class Stage_1:
     def __init__(self):
         self.stage = Stage(screen, 1, '1-1')
-        self.stage.draw()
+        self.player = Player(screen, self.stage)
+        self.enemy = Enemy(screen, self.stage)
+
+        self.stage.player = self.player
 
         remain_show()
-        self.player = Player(screen)
         self.main()
 
     def main(self):
         while 1:
             screen.fill((160, 180, 250))
 
-            self.stage.update(self.player)
-            self.player.update(self.stage)
+            self.stage.update()
+            self.player.update()
 
             # スペースキーで2倍速
             variable_FPS = FPS * (2 if pygame.key.get_pressed()[K_SPACE] else 1)
@@ -177,7 +180,7 @@ class Stage_1:
                     if event.key == K_F1:
                         global GAME_STATE
                         GAME_STATE = 0
-                        self.stage.image_object_list.clear()
+                        self.stage.block_object_list.clear()
                         return
 
 
