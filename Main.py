@@ -143,11 +143,9 @@ class Title:
 # ステージ1-1
 class Stage_1:
     def __init__(self):
-        self.stage = Stage(screen, 1, '1-1')
-        self.player = Player(screen, self.stage)
-        self.enemy = Enemy(screen, self.stage)
-
-        self.stage.player = self.player
+        self.player = Player(screen)
+        self.enemy = Enemy(screen)
+        self.stage = Stage(screen, self.player, 1, '1-1')
 
         remain_show()
         self.main()
@@ -158,6 +156,7 @@ class Stage_1:
 
             self.stage.update()
             self.player.update()
+            self.enemy.update()
 
             # スペースキーで2倍速
             variable_FPS = FPS * (2 if pygame.key.get_pressed()[K_SPACE] else 1)

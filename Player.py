@@ -3,6 +3,7 @@ from pygame.locals import *
 import numpy as np
 
 from Image import LoadImage
+from Stage import Stage
 
 
 class Player(pygame.sprite.Sprite):
@@ -11,11 +12,10 @@ class Player(pygame.sprite.Sprite):
     # 1フレームの画面スクロール値
     scroll = 0
 
-    def __init__(self, screen, stage):
+    def __init__(self, screen):
         pygame.sprite.Sprite.__init__(self)
 
         self.screen = screen
-        self.stage = stage
 
         img = LoadImage.image_list
         self.image = img['player1']
@@ -24,9 +24,9 @@ class Player(pygame.sprite.Sprite):
 
         self.player_x = 80
         self.player_y = 320
-        width = self.image.get_width()
-        height = self.image.get_height()
-        self.rect = Rect(self.player_x, self.player_y, width, height)
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+        self.rect = Rect(self.player_x, self.player_y, self.width, self.height)
 
         self.x_speed = self.y_speed = 0.0  # 速度
         self.ACCELERATION = 0.1  # 加速度
@@ -39,7 +39,7 @@ class Player(pygame.sprite.Sprite):
         self.SCROLL_LIMIT = 3605  # 画面スクロール上限
         self.scroll_sum = 0  # 画面スクロール量の合計
 
-        self.isGrounding = True  # 落下しているか
+        self.isGrounding = True  # 地面に着地しているか
         self.FALL_ACCELERATION = 0.27  # 落下加速度
 
         self.isJump = False  # ジャンプモーション中か
@@ -161,23 +161,20 @@ class Player(pygame.sprite.Sprite):
         if self.x_speed == 0:
             return False
 
-        width = self.rect.width
-        height = self.rect.height
-
         # 移動先の座標と矩形を求める
         start_x = (self.player_x + self.x_speed) + self.rect_size_x
         start_y = self.player_y + self.rect_size_y
-        end_x = width - self.rect_size_x
-        end_y = height - self.rect_size_y
+        end_x = self.width - self.rect_size_x
+        end_y = self.height - self.rect_size_y
 
         new_rect = Rect(start_x, start_y, end_x, end_y)
 
-        for block in self.stage.block_object_list:
+        for block in Stage.block_object_list:
             collide = new_rect.colliderect(block.rect)
             if collide and block.name not in self.bg:
                 # 右にあるブロック
                 if self.x_speed > 0.0:
-                    self.player_x = block.rect.left - width
+                    self.player_x = block.rect.left - self.width
                     self.x_speed = 0.0
                     self.scroll = 0
                     return True
@@ -196,23 +193,20 @@ class Player(pygame.sprite.Sprite):
         if self.y_speed == 0:
             return False
 
-        width = self.rect.width
-        height = self.rect.height
-
         # 移動先の座標と矩形を求める
         start_x = self.player_x + self.rect_size_x
         start_y = (self.player_y + self.y_speed + self.FALL_ACCELERATION * 2) + self.rect_size_y
-        end_x = width - self.rect_size_x
-        end_y = height - self.rect_size_y
+        end_x = self.width - self.rect_size_x
+        end_y = self.height - self.rect_size_y
 
         new_rect = Rect(start_x, start_y, end_x, end_y)
 
-        for block in self.stage.block_object_list:
+        for block in Stage.block_object_list:
             collide = new_rect.colliderect(block.rect)
             if collide and block.name not in self.bg:
                 # 下にあるブロック
                 if self.y_speed > 0.0:
-                    self.player_y = block.rect.top - height
+                    self.player_y = block.rect.top - self.height
                     self.y_speed = 0.0
                     return True
 

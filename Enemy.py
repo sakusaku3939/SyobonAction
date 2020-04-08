@@ -1,102 +1,97 @@
 import pygame
 from pygame.locals import *
 
-from Image import LoadImage
+from Stage import Stage
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, screen, stage):
+    def __init__(self, screen):
         pygame.sprite.Sprite.__init__(self)
 
         self.screen = screen
-        self.stage = stage
-        self.x_speed = self.y_speed = 0.0
+
+        self.isGrounding = True  # 地面に着地しているか
+        self.FALL_ACCELERATION = 0.27  # 落下加速度
 
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
                    'triangle', 'goal_pole']  # 当たり判定を行わない背景画像
-        self.rect_size_x = 7  # x方向の当たり判定の大きさ
-        self.rect_size_y = 5  # y方向の当たり判定の大きさ
-
-        self._enemy_init()
-
-        self.player_x = 0
-        self.player_y = 0
-
-    def _enemy_init(self):
-        for image in self.stage.enemy_object_list:
-            print(image.name)
-            # @TODO 敵の描画処理を追加
+        self.rect_size_x = 0  # x方向の当たり判定の大きさ
+        self.rect_size_y = 0  # y方向の当たり判定の大きさ
 
     def update(self):
-        # @TODO 敵の歩行処理を追加
-        pass
+        for enemy in Stage.enemy_object_list:
+            # if not self.collision_y(enemy):
+            #     enemy.y_speed += self.FALL_ACCELERATION
+            #     enemy.y += enemy.y_speed
+            # else:
+            #     enemy.y_speed = 0.0
 
-    # x方向の当たり判定
-    def collision_x(self):
-        if self.x_speed == 0:
-            return False
+            if enemy.rect.left < 480:
+                enemy.x -= enemy.x_speed
 
-        width = self.rect.width
-        height = self.rect.height
+            enemy.update()
 
-        # 移動先の座標と矩形を求める
-        start_x = (self.player_x + self.x_speed) + self.rect_size_x
-        start_y = self.player_y + self.rect_size_y
-        end_x = width - self.rect_size_x
-        end_y = height - self.rect_size_y
-
-        new_rect = Rect(start_x, start_y, end_x, end_y)
-
-        for block in self.stage.image_object_list:
-            collide = new_rect.colliderect(block.rect)
-            if collide and block.name not in self.bg:
-                # 右にあるブロック
-                if self.x_speed > 0.0:
-                    self.player_x = block.rect.left - width
-                    self.x_speed = 0.0
-                    self.scroll = 0
-                    return True
-
-                # 左にあるブロック
-                elif self.x_speed < 0.0:
-                    self.player_x = block.rect.right - self.rect_size_x
-                    self.x_speed = 0.0
-                    self.scroll = 0
-                    return True
-
-        return False
+    # # x方向の当たり判定
+    # def collision_x(self):
+    #     if self.x_speed == 0:
+    #         return False
+    #
+    #     width = self.rect.width
+    #     height = self.rect.height
+    #
+    #     # 移動先の座標と矩形を求める
+    #     start_x = (self.enemy_x + self.x_speed) + self.rect_size_x
+    #     start_y = self.enemy_y + self.rect_size_y
+    #     end_x = width - self.rect_size_x
+    #     end_y = height - self.rect_size_y
+    #
+    #     new_rect = Rect(start_x, start_y, end_x, end_y)
+    #
+    #     for block in Stage.block_object_list:
+    #         collide = new_rect.colliderect(block.rect)
+    #         if collide and block.name not in self.bg:
+    #             # 右にあるブロック
+    #             if self.x_speed > 0.0:
+    #                 self.enemy_x = block.rect.left - width
+    #                 self.x_speed = 0.0
+    #                 self.scroll = 0
+    #                 return True
+    #
+    #             # 左にあるブロック
+    #             elif self.x_speed < 0.0:
+    #                 self.enemy_x = block.rect.right - self.rect_size_x
+    #                 self.x_speed = 0.0
+    #                 self.scroll = 0
+    #                 return True
+    #
+    #     return False
 
     # y方向の当たり判定
-    def collision_y(self):
-        if self.y_speed == 0:
+    def collision_y(self, enemy):
+        if enemy.y_speed == 0:
             return False
 
-        width = self.rect.width
-        height = self.rect.height
+        width = enemy.rect.width
+        height = enemy.rect.height
 
         # 移動先の座標と矩形を求める
-        start_x = self.player_x + self.rect_size_x
-        start_y = (self.player_y + self.y_speed + self.FALL_ACCELERATION * 2) + self.rect_size_y
+        start_x = enemy.x + self.rect_size_x
+        start_y = (enemy.y + enemy.y_speed + self.FALL_ACCELERATION * 2) + self.rect_size_y
         end_x = width - self.rect_size_x
         end_y = height - self.rect_size_y
 
         new_rect = Rect(start_x, start_y, end_x, end_y)
 
-        for block in self.stage.image_object_list:
+        for block in Stage.block_object_list:
             collide = new_rect.colliderect(block.rect)
             if collide and block.name not in self.bg:
                 # 下にあるブロック
-                if self.y_speed > 0.0:
-                    self.player_y = block.rect.top - height
-                    self.y_speed = 0.0
+                if enemy.y_speed > 0.0:
+                    enemy.y = block.rect.top - height
                     return True
 
                 # 上にあるブロック
-                elif self.y_speed < 0.0:
-                    self.player_y = block.rect.bottom
-                    self.y_speed = 0.0
-                    self.img_number = 2
+                elif enemy.y_speed < 0.0:
+                    enemy.y = block.rect.bottom
                     return False
-
-        self.img_number = 2
         return False

@@ -13,9 +13,11 @@ class Stage:
     # 敵オブジェクトを格納するリスト
     enemy_object_list = []
 
-    def __init__(self, screen, block_color, sheet_name):
-        # ステージのブロックの色 （1～4）
+    def __init__(self, screen, player, block_color, sheet_name):
         self.screen = screen
+        self.player = player
+
+        # ステージのブロックの色 （1～4）
         self.mode = 7 * (block_color - 1)
 
         # Excelからステージデータを取得
@@ -40,7 +42,7 @@ class Stage:
         self.stage_data = [[int(item) for item in row if item != ''] for row in sheet_data]
         self.draw()
 
-        # プレイヤークラスのインスタンス
+        # プレイヤークラスのインスタンス （Main.pyにて値セット）
         self.player = None
 
     def draw(self):
@@ -115,22 +117,26 @@ class Stage:
                 # 甲羅亀
                 self.enemy_add('koura1', data, x, y, range(102, 104), 0, -12)
 
-    # ブロックデータをImageクラスに追加
+    # ブロックデータをSpriteクラスに追加
     def block_add(self, img_name, data, img_x, img_y, range_function, color=False, tweak_x=0, tweak_y=0):
         # ブロックの色を変更
         name = f'block{int(img_name[-1:]) + self.mode}' if color else img_name
 
-        # Imageクラスに画像を追加
-        append = (lambda: self.block_object_list.append(Sprite(self.screen, name, img_x, img_y, tweak_x, tweak_y)))
+        # block_object_listに追加
+        append = (lambda: self.block_object_list.append(
+            Sprite(self.screen, self.player, name, img_x, img_y, tweak_x, tweak_y)
+        ))
         self._add(data, range_function, append)
 
-    # 敵データをImageクラスに追加
-    def enemy_add(self, img_name, data, img_x, img_y, range_function, tweak_x=0, tweak_y=0):
-        # Imageクラスに画像を追加
-        append = (lambda: self.enemy_object_list.append(Sprite(self.screen, img_name, img_x, img_y, tweak_x, tweak_y)))
+    # 敵データをSpriteクラスに追加
+    def enemy_add(self, name, data, img_x, img_y, range_function, tweak_x=0, tweak_y=0):
+        # enemy_object_listに追加
+        append = (lambda: self.enemy_object_list.append(
+            Sprite(self.screen, self.player, name, img_x, img_y, tweak_x, tweak_y)
+        ))
         self._add(data, range_function, append)
 
-    # Imageクラスに画像を追加
+    # 画像のパターンマッチング
     def _add(self, data, range_function, append):
         # dataと一致しているか確認する場合
         if type(range_function) is int:
@@ -148,4 +154,4 @@ class Stage:
 
     def update(self):
         for image in self.block_object_list:
-            image.update(self.player.scroll)
+            image.update()

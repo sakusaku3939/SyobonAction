@@ -32,9 +32,14 @@ class LoadImage:
 
 
 class Sprite(pygame.sprite.Sprite):
-    def __init__(self, screen, img_name, x, y, tweak_x=0, tweak_y=0):
+    def __init__(self, screen, player, img_name, x, y, tweak_x=0, tweak_y=0):
         self.screen = screen
-        self.name = img_name
+        self.player = player  # プレイヤークラスのインスタンス
+
+        self.name = img_name  # スプライトの名前
+        self.x = self.y = 0.0  # スプライトの座標
+        self.x_speed = 0.5  # スプライトの移動速度
+        self.y_speed = 0.0  # スプライトの落下速度
 
         pygame.sprite.Sprite.__init__(self)
 
@@ -43,14 +48,16 @@ class Sprite(pygame.sprite.Sprite):
         height = self.image.get_height()
         self.x = x * 29 + tweak_x
         self.y = y * 29 - 12 + tweak_y
-        self.rect = Rect(self.x, self.y, width, height)
+        self.rect = Rect(int(self.x), int(self.y), width, height)
 
         screen.blit(self.image, self.rect)
 
-    # 画面スクロール
-    def update(self, scroll):
-        # 画面内の領域のみ描画
+    def update(self):
+        # 画面スクロール
         if self.rect.left > -150:
-            self.rect.left -= scroll
+            self.rect.left -= self.player.scroll
+            # 画面内の領域のみ描画
             if self.rect.left < 480:
+                self.rect.left = round(self.x) - self.player.scroll_sum
+                self.rect.top = round(self.y)
                 self.screen.blit(self.image, self.rect)
