@@ -38,7 +38,7 @@ class Enemy(pygame.sprite.Sprite):
         end_y = enemy.height - 20
 
         new_rect = Rect(start_x, start_y, end_x, end_y)
-        pygame.draw.rect(self.screen, (255, 0, 0), new_rect)  # 当たり判定可視化 （デバック用）
+        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect)  # 当たり判定可視化 （デバック用）
 
         for block in Stage.block_object_list:
             collide = new_rect.colliderect(block.rect)
@@ -56,7 +56,7 @@ class Enemy(pygame.sprite.Sprite):
         end_y = enemy.height
 
         new_rect = Rect(start_x, start_y, end_x, end_y)
-        pygame.draw.rect(self.screen, (0, 0, 255), new_rect)  # 当たり判定可視化 （デバック用）
+        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect)  # 当たり判定可視化 （デバック用）
 
         for block in Stage.block_object_list:
             collide = new_rect.colliderect(block.rect)
