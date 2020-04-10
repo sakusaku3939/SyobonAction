@@ -50,10 +50,10 @@ class Enemy(pygame.sprite.Sprite):
     # y方向の当たり判定
     def collision_y(self, enemy):
         # 移動先の座標と矩形を求める
-        start_x = enemy.rect.left + 2
+        start_x = enemy.rect.left + 1
         start_y = enemy.y + enemy.y_speed + self.FALL_ACCELERATION * 2
-        end_x = enemy.width - 7
-        end_y = enemy.height
+        end_x = enemy.width - 4
+        end_y = enemy.height - 2
 
         new_rect = Rect(start_x, start_y, end_x, end_y)
         # pygame.draw.rect(self.screen, (0, 0, 255), new_rect)  # 当たり判定可視化 （デバック用）
@@ -63,7 +63,7 @@ class Enemy(pygame.sprite.Sprite):
             if collide and block.name not in self.bg:
                 # 下にある場合
                 if enemy.y_speed > 0.0:
-                    enemy.y = block.rect.top - enemy.height
+                    enemy.y = block.rect.top - enemy.height + 2
                     enemy.y_speed = 0.0
                     return True
 
