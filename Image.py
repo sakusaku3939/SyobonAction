@@ -37,18 +37,19 @@ class Sprite(pygame.sprite.Sprite):
         self.player = player  # プレイヤークラスのインスタンス
 
         self.name = img_name  # スプライトの名前
-        self.x = self.y = 0.0  # スプライトの座標
+        self.x = self.y = 0.0  # スプライトの画面内の座標
         self.x_speed = 0.5  # スプライトの移動速度
         self.y_speed = 0.0  # スプライトの落下速度
+        self.direction = 1  # スプライトの向き （1 or -1）
 
         pygame.sprite.Sprite.__init__(self)
 
         self.image = LoadImage.image_list[img_name]
-        width = self.image.get_width()
-        height = self.image.get_height()
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
         self.x = x * 29 + tweak_x
         self.y = y * 29 - 12 + tweak_y
-        self.rect = Rect(int(self.x), int(self.y), width, height)
+        self.rect = Rect(int(self.x), int(self.y), self.width, self.height)
 
         screen.blit(self.image, self.rect)
 

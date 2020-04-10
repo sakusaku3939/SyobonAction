@@ -155,8 +155,8 @@ class Stage_1:
             screen.fill((160, 180, 250))
 
             self.stage.update()
-            self.player.update()
             self.enemy.update()
+            self.player.update()
 
             # スペースキーで2倍速
             variable_FPS = FPS * (2 if pygame.key.get_pressed()[K_SPACE] else 1)

@@ -57,8 +57,6 @@ class Player(pygame.sprite.Sprite):
 
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
                    'triangle', 'goal_pole']  # 当たり判定を行わない背景画像
-        self.rect_size_x = 7  # x方向の当たり判定の大きさ
-        self.rect_size_y = 5  # y方向の当たり判定の大きさ
 
     def update(self):
         pressed_key = pygame.key.get_pressed()
@@ -170,30 +168,41 @@ class Player(pygame.sprite.Sprite):
 
     # x方向の当たり判定
     def collision_x(self):
-        if self.x_speed == 0:
-            return False
-
         # 移動先の座標と矩形を求める
-        start_x = (self.player_x + self.x_speed) + self.rect_size_x
-        start_y = self.player_y + self.rect_size_y
-        end_x = self.width - self.rect_size_x
-        end_y = self.height - self.rect_size_y
+        start_x = self.player_x + self.x_speed
+        start_y = self.player_y + self.FALL_ACCELERATION * 2 + 15
+        end_x = self.width / 2
+        end_y = self.height - 30
 
-        new_rect = Rect(start_x, start_y, end_x, end_y)
+        new_rect_left = Rect(start_x, start_y, end_x, end_y)
+
+        start_x += self.width / 2
+        new_rect_right = Rect(start_x, start_y, end_x, end_y)
+
+        # 当たり判定可視化 （デバック用）
+        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_left)
+        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_right)
 
         for block in Stage.block_object_list:
-            collide = new_rect.colliderect(block.rect)
-            if collide and block.name not in self.bg:
-                # 右にあるブロック
-                if self.x_speed > 0.0:
+            collide_left = new_rect_left.colliderect(block.rect)
+            collide_right = new_rect_right.colliderect(block.rect)
+            if block.name not in self.bg:
+                # 両隣にある場合
+                if collide_left and collide_right:
+                    self.x_speed = 0.0
+                    self.scroll = 0
+                    return True
+
+                # 右にある場合
+                elif collide_right and self.x_speed > 0.0:
                     self.player_x = block.rect.left - self.width
                     self.x_speed = 0.0
                     self.scroll = 0
                     return True
 
-                # 左にあるブロック
-                elif self.x_speed < 0.0:
-                    self.player_x = block.rect.right - self.rect_size_x
+                # 左にある場合
+                elif collide_left and self.x_speed < 0.0:
+                    self.player_x = block.rect.right
                     self.x_speed = 0.0
                     self.scroll = 0
                     return True
@@ -202,16 +211,14 @@ class Player(pygame.sprite.Sprite):
 
     # y方向の当たり判定
     def collision_y(self):
-        if self.y_speed == 0:
-            return False
-
         # 移動先の座標と矩形を求める
-        start_x = self.player_x + self.rect_size_x
-        start_y = (self.player_y + self.y_speed + self.FALL_ACCELERATION * 2) + self.rect_size_y
-        end_x = self.width - self.rect_size_x
-        end_y = self.height - self.rect_size_y
+        start_x = self.player_x + 8
+        start_y = self.player_y + self.y_speed + self.FALL_ACCELERATION * 2 + 3
+        end_x = self.width - 14
+        end_y = self.height - 1
 
         new_rect = Rect(start_x, start_y, end_x, end_y)
+        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect)  # 当たり判定可視化 （デバック用）
 
         for block in Stage.block_object_list:
             collide = new_rect.colliderect(block.rect)
