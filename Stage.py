@@ -4,7 +4,7 @@ import sys
 import tkinter
 from tkinter import messagebox
 
-from Image import Sprite
+from Image import Sprite, SpriteEnemy
 
 
 class Stage:
@@ -135,7 +135,7 @@ class Stage:
     def enemy_add(self, name, data, img_x, img_y, range_function, tweak_x=0, tweak_y=0):
         # enemy_object_listに追加
         append = (lambda: self.enemy_object_list.append(
-            Sprite(self.screen, self.player, name, img_x, img_y, tweak_x, tweak_y)
+            SpriteEnemy(self.screen, self.player, name, img_x, img_y, tweak_x, tweak_y)
         ))
         self._add(data, range_function, append)
 

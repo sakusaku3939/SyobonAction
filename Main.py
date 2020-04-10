@@ -162,7 +162,7 @@ class Stage_1:
             variable_FPS = FPS * (2 if pygame.key.get_pressed()[K_SPACE] else 1)
             clock.tick(variable_FPS)
 
-            pygame.display.update(Rect(0, 0, 480, 420))
+            pygame.display.update()#Rect(0, 0, 480, 420))
 
             for event in pygame.event.get():
                 # 「×」ボタンが押されたら終了

@@ -20,7 +20,7 @@ class Player(pygame.sprite.Sprite):
         img = LoadImage.image_list
         self.image = img['player1']
         self.img_right = [img['player1'], img['player2'], img['player3'], img['player4']]
-        self.img_left = [pygame.transform.flip(i, True, False) for i in self.img_right]
+        self.img_left = [pygame.transform.flip(img, True, False) for img in self.img_right]
 
         self.player_x = 80
         self.player_y = 320
@@ -55,8 +55,9 @@ class Player(pygame.sprite.Sprite):
         self.img_number = 0  # x座標が20変わるごとに画像を切り替え
         self.animation = None  # 向きに応じて画像を切り替え
 
+        # 当たり判定を行わない背景画像
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
-                   'triangle', 'goal_pole']  # 当たり判定を行わない背景画像
+                   'triangle', 'goal_pole']
 
     def update(self):
         pressed_key = pygame.key.get_pressed()
@@ -223,13 +224,13 @@ class Player(pygame.sprite.Sprite):
         for block in Stage.block_object_list:
             collide = new_rect.colliderect(block.rect)
             if collide and block.name not in self.bg:
-                # 下にあるブロック
+                # 下にある場合
                 if self.y_speed > 0.0:
                     self.player_y = block.rect.top - self.height
                     self.y_speed = 0.0
                     return True
 
-                # 上にあるブロック
+                # 上にある場合
                 elif self.y_speed < 0.0:
                     self.player_y = block.rect.bottom
                     self.y_speed = 0.0

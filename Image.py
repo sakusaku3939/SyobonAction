@@ -33,24 +33,26 @@ class LoadImage:
 
 class Sprite(pygame.sprite.Sprite):
     def __init__(self, screen, player, img_name, x, y, tweak_x=0, tweak_y=0):
-        self.screen = screen
-        self.player = player  # プレイヤークラスのインスタンス
-
-        self.name = img_name  # スプライトの名前
-        self.x = self.y = 0.0  # スプライトの画面内の座標
-        self.x_speed = 0.5  # スプライトの移動速度
-        self.y_speed = 0.0  # スプライトの落下速度
-        self.direction = 1  # スプライトの向き （1 or -1）
-
         pygame.sprite.Sprite.__init__(self)
 
+        # インスタンスオブジェクトを格納
+        self.screen = screen
+        self.player = player
+
+        # 画像の読み込み
+        self.name = img_name  # スプライトの名前
         self.image = LoadImage.image_list[img_name]
-        self.width = self.image.get_width()
-        self.height = self.image.get_height()
+
+        # 画面内の座標
         self.x = x * 29 + tweak_x
         self.y = y * 29 - 12 + tweak_y
-        self.rect = Rect(int(self.x), int(self.y), self.width, self.height)
 
+        # スプライトのサイズ
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+
+        # 初期位置に描画
+        self.rect = Rect(int(self.x), int(self.y), self.width, self.height)
         screen.blit(self.image, self.rect)
 
     def update(self):
@@ -59,6 +61,45 @@ class Sprite(pygame.sprite.Sprite):
             self.rect.left -= self.player.scroll
             # 画面内の領域のみ描画
             if self.rect.left < 480:
+                self.screen.blit(self.image, self.rect)
+
+
+class SpriteEnemy(Sprite):
+    def __init__(self, screen, player, img_name, x, y, tweak_x=0, tweak_y=0):
+        super().__init__(screen, player, img_name, x, y, tweak_x, tweak_y)
+
+        # 画像を格納
+        self.img_left = self.load_image()
+        self.img_right = [pygame.transform.flip(img, True, False) for img in self.img_left]
+
+        self.x_speed = 0.5  # 移動速度
+        self.y_speed = 0.0  # 落下速度
+        self.direction = 1  # 向き （1 or -1）
+
+    # 画像の読み込み
+    def load_image(self):
+        img = [self.image]
+
+        # 画像が複数ある場合はリストに追加
+        if "1" in self.name:
+            for i in range(1, 5):
+                name = self.name[:-1] + str(i)
+                if name in LoadImage.image_list:
+                    img.append(LoadImage.image_list[name])
+        return img
+
+    def update(self, list_number=0):
+        # 画面スクロール
+        if self.rect.left > -150:
+            self.rect.left -= self.player.scroll
+
+            # 画面内の領域のみ描画
+            if self.rect.left < 550:
                 self.rect.left = round(self.x) - self.player.scroll_sum
                 self.rect.top = round(self.y)
-                self.screen.blit(self.image, self.rect)
+
+                # 向きによって画像を変更
+                if self.direction == 1:
+                    self.screen.blit(self.img_left[list_number], self.rect)
+                else:
+                    self.screen.blit(self.img_right[list_number], self.rect)
