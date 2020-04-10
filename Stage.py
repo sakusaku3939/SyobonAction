@@ -17,6 +17,9 @@ class Stage:
         self.screen = screen
         self.player = player
 
+        self.block_object_list.clear()
+        self.enemy_object_list.clear()
+
         # ステージのブロックの色 （1～4）
         self.mode = 7 * (block_color - 1)
 

@@ -20,13 +20,11 @@ class Enemy(pygame.sprite.Sprite):
 
     def update(self):
         for enemy in Stage.enemy_object_list:
-            # if not self.collision_y(enemy):
-            #     enemy.y_speed += self.FALL_ACCELERATION
-            #     enemy.y += enemy.y_speed
-            # else:
-            #     enemy.y_speed = 0.0
-
             if enemy.rect.left < 480:
+                self.collision_y(enemy)
+                enemy.y_speed += self.FALL_ACCELERATION
+                enemy.y += enemy.y_speed
+
                 enemy.x -= enemy.x_speed
 
             enemy.update()
@@ -88,10 +86,12 @@ class Enemy(pygame.sprite.Sprite):
                 # 下にあるブロック
                 if enemy.y_speed > 0.0:
                     enemy.y = block.rect.top - height
+                    enemy.y_speed = 0.0
                     return True
 
                 # 上にあるブロック
                 elif enemy.y_speed < 0.0:
                     enemy.y = block.rect.bottom
+                    enemy.y_speed = 0.0
                     return False
         return False

@@ -30,8 +30,9 @@ class Player(pygame.sprite.Sprite):
 
         self.x_speed = self.y_speed = 0.0  # 速度
         self.ACCELERATION = 0.1  # 加速度
-        self.DASH_ACCELERATION = 0.21  # 反転ダッシュ時の加速度
-        self.FRICTION_ACCELERATION = 0.13  # 地面摩擦時の減速度
+        self.DASH_ACCELERATION = 0.18  # ダッシュ時の加速度
+        self.TURN_ACCELERATION = 0.22  # 反転時の加速度
+        self.FRICTION_ACCELERATION = 0.15  # 地面摩擦時の減速度
         self.MAX_SPEED_X = 4  # x方向の最大速度
         self.MAX_SPEED_Y = 9  # y方向の最大速度
         self.max_speed = 0  # 最大速度 （変数）
@@ -102,13 +103,24 @@ class Player(pygame.sprite.Sprite):
 
         # 左移動
         if pressed_key[K_LEFT]:
-            self.x_speed -= self.ACCELERATION if self.x_speed < -1 else self.DASH_ACCELERATION
+            if self.x_speed < -1:
+                self.x_speed -= self.ACCELERATION
+            elif self.x_speed > 0 and self.isGrounding:
+                self.x_speed -= self.TURN_ACCELERATION
+            else:
+                self.x_speed -= self.DASH_ACCELERATION
 
             self.isLeft = True
 
         # 右移動
         elif pressed_key[K_RIGHT]:
-            self.x_speed += self.ACCELERATION if self.x_speed > 1 else self.DASH_ACCELERATION
+            if self.x_speed > 1:
+                self.x_speed += self.ACCELERATION
+            elif self.x_speed < 0 and self.isGrounding:
+                self.x_speed += self.TURN_ACCELERATION
+            else:
+                self.x_speed += self.DASH_ACCELERATION
+            # self.x_speed += self.ACCELERATION if self.x_speed > 1 else self.DASH_ACCELERATION
             self.isLeft = False
 
         # 地面摩擦
