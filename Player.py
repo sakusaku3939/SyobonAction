@@ -9,8 +9,6 @@ from Stage import Stage
 class Player(pygame.sprite.Sprite):
     # プレイヤー座標
     player_x = player_y = 0
-    # 1フレームの画面スクロール値
-    scroll = 0
 
     def __init__(self, screen):
         pygame.sprite.Sprite.__init__(self)
@@ -19,7 +17,7 @@ class Player(pygame.sprite.Sprite):
 
         img = LoadImage.image_list
         self.image = img['player1']
-        self.img_right = [img['player1'], img['player2'], img['player3'], img['player4']]
+        self.img_right = [img['player1'], img['player2'], img['player3'], img['player4'], img['player5']]
         self.img_left = [pygame.transform.flip(img, True, False) for img in self.img_right]
 
         self.player_x = 80
@@ -30,13 +28,14 @@ class Player(pygame.sprite.Sprite):
 
         self.x_speed = self.y_speed = 0.0  # 速度
         self.ACCELERATION = 0.1  # 加速度
-        self.DASH_ACCELERATION = 0.18  # ダッシュ時の加速度
+        self.DASH_ACCELERATION = 0.16  # ダッシュ時・空中反転時の加速度
         self.TURN_ACCELERATION = 0.22  # 反転時の加速度
         self.FRICTION_ACCELERATION = 0.15  # 地面摩擦時の減速度
         self.MAX_SPEED_X = 4  # x方向の最大速度
         self.MAX_SPEED_Y = 9  # y方向の最大速度
         self.max_speed = 0  # 最大速度 （変数）
 
+        self.scroll = 0  # 1フレームの画面スクロール値
         self.SCROLL_LIMIT = 3605  # 画面スクロール上限
         self.scroll_sum = 0  # 画面スクロール量の合計
 
@@ -47,13 +46,16 @@ class Player(pygame.sprite.Sprite):
         self.JUMP_SPEED = -6.7  # ジャンプ速度
         self.ADD_JUMP_SPEED = -2.3  # 追加のジャンプ速度
         self.ADD_DASH_JUMP_SPEED = -0.8  # 追加のダッシュジャンプ速度
-        self.jump_time = 0  # ジャンプ時間
+        self._jump_time = 0  # ジャンプ時間
 
         self.isLeft = False  # 左を向いているかどうか
-        self.isHIT_Head = False  # 頭がブロックに当たったか
 
         self.img_number = 0  # x座標が20変わるごとに画像を切り替え
-        self.animation = None  # 向きに応じて画像を切り替え
+        self.direction = None  # 向きに応じて画像を切り替え
+
+        self.isDeath = False  # 敵に当たったかどうか
+        self._death_init = True  # 初期化
+        self._death_count = 0  # 静止時間を計るタイマー
 
         # 当たり判定を行わない背景画像
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
@@ -62,9 +64,14 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         pressed_key = pygame.key.get_pressed()
 
+        # 死亡時アニメーション
+        if self.isDeath:
+            self.death()
+            return
+
         # 画像アニメーション
         self.img_number = int((self.player_x + self.scroll_sum) / 20) % 2
-        self.animation = (lambda num: self.img_left[num] if self.isLeft else self.img_right[num])
+        self.direction = (lambda num: self.img_left[num] if self.isLeft else self.img_right[num])
 
         # 地面判定
         if self.isGrounding:
@@ -74,7 +81,7 @@ class Player(pygame.sprite.Sprite):
         jump_key = pressed_key[K_UP] or pressed_key[K_z]
         if jump_key and self.isGrounding:
             self.isJump = True
-            self.jump_time = 0
+            self._jump_time = 0
             self.y_speed = self.JUMP_SPEED
             if abs(self.x_speed) < self.MAX_SPEED_X - 1:
                 self.max_speed = self.MAX_SPEED_X - 1
@@ -84,17 +91,17 @@ class Player(pygame.sprite.Sprite):
         # 8フレーム以内にキーを離した場合小ジャンプ
         if not jump_key:
             self.isJump = False
-            self.jump_time = 0
+            self._jump_time = 0
         elif self.isJump:
             # 8フレーム以上キー長押しで大ジャンプ
-            if self.jump_time >= 8:
+            if self._jump_time >= 8:
                 self.y_speed += self.ADD_JUMP_SPEED
                 self.isJump = False
                 # 移動スピードが最大の時、更にジャンプの高さを追加
                 if abs(self.x_speed) == self.MAX_SPEED_X:
                     self.y_speed += self.ADD_DASH_JUMP_SPEED
             else:
-                self.jump_time += 1
+                self._jump_time += 1
 
         # 土管に入る
         elif pressed_key[K_DOWN]:
@@ -119,7 +126,7 @@ class Player(pygame.sprite.Sprite):
                 self.x_speed += self.TURN_ACCELERATION
             else:
                 self.x_speed += self.DASH_ACCELERATION
-            # self.x_speed += self.ACCELERATION if self.x_speed > 1 else self.DASH_ACCELERATION
+
             self.isLeft = False
 
         # 地面摩擦
@@ -145,6 +152,8 @@ class Player(pygame.sprite.Sprite):
         self.isGrounding = self.collision_y()
         isHit_x = self.collision_x()
 
+        self.isDeath = self.enemy_collision_x()
+
         self.y_speed += self.FALL_ACCELERATION
         self.player_y += self.y_speed
         self.player_x += self.x_speed
@@ -165,7 +174,16 @@ class Player(pygame.sprite.Sprite):
     def draw(self):
         self.rect.left = int(self.player_x)
         self.rect.top = int(self.player_y)
-        self.screen.blit(self.animation(self.img_number), self.rect)
+        self.screen.blit(self.direction(self.img_number), self.rect)
+
+    # 死亡時のアニメーション
+    def death(self):
+        if self._death_init:
+            self._death_init = False
+            self.img_number = 3
+            self._jump_time = 0
+
+        self.draw()
 
     # x方向の当たり判定
     def collision_x(self):
@@ -238,4 +256,24 @@ class Player(pygame.sprite.Sprite):
                     return False
 
         self.img_number = 2
+        return False
+
+    # 敵とのx方向の当たり判定
+    def enemy_collision_x(self):
+        # 移動先の座標と矩形を求める
+        start_x = self.player_x + self.x_speed + 5
+        start_y = self.player_y + self.FALL_ACCELERATION * 2 + 15
+        end_x = self.width - 10
+        end_y = self.height - 30
+
+        new_rect = Rect(start_x, start_y, end_x, end_y)
+        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect)  # 当たり判定可視化 （デバック用）
+
+        for enemy in Stage.enemy_object_list:
+            collide = new_rect.colliderect(enemy.rect)
+            if collide:
+                self.x_speed = 0.0
+                self.scroll = 0
+                return True
+
         return False

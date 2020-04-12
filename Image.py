@@ -32,12 +32,11 @@ class LoadImage:
 
 
 class Sprite(pygame.sprite.Sprite):
-    def __init__(self, screen, player, img_name, x, y, tweak_x=0, tweak_y=0):
-        pygame.sprite.Sprite.__init__(self)
+    player = None  # プレイヤーオブジェクト （Main.pyにて格納）
 
-        # インスタンスオブジェクトを格納
+    def __init__(self, screen, img_name, x, y, tweak_x=0, tweak_y=0):
+        pygame.sprite.Sprite.__init__(self)
         self.screen = screen
-        self.player = player
 
         # 画像の読み込み
         self.name = img_name  # スプライトの名前
@@ -65,28 +64,16 @@ class Sprite(pygame.sprite.Sprite):
 
 
 class SpriteEnemy(Sprite):
-    def __init__(self, screen, player, img_name, x, y, tweak_x=0, tweak_y=0):
-        super().__init__(screen, player, img_name, x, y, tweak_x, tweak_y)
+    def __init__(self, screen, img_name, x, y, tweak_x=0, tweak_y=0):
+        super().__init__(screen, img_name, x, y, tweak_x, tweak_y)
 
         # 画像を格納
-        self.img_left = self.load_image()
+        self.img_left = self._load_image()
         self.img_right = [pygame.transform.flip(img, True, False) for img in self.img_left]
 
         self.x_speed = 0.5  # 移動速度
         self.y_speed = 0.0  # 落下速度
         self.direction = 1  # 向き （1 or -1）
-
-    # 画像の読み込み
-    def load_image(self):
-        img = [self.image]
-
-        # 画像が複数ある場合はリストに追加
-        if "1" in self.name:
-            for i in range(1, 5):
-                name = self.name[:-1] + str(i)
-                if name in LoadImage.image_list:
-                    img.append(LoadImage.image_list[name])
-        return img
 
     def update(self, list_number=0):
         # 画面スクロール
@@ -103,3 +90,15 @@ class SpriteEnemy(Sprite):
                     self.screen.blit(self.img_left[list_number], self.rect)
                 else:
                     self.screen.blit(self.img_right[list_number], self.rect)
+
+    # 画像の読み込み
+    def _load_image(self):
+        img = [self.image]
+
+        # 画像が複数ある場合はリストに追加
+        if "1" in self.name:
+            for i in range(1, 5):
+                name = self.name[:-1] + str(i)
+                if name in LoadImage.image_list:
+                    img.append(LoadImage.image_list[name])
+        return img

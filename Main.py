@@ -4,7 +4,7 @@ import sys
 from time import *
 
 from Enemy import Enemy
-from Image import LoadImage
+from Image import LoadImage, Sprite
 from Stage import Stage
 from Player import Player
 
@@ -147,6 +147,9 @@ class Stage_1:
         self.enemy = Enemy(screen)
         self.stage = Stage(screen, self.player, 1, '1-1')
 
+        # スクロール量を取得するためにプレイヤーオブジェクトを格納
+        Sprite.player = self.player
+
         remain_show()
         self.main()
 
@@ -162,7 +165,7 @@ class Stage_1:
             variable_FPS = FPS * (2 if pygame.key.get_pressed()[K_SPACE] else 1)
             clock.tick(variable_FPS)
 
-            pygame.display.update()#Rect(0, 0, 480, 420))
+            pygame.display.update(Rect(0, 0, 480, 420))
 
             for event in pygame.event.get():
                 # 「×」ボタンが押されたら終了

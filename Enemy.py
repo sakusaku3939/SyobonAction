@@ -13,7 +13,6 @@ class Enemy(pygame.sprite.Sprite):
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
                    'triangle', 'goal_pole']
 
-        self.init_flag = True  # 敵オブジェクトの初期化
         self.FALL_ACCELERATION = 0.27  # 落下加速度
 
     def update(self):
