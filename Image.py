@@ -56,10 +56,56 @@ class Sprite(pygame.sprite.Sprite):
     def update(self):
         # 画面スクロール
         if self.rect.left > -150:
-            self.rect.left -= self.player.scroll
+            self.rect.left -= SpritePlayer.scroll
             # 画面内の領域のみ描画
             if self.rect.left < 480:
                 self.screen.blit(self.image, self.rect)
+
+
+class SpritePlayer(pygame.sprite.Sprite):
+    scroll = 0  # 1フレームの画面スクロール値
+    scroll_sum = 0  # 画面スクロール量の合計
+
+    def __init__(self, screen):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.screen = screen
+
+        # 画像の格納
+        img = LoadImage.image_list
+        self.image = img['player1']
+        self.img_right = [img['player1'], img['player2'], img['player3'], img['player4'], img['player5']]
+        self.img_left = [pygame.transform.flip(img, True, False) for img in self.img_right]
+
+        self.x_speed = self.y_speed = 0.0  # 速度
+        self.max_speed = 0  # x方向の最大速度 （変数）
+        self.AIR_MAX_SPEED = 0  # 空中加速時の最大速度
+        self.JUMP_SPEED = 0  # ジャンプ速度
+
+        self.isGrounding = True  # 地面に着地しているか
+        self.isDeath = False  # 敵に当たったかどうか
+
+        # 初期座標セット
+        self.x = 80
+        self.y = 320
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+        self.rect = Rect(self.x, self.y, self.width, self.height)
+
+    def update(self, image):
+        SpritePlayer.scroll = self.scroll
+        SpritePlayer.scroll_sum = self.scroll_sum
+
+        self.rect.left = int(self.x)
+        self.rect.top = int(self.y)
+        self.screen.blit(image, self.rect)
+
+    # 空中時の最大速度を計算
+    def limit_air_speed(self):
+        if abs(self.x_speed) < self.AIR_MAX_SPEED:
+            self.max_speed = self.AIR_MAX_SPEED
+        else:
+            self.max_speed = abs(self.x_speed)
 
 
 class SpriteEnemy(Sprite):
@@ -77,11 +123,11 @@ class SpriteEnemy(Sprite):
     def update(self, list_number=0):
         # 画面スクロール
         if self.rect.left > -150:
-            self.rect.left -= self.player.scroll
+            self.rect.left -= SpritePlayer.scroll
 
             # 画面内の領域のみ描画
             if self.rect.left < 550:
-                self.rect.left = round(self.x) - self.player.scroll_sum
+                self.rect.left = round(self.x) - SpritePlayer.scroll_sum
                 self.rect.top = round(self.y)
 
                 # 向きによって画像を変更

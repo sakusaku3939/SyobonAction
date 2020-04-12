@@ -167,9 +167,9 @@ class Title:
 # ステージ1-1
 class Stage_1:
     def __init__(self):
+        self.stage = Stage(screen, 1, '1-1')
         self.player = Player(screen)
         self.enemy = Enemy(screen)
-        self.stage = Stage(screen, self.player, 1, '1-1')
 
         # スクロール量を取得するためにプレイヤーオブジェクトを格納
         Sprite.player = self.player
@@ -182,7 +182,6 @@ class Stage_1:
     def main(self):
         while 1:
             screen.fill((160, 180, 250))
-
             self.stage.bg_update()
 
             # 死亡時にコンテニュー

@@ -4,19 +4,22 @@ import sys
 import tkinter
 from tkinter import messagebox
 
-from Image import Sprite, SpriteEnemy
+from Image import Sprite, SpriteEnemy, SpritePlayer
 
 
 class Stage:
+    # プレイヤーオブジェクトを格納するリスト
+    player_object = None
     # ブロックオブジェクトを格納するリスト
     block_object_list = []
     # 敵オブジェクトを格納するリスト
     enemy_object_list = []
 
-    def __init__(self, screen, player, block_color, sheet_name):
+    def __init__(self, screen, block_color, sheet_name):
         self.screen = screen
-        self.player = player
+        Stage.player_object = SpritePlayer(screen)
 
+        # オブジェクトリストの初期化
         self.block_object_list.clear()
         self.enemy_object_list.clear()
 

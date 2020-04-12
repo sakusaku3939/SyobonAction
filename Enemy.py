@@ -4,10 +4,12 @@ from pygame.locals import *
 from Stage import Stage
 
 
-class Enemy(pygame.sprite.Sprite):
+class Enemy:
     def __init__(self, screen):
-        pygame.sprite.Sprite.__init__(self)
         self.screen = screen
+
+        # プレイヤースプライトからデータ読み込み
+        self.player = Stage.player_object
 
         # 当たり判定を行わない背景画像
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
@@ -21,6 +23,9 @@ class Enemy(pygame.sprite.Sprite):
                 # 当たり判定
                 sign = self.collision_x(enemy)
                 self.collision_y(enemy)
+
+                self.player_collision_x(enemy)
+                self.player_collision_y(enemy)
 
                 enemy.x -= enemy.x_speed * sign
                 enemy.y_speed += self.FALL_ACCELERATION
@@ -72,3 +77,61 @@ class Enemy(pygame.sprite.Sprite):
                     enemy.y_speed = 0.0
                     return False
         return False
+
+    # プレイヤーとのx方向の当たり判定
+    def player_collision_x(self, enemy):
+        # 移動先の座標と矩形を求める
+        start_x = self.player.rect.left + self.player.x_speed + 5
+        start_y = self.player.y + self.FALL_ACCELERATION * 2 + 15
+        end_x = self.player.width - 10
+        end_y = self.player.height - 30
+
+        new_rect = Rect(start_x, start_y, end_x, end_y)
+        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect)  # 当たり判定可視化 （デバック用）
+
+        collide = new_rect.colliderect(enemy.rect)
+        if collide:
+            self.player.x_speed = 0.0
+            self.player.isDeath = True
+            self.player.scroll = 0
+            return
+
+        return
+
+    # プレイヤーとのy方向の当たり判定
+    def player_collision_y(self, enemy):
+        # 移動先の座標と矩形を求める
+        start_x = self.player.x + 3
+        start_y = self.player.y + self.player.y_speed + self.FALL_ACCELERATION * 2 + 2
+        end_x = self.player.width - 6
+        end_y = (self.player.height / 2) - 2
+
+        new_rect_top = Rect(start_x, start_y, end_x, end_y)
+
+        start_y += end_y
+        new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
+
+        # 当たり判定可視化 （デバック用）
+        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_top)
+        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_bottom)
+
+        collide_top = new_rect_top.colliderect(enemy.rect)
+        collide_bottom = new_rect_bottom.colliderect(enemy.rect)
+        # プレイヤーの上から当たった場合
+        if collide_top:
+            self.player.x_speed = 0.0
+            self.player.isDeath = True
+            self.player.scroll = 0
+            return
+
+        # プレイヤーに踏まれた場合
+        if collide_bottom and not self.player.isGrounding:
+            enemy.remove()
+            Stage.enemy_object_list.remove(enemy)
+
+            self.player.isGrounding = True
+            self.player.y_speed = self.player.JUMP_SPEED
+            self.player.limit_air_speed()
+            return
+
+        return
