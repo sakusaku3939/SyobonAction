@@ -171,9 +171,6 @@ class Stage_1:
         self.player = Player(screen)
         self.enemy = Enemy(screen)
 
-        # スクロール量を取得するためにプレイヤーオブジェクトを格納
-        Sprite.player = self.player
-
         remain_show()
         Sound.play_BGM('titerman')
 

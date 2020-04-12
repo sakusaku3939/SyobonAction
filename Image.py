@@ -31,8 +31,6 @@ class LoadImage:
 
 
 class Sprite(pygame.sprite.Sprite):
-    player = None  # プレイヤーオブジェクト （Main.pyにて格納）
-
     def __init__(self, screen, img_name, x, y, tweak_x=0, tweak_y=0):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
