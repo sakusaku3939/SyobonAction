@@ -62,52 +62,6 @@ class Sprite(pygame.sprite.Sprite):
                 self.screen.blit(self.image, self.rect)
 
 
-class SpritePlayer(pygame.sprite.Sprite):
-    scroll = 0  # 1フレームの画面スクロール値
-    scroll_sum = 0  # 画面スクロール量の合計
-
-    def __init__(self, screen):
-        pygame.sprite.Sprite.__init__(self)
-
-        self.screen = screen
-
-        # 画像の格納
-        img = LoadImage.image_list
-        self.image = img['player1']
-        self.img_right = [img['player1'], img['player2'], img['player3'], img['player4'], img['player5']]
-        self.img_left = [pygame.transform.flip(img, True, False) for img in self.img_right]
-
-        self.x_speed = self.y_speed = 0.0  # 速度
-        self.max_speed = 0  # x方向の最大速度 （変数）
-        self.AIR_MAX_SPEED = 0  # 空中加速時の最大速度
-        self.JUMP_SPEED = 0  # ジャンプ速度
-
-        self.isGrounding = True  # 地面に着地しているか
-        self.isDeath = False  # 敵に当たったかどうか
-
-        # 初期座標セット
-        self.x = 80
-        self.y = 320
-        self.width = self.image.get_width()
-        self.height = self.image.get_height()
-        self.rect = Rect(self.x, self.y, self.width, self.height)
-
-    def update(self, image):
-        SpritePlayer.scroll = self.scroll
-        SpritePlayer.scroll_sum = self.scroll_sum
-
-        self.rect.left = int(self.x)
-        self.rect.top = int(self.y)
-        self.screen.blit(image, self.rect)
-
-    # 空中時の最大速度を計算
-    def limit_air_speed(self):
-        if abs(self.x_speed) < self.AIR_MAX_SPEED:
-            self.max_speed = self.AIR_MAX_SPEED
-        else:
-            self.max_speed = abs(self.x_speed)
-
-
 class SpriteEnemy(Sprite):
     def __init__(self, screen, img_name, x, y, tweak_x=0, tweak_y=0):
         super().__init__(screen, img_name, x, y, tweak_x, tweak_y)
@@ -147,3 +101,50 @@ class SpriteEnemy(Sprite):
                 if name in LoadImage.image_list:
                     img.append(LoadImage.image_list[name])
         return img
+
+
+class SpritePlayer(pygame.sprite.Sprite):
+    scroll = 0  # 1フレームの画面スクロール値
+    scroll_sum = 0  # 画面スクロール量の合計
+
+    def __init__(self, screen):
+        pygame.sprite.Sprite.__init__(self)
+
+        self.screen = screen
+
+        # 画像の格納
+        img = LoadImage.image_list
+        self.image = img['player1']
+        self.img_right = [img['player1'], img['player2'], img['player3'], img['player4'], img['player5']]
+        self.img_left = [pygame.transform.flip(img, True, False) for img in self.img_right]
+
+        self.x_speed = self.y_speed = 0.0  # 速度
+        self.max_speed = 0  # x方向の最大速度 （変数）
+        self.AIR_MAX_SPEED = 0  # 空中加速時の最大速度
+        self.JUMP_SPEED = 0  # ジャンプ速度
+
+        self.isGrounding = True  # 地面に着地しているか
+        self.isJump = False  # ジャンプモーション中か
+        self.isDeath = False  # 敵に当たったかどうか
+
+        # 初期座標セット
+        self.x = 80
+        self.y = 320
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+        self.rect = Rect(self.x, self.y, self.width, self.height)
+
+    def update(self, image):
+        SpritePlayer.scroll = self.scroll
+        SpritePlayer.scroll_sum = self.scroll_sum
+
+        self.rect.left = int(self.x)
+        self.rect.top = int(self.y)
+        self.screen.blit(image, self.rect)
+
+    # 空中時の最大速度を計算
+    def limit_air_speed(self):
+        if abs(self.x_speed) < self.AIR_MAX_SPEED:
+            self.max_speed = self.AIR_MAX_SPEED
+        else:
+            self.max_speed = abs(self.x_speed)

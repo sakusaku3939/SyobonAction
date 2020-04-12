@@ -8,14 +8,15 @@ pygame.mixer.init(buffer=512)
 class Sound:
     SE_list = {}  # 効果音を格納するリスト
 
-    def __init__(self):
+    @classmethod
+    def __init__(cls):
         file_list = pathlib.Path(f'SE/').glob('*.wav')
 
         for file in file_list:
             name = os.path.splitext(file.name)[0]
             data = pygame.mixer.Sound(f"SE/{file.name}")
 
-            self.SE_list[name] = data
+            cls.SE_list[name] = data
 
     @classmethod
     def play_BGM(cls, name):

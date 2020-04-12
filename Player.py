@@ -30,7 +30,7 @@ class Player:
         self.sprite.isGrounding = True  # 地面に着地しているか
         self.FALL_ACCELERATION = 0.27  # 落下加速度
 
-        self.isJump = False  # ジャンプモーション中か
+        self.sprite.isJump = False  # ジャンプモーション中か
         self.JUMP_SPEED = -7.0  # ジャンプ速度
         self.sprite.JUMP_SPEED = self.JUMP_SPEED  # ジャンプ速度 （スプライト用２セット）
         self.ADD_JUMP_SPEED = -2.0  # 追加のジャンプ速度
@@ -68,8 +68,9 @@ class Player:
         # ジャンプ
         jump_key = pressed_key[K_UP] or pressed_key[K_z]
         if jump_key and self.sprite.isGrounding:
-            Sound.play_SE('jump')
-            self.isJump = True
+            if not self.sprite.isJump:
+                Sound.play_SE('jump')
+            self.sprite.isJump = True
             self._jump_time = 0
             self.sprite.y_speed = self.JUMP_SPEED
 
@@ -82,13 +83,13 @@ class Player:
 
         # 8フレーム以内にキーを離した場合小ジャンプ
         if not jump_key:
-            self.isJump = False
+            self.sprite.isJump = False
             self._jump_time = 0
-        elif self.isJump:
+        elif self.sprite.isJump:
             # 8フレーム以上キー長押しで大ジャンプ
             if self._jump_time >= 8:
                 self.sprite.y_speed += self.ADD_JUMP_SPEED
-                self.isJump = False
+                self.sprite.isJump = False
                 # 移動スピードが最大の時、更にジャンプの高さを追加
                 if abs(self.sprite.x_speed) == self.MAX_SPEED_X:
                     self.sprite.y_speed += self.ADD_DASH_JUMP_SPEED
@@ -154,6 +155,10 @@ class Player:
             else:
                 self.sprite.scroll = 0
 
+        # 画面外に落下したら死亡
+        if self.sprite.y > 500:
+            self.sprite.isDeath = True
+
         self.sprite.update(self.direction(self.img_number))
 
     # 死亡時のアニメーション
@@ -161,8 +166,13 @@ class Player:
         if self.sprite.isDeath:
             if self._death_init:
                 self._death_init = False
+
                 Sound.stop_BGM()
                 Sound.play_SE('death')
+
+                self.sprite.x_speed = 0.0
+                self.sprite.scroll = 0
+
                 self.img_number = 3
                 self._jump_time = 0
                 self.sprite.y_speed = self.JUMP_SPEED
