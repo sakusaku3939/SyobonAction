@@ -5,6 +5,7 @@ from time import *
 
 from Enemy import Enemy
 from Image import LoadImage, Sprite
+from Sound import Sound
 from Stage import Stage
 from Player import Player
 
@@ -13,6 +14,7 @@ pygame.init()
 # ウィンドウの設定
 screen = pygame.display.set_mode((480, 420))
 pygame.display.set_caption("しょぼんのアクション")
+pygame.display.set_icon(pygame.image.load(f"res/icon.ico"))
 
 # FPS
 clock = pygame.time.Clock()
@@ -32,6 +34,7 @@ REMAIN = 2
 
 def main():
     LoadImage()
+    Sound()
 
     while 1:
         # タイトル画面
@@ -54,17 +57,36 @@ def remain_show():
     player_rect.center = (200, 210)
     screen.blit(player, player_rect)
 
-    # 残機数の表示
     global REMAIN
-    font = pygame.font.Font("res/font/msgothic.ttc", 20)
-    text = font.render(f"× {REMAIN}", True, (255, 255, 255))
-    screen.blit(text, [235, 200])
+    sign = ""
+    tweak = 0
+
+    # 符号調整
+    if REMAIN < 0:
+        sign = "-"
+
+    # 残機数の表示
+    font = pygame.font.SysFont("msgothicmsuigothicmspgothic", 20)
+    for count, t in enumerate(f"× {sign}{abs(REMAIN)}"):
+        text_x = 235 + count * 11
+        text = font.render(t, True, (255, 255, 255))
+        if count == 1:
+            tweak += 10
+        elif count == 3:
+            tweak += 1
+        screen.blit(text, [text_x + tweak, 200])
+        screen.blit(text, [text_x + tweak + 1, 200])
 
     REMAIN -= 1
 
     # 一秒間待機
     pygame.display.update()
-    sleep(1)
+    for i in range(100):
+        # スペースキーで2倍速
+        if pygame.key.get_pressed()[K_SPACE]:
+            sleep(0.005)
+        else:
+            sleep(0.01)
 
 
 # タイトル画面
@@ -86,14 +108,16 @@ class Title:
 
         # タイトルロゴの描画
         rect_title = title.get_rect()
-        rect_title.center = (240, 85)
+        rect_title.center = (239, 88)
         screen.blit(title, rect_title)
 
         # タイトル文字の描画
-        font = pygame.font.Font("res/font/msgothic.ttc", 20)
-        text = font.render("Press Enter Key", True, (0, 0, 0))
-        screen.blit(text, [160, 250])
-        screen.blit(text, [161, 250])
+        font = pygame.font.SysFont("msgothicmsuigothicmspgothic", 20)
+        for count, t in enumerate("Prece Enter Key"):
+            text_x = 160 + count * 11
+            text = font.render(t, True, (0, 0, 0))
+            screen.blit(text, [text_x, 249])
+            screen.blit(text, [text_x + 1, 249])
 
         # 背景の描画
         screen.blit(player, (60, 330))
@@ -133,8 +157,8 @@ class Title:
                     if event.key == K_4:
                         self.goto_stage = 4
 
-                    # ENTERキーが押されたらスタート
-                    if event.key == 13:
+                    # ENTERキー or Zキーが押されたらスタート
+                    if event.key == 13 or event.key == 122:
                         global GAME_STATE
                         GAME_STATE = self.goto_stage
                         return
@@ -151,15 +175,23 @@ class Stage_1:
         Sprite.player = self.player
 
         remain_show()
+        Sound.play_BGM('titerman')
+
         self.main()
 
     def main(self):
         while 1:
             screen.fill((160, 180, 250))
 
+            self.stage.bg_update()
+
+            # 死亡時にコンテニュー
+            if self.player.death():
+                break
+
             self.stage.update()
-            self.enemy.update()
             self.player.update()
+            self.enemy.update()
 
             # スペースキーで2倍速
             variable_FPS = FPS * (2 if pygame.key.get_pressed()[K_SPACE] else 1)

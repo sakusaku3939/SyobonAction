@@ -45,9 +45,19 @@ class Stage:
         self.stage_data = [[int(item) for item in row if item != ''] for row in sheet_data]
         self.draw()
 
+        # 当たり判定を行わない背景画像
+        self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
+                   'triangle', 'goal_pole']
+
+    def bg_update(self):
+        for image in self.block_object_list:
+            if image.name in self.bg:
+                image.update()
+
     def update(self):
         for image in self.block_object_list:
-            image.update()
+            if image.name not in self.bg:
+                image.update()
 
     def draw(self):
         # ステージデータから取得

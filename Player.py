@@ -3,6 +3,7 @@ from pygame.locals import *
 import numpy as np
 
 from Image import LoadImage
+from Sound import Sound
 from Stage import Stage
 
 
@@ -62,12 +63,11 @@ class Player(pygame.sprite.Sprite):
                    'triangle', 'goal_pole']
 
     def update(self):
-        pressed_key = pygame.key.get_pressed()
-
-        # 死亡時アニメーション
+        # 死亡アニメーション時は戻る
         if self.isDeath:
-            self.death()
             return
+
+        pressed_key = pygame.key.get_pressed()
 
         # 画像アニメーション
         self.img_number = int((self.player_x + self.scroll_sum) / 20) % 2
@@ -80,6 +80,7 @@ class Player(pygame.sprite.Sprite):
         # ジャンプ
         jump_key = pressed_key[K_UP] or pressed_key[K_z]
         if jump_key and self.isGrounding:
+            Sound.play_SE('jump')
             self.isJump = True
             self._jump_time = 0
             self.y_speed = self.JUMP_SPEED
@@ -178,12 +179,28 @@ class Player(pygame.sprite.Sprite):
 
     # 死亡時のアニメーション
     def death(self):
-        if self._death_init:
-            self._death_init = False
-            self.img_number = 3
-            self._jump_time = 0
+        if self.isDeath:
+            if self._death_init:
+                self._death_init = False
+                Sound.stop_BGM()
+                Sound.play_SE('death')
+                self.img_number = 3
+                self._jump_time = 0
+                self.y_speed = self.JUMP_SPEED
 
-        self.draw()
+            self._jump_time += 1
+
+            # 20フレーム後に落下
+            if self._jump_time >= 20:
+                self.y_speed += self.FALL_ACCELERATION
+                self.player_y += self.y_speed
+
+            if self._jump_time >= 210:
+                return True
+
+            self.draw()
+
+        return False
 
     # x方向の当たり判定
     def collision_x(self):
