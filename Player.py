@@ -195,7 +195,7 @@ class Player:
     def collision_x(self):
         # 移動先の座標と矩形を求める
         start_x = self.sprite.x + self.sprite.x_speed
-        start_y = self.sprite.y + self.FALL_ACCELERATION * 2 + 13
+        start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2 + 13
         end_x = self.sprite.width / 2
         end_y = self.sprite.height - 26
 
@@ -205,8 +205,8 @@ class Player:
         new_rect_right = Rect(start_x, start_y, end_x, end_y)
 
         # 当たり判定可視化 （デバック用）
-        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_left)
-        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_right)
+        pygame.draw.rect(self.screen, (255, 0, 0), new_rect_left)
+        pygame.draw.rect(self.screen, (255, 0, 0), new_rect_right)
 
         for block in Stage.block_object_list:
             collide_left = new_rect_left.colliderect(block.rect)
@@ -248,8 +248,8 @@ class Player:
         new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
 
         # 当たり判定可視化 （デバック用）
-        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_top)
-        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_bottom)
+        pygame.draw.rect(self.screen, (0, 0, 255), new_rect_top)
+        pygame.draw.rect(self.screen, (0, 0, 255), new_rect_bottom)
 
         for block in Stage.block_object_list:
             collide_top = new_rect_top.colliderect(block.rect)
@@ -258,7 +258,7 @@ class Player:
                 # 上にある場合
                 if collide_top:
                     self.sprite.y = block.rect.bottom
-                    self.sprite.y_speed = 0.0
+                    self.sprite.y_speed = 1.0
                     self.img_number = 2
                     return False
 
