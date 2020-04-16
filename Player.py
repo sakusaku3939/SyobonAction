@@ -289,11 +289,26 @@ class Player:
 
             if direction == 'TOP':
                 if block.data == 1:
-                    block.remove()
-                    Stage.block_object_list.remove(block)
+                    block.isAnimation = True
 
         # はてなブロック
         if block.name == 'block2' and direction == 'TOP':
             block.name = 'block3'
             block.data = 29
             block.image = LoadImage.image_list[block.name]
+
+        # ブロックが壊れるときのアニメーション
+        if block.isAnimation:
+            block_x = block_y = 0
+            # アニメーション初期化
+            if block in Stage.block_object_list:
+                block_x = block.rect.left
+                block_y = block.rect.top
+                block.remove()
+                Stage.block_object_list.remove(block)
+
+            def draw_circle(x, y):
+                pygame.draw.circle(self.screen, (0, 0, 0), (x, y), 10)
+                pygame.draw.circle(self.screen, (135, 95, 45), (x, y), 9)
+
+            draw_circle(block_x, block_y)

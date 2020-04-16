@@ -35,6 +35,9 @@ class Sprite(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
 
+        # アニメーション中かどうか
+        self.isAnimation = False
+
         # 画像の番号
         self.data = data
 
