@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 import numpy as np
 
+from Image import LoadImage
 from Sound import Sound
 from Stage import Stage
 
@@ -184,6 +185,7 @@ class Player:
                 self.sprite.y_speed += self.FALL_ACCELERATION
                 self.sprite.y += self.sprite.y_speed
 
+            # 時間が経過したら戻って残機表示
             if self._jump_time >= 210:
                 return True
 
@@ -205,21 +207,24 @@ class Player:
         new_rect_right = Rect(start_x, start_y, end_x, end_y)
 
         # 当たり判定可視化 （デバック用）
-        pygame.draw.rect(self.screen, (255, 0, 0), new_rect_left)
-        pygame.draw.rect(self.screen, (255, 0, 0), new_rect_right)
+        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_left)
+        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_right)
 
         for block in Stage.block_object_list:
             collide_left = new_rect_left.colliderect(block.rect)
             collide_right = new_rect_right.colliderect(block.rect)
+            # 当たり判定に背景画像を除く
             if block.name not in self.bg:
                 # 両隣にある場合
                 if collide_left and collide_right:
+                    self.block_animation('LR', block)
                     self.sprite.x_speed = 0.0
                     self.sprite.scroll = 0
                     return True
 
                 # 右にある場合
                 elif collide_right and self.sprite.x_speed > 0.0:
+                    self.block_animation('LR', block)
                     self.sprite.x = block.rect.left - self.sprite.width
                     self.sprite.x_speed = 0.0
                     self.sprite.scroll = 0
@@ -227,6 +232,7 @@ class Player:
 
                 # 左にある場合
                 elif collide_left and self.sprite.x_speed < 0.0:
+                    self.block_animation('LR', block)
                     self.sprite.x = block.rect.right
                     self.sprite.x_speed = 0.0
                     self.sprite.scroll = 0
@@ -248,8 +254,8 @@ class Player:
         new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
 
         # 当たり判定可視化 （デバック用）
-        pygame.draw.rect(self.screen, (0, 0, 255), new_rect_top)
-        pygame.draw.rect(self.screen, (0, 0, 255), new_rect_bottom)
+        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_top)
+        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_bottom)
 
         for block in Stage.block_object_list:
             collide_top = new_rect_top.colliderect(block.rect)
@@ -257,6 +263,7 @@ class Player:
             if block.name not in self.bg:
                 # 上にある場合
                 if collide_top:
+                    self.block_animation('TOP', block)
                     self.sprite.y = block.rect.bottom
                     self.sprite.y_speed = 1.0
                     self.img_number = 2
@@ -264,9 +271,29 @@ class Player:
 
                 # 下にある場合
                 if collide_bottom:
+                    self.block_animation('BOTTOM', block)
                     self.sprite.y = block.rect.top - self.sprite.height + 1
                     self.sprite.y_speed = 0.0
                     return True
 
         self.img_number = 2
         return False
+
+    def block_animation(self, direction, block):
+        # 壊れるブロック
+        if block.name == 'block1':
+            # トゲを生やす
+            if block.data == 2:
+                block.isThorns = True
+                self.sprite.isDeath = True
+
+            if direction == 'TOP':
+                if block.data == 1:
+                    block.remove()
+                    Stage.block_object_list.remove(block)
+
+        # はてなブロック
+        if block.name == 'block2' and direction == 'TOP':
+            block.name = 'block3'
+            block.data = 29
+            block.image = LoadImage.image_list[block.name]

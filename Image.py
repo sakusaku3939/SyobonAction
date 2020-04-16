@@ -31,9 +31,12 @@ class LoadImage:
 
 
 class Sprite(pygame.sprite.Sprite):
-    def __init__(self, screen, img_name, x, y, tweak_x=0, tweak_y=0):
+    def __init__(self, screen, img_name, data,  x, y, tweak_x=0, tweak_y=0):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
+
+        # 画像の番号
+        self.data = data
 
         # 画像の読み込み
         self.name = img_name  # スプライトの名前
@@ -51,18 +54,30 @@ class Sprite(pygame.sprite.Sprite):
         self.rect = Rect(int(self.x), int(self.y), self.width, self.height)
         screen.blit(self.image, self.rect)
 
+        # トゲを生やすか
+        self.isThorns = False
+        self.thorns_img = LoadImage.image_list['block38']
+        self.thorns_tweak_x = self.width / 2 - self.thorns_img.get_width() / 2 - 1
+        self.thorns_tweak_y = self.height / 2 - self.thorns_img.get_height() / 2 - 1
+
     def update(self):
         # 画面スクロール
         if self.rect.left > -150:
             self.rect.left -= SpritePlayer.scroll
             # 画面内の領域のみ描画
             if self.rect.left < 480:
+                # トゲを生やす場合
+                if self.isThorns:
+                    thorns_x = self.rect.left + self.thorns_tweak_x
+                    thorns_y = self.rect.top + self.thorns_tweak_y
+                    self.screen.blit(self.thorns_img, (thorns_x, thorns_y))
+
                 self.screen.blit(self.image, self.rect)
 
 
 class SpriteEnemy(Sprite):
-    def __init__(self, screen, img_name, x, y, tweak_x=0, tweak_y=0):
-        super().__init__(screen, img_name, x, y, tweak_x, tweak_y)
+    def __init__(self, screen, img_name, data, x, y, tweak_x=0, tweak_y=0):
+        super().__init__(screen, img_name, data, x, y, tweak_x, tweak_y)
 
         # 画像を格納
         self.img_left = self._load_image()

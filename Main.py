@@ -75,7 +75,6 @@ def remain_show():
         elif count == 3:
             tweak += 1
         screen.blit(text, [text_x + tweak, 200])
-        screen.blit(text, [text_x + tweak + 1, 200])
 
     REMAIN -= 1
 

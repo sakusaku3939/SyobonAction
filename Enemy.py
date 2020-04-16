@@ -91,6 +91,8 @@ class Enemy:
             # pygame.draw.rect(self.screen, (255, 0, 0), new_rect)  # 当たり判定可視化 （デバック用）
 
             collide = new_rect.colliderect(enemy.rect)
+
+            # プレイヤーの横から当たった場合
             if collide:
                 self.sprite.isDeath = True
                 return
@@ -113,6 +115,7 @@ class Enemy:
 
             collide_top = new_rect_top.colliderect(enemy.rect)
             collide_bottom = new_rect_bottom.colliderect(enemy.rect)
+
             # プレイヤーの上から当たった場合
             if collide_top:
                 self.sprite.isDeath = True
