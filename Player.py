@@ -16,8 +16,8 @@ class Player:
 
         self.sprite.x_speed = self.sprite.y_speed = 0.0  # 速度
         self.ACCELERATION = 0.1  # 加速度
-        self.DASH_ACCELERATION = 0.15  # ダッシュ時・空中反転時の加速度
-        self.TURN_ACCELERATION = 0.22  # 反転時の加速度
+        self.DASH_ACCELERATION = 0.13  # ダッシュ時・空中反転時の加速度
+        self.TURN_ACCELERATION = 0.21  # 地面反転時の加速度
         self.FRICTION_ACCELERATION = 0.15  # 地面摩擦時の減速度
         self.MAX_SPEED_X = 4  # x方向の最大速度
         self.MAX_SPEED_Y = 9  # y方向の最大速度
@@ -29,13 +29,13 @@ class Player:
         self.sprite.scroll_sum = 0  # 画面スクロール量の合計
 
         self.sprite.isGrounding = True  # 地面に着地しているか
-        self.FALL_ACCELERATION = 0.27  # 落下加速度
+        self.FALL_ACCELERATION = 0.25  # 落下加速度
 
         self.sprite.isJump = False  # ジャンプモーション中か
-        self.JUMP_SPEED = -7.0  # ジャンプ速度
+        self.JUMP_SPEED = -6.5  # ジャンプ速度
         self.sprite.JUMP_SPEED = self.JUMP_SPEED  # ジャンプ速度 （スプライト用２セット）
         self.ADD_JUMP_SPEED = -2.0  # 追加のジャンプ速度
-        self.ADD_DASH_JUMP_SPEED = -1.0  # 追加のダッシュジャンプ速度
+        self.ADD_DASH_JUMP_SPEED = -0.8  # 追加のダッシュジャンプ速度
         self._jump_time = 0  # ジャンプ時間
 
         self.isLeft = False  # 左を向いているかどうか
@@ -208,9 +208,9 @@ class Player:
     def collision_x(self):
         # 移動先の座標と矩形を求める
         start_x = self.sprite.x + self.sprite.x_speed
-        start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2 + 13
+        start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2 + 8
         end_x = self.sprite.width / 2
-        end_y = self.sprite.height - 26
+        end_y = self.sprite.height - 24
 
         new_rect_left = Rect(start_x, start_y, end_x, end_y)
 
@@ -256,7 +256,7 @@ class Player:
         # 移動先の座標と矩形を求める
         start_x = self.sprite.x + 4
         start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2
-        end_x = self.sprite.width - 6
+        end_x = self.sprite.width - 8
         end_y = self.sprite.height / 2
 
         new_rect_top = Rect(start_x, start_y, end_x, end_y)
