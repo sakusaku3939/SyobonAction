@@ -316,13 +316,13 @@ class Player:
         if block.name == 'block2':
             if direction == 'TOP':
                 pass
-                # # 叩くとコインが出る
-                # if block.data == 17:
-                #     Sound.play_SE('coin')
-                #     self.block_animation_list.append(BlockCoin(self.screen, block))
-                #     block.name = 'block3'
-                #     block.data = 29
-                #     block.image = LoadImage.image_list[block.name]
+                # 叩くとコインが出る
+                if block.data == 17:
+                    Sound.play_SE('coin')
+                    self.block_animation_list.append(BlockCoin(self.screen, block))
+                    block.name = 'block3'
+                    block.data = 29
+                    block.image = LoadImage.image_list[block.name]
 
             # 叩けないブロック
             # elif direction == 'TOP_BLOCK' and block.data == 18 and self.sprite.y_speed < 0:
