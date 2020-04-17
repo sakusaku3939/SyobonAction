@@ -208,7 +208,7 @@ class Player:
     def collision_x(self):
         # 移動先の座標と矩形を求める
         start_x = self.sprite.x + self.sprite.x_speed
-        start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2 + 8
+        start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2 + 10
         end_x = self.sprite.width / 2
         end_y = self.sprite.height - 24
 
@@ -257,11 +257,11 @@ class Player:
         start_x = self.sprite.x + 4
         start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2
         end_x = self.sprite.width - 8
-        end_y = self.sprite.height / 2
+        end_y = self.sprite.height / 3
 
         new_rect_top = Rect(start_x, start_y, end_x, end_y)
 
-        start_y += end_y
+        start_y += end_y * 2
         new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
 
         # 当たり判定可視化 （デバック用）
