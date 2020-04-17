@@ -184,9 +184,9 @@ class Stage_1:
             if self.player.death():
                 break
 
-            self.stage.update()
             self.player.update()
             self.enemy.update()
+            self.stage.update()
 
             # スペースキーで2倍速
             variable_FPS = FPS * (2 if pygame.key.get_pressed()[K_SPACE] else 1)

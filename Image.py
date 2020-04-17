@@ -31,12 +31,13 @@ class LoadImage:
 
 
 class Sprite(pygame.sprite.Sprite):
-    def __init__(self, screen, img_name, data,  x, y, tweak_x=0, tweak_y=0):
+    def __init__(self, screen, img_name, data, x, y, tweak_x=0, tweak_y=0):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
 
-        # アニメーション中かどうか
+        # スプライトのアニメーション
         self.isAnimation = False
+        self.ani_x = self.ani_y = 0
 
         # 画像の番号
         self.data = data
@@ -151,8 +152,8 @@ class SpritePlayer(pygame.sprite.Sprite):
         self.rect = Rect(self.x, self.y, self.width, self.height)
 
     def update(self, image):
-        SpritePlayer.scroll = self.scroll
-        SpritePlayer.scroll_sum = self.scroll_sum
+        SpritePlayer.scroll = int(self.scroll)
+        SpritePlayer.scroll_sum = int(self.scroll_sum)
 
         self.rect.left = int(self.x)
         self.rect.top = int(self.y)
@@ -164,3 +165,47 @@ class SpritePlayer(pygame.sprite.Sprite):
             self.max_speed = self.AIR_MAX_SPEED
         else:
             self.max_speed = abs(self.x_speed)
+
+
+class BlockBreak:
+    def __init__(self, screen, block):
+        self.screen = screen
+
+        self.isSuccess = False  # アニメーションが完了したかどうか
+        self.FALL_ACCELERATION = 0.5  # 落下加速度
+
+        # 破壊ブロックの座標
+        self.x = block.rect.left + int(block.width / 2)
+        self.y_top = block.rect.top
+        self.y_bottom = block.rect.top + 5
+
+        # 速度
+        self.x_top_speed = self.x_bottom_speed = 0.0
+        self.y_top_speed = 8.0
+        self.y_bottom_speed = self.y_top_speed - 1.0
+
+    def update(self):
+        # x方向の速度
+        self.x -= SpritePlayer.scroll
+        self.x_top_speed += 1.2
+        self.x_bottom_speed += 1.4
+
+        # y方向の速度
+        self.y_top_speed -= self.FALL_ACCELERATION
+        self.y_top -= self.y_top_speed
+        self.y_bottom_speed -= self.FALL_ACCELERATION
+        self.y_bottom -= self.y_bottom_speed
+
+        # 破壊ブロックの描画
+        self.draw_circle(self.x + 4 + self.x_bottom_speed, self.y_bottom)
+        self.draw_circle(self.x - 4 - self.x_bottom_speed, self.y_bottom)
+        self.draw_circle(self.x + 3 + self.x_top_speed, self.y_top)
+        self.draw_circle(self.x - 3 - self.x_top_speed, self.y_top)
+
+        # 画面外まで行ったらアニメーション完了
+        if self.y_top > 500:
+            self.isSuccess = True
+
+    def draw_circle(self, x, y):
+        pygame.draw.circle(self.screen, (0, 0, 0), (round(x), round(y)), 10)
+        pygame.draw.circle(self.screen, (135, 95, 45), (round(x), round(y)), 9)

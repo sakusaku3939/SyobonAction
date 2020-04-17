@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 import numpy as np
 
-from Image import LoadImage
+from Image import LoadImage, BlockBreak
 from Sound import Sound
 from Stage import Stage
 
@@ -40,12 +40,14 @@ class Player:
 
         self.isLeft = False  # 左を向いているかどうか
 
-        self.img_number = 0  # x座標が20変わるごとに画像を切り替え
-        self.direction = None  # 向きに応じて画像を切り替え
+        self._img_number = 0  # x座標が20変わるごとに画像を切り替え
+        self._direction = None  # 向きに応じて画像を切り替え
 
         self.sprite.isDeath = False  # 敵に当たったかどうか
         self._death_init = True  # 初期化
         self._death_count = 0  # 静止時間を計るタイマー
+
+        self.blockBreak_list = []  # ブロック破壊モーションクラスを格納するリスト
 
         # 当たり判定を行わない背景画像
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
@@ -59,8 +61,8 @@ class Player:
         pressed_key = pygame.key.get_pressed()
 
         # 画像アニメーション
-        self.img_number = int((self.sprite.x + self.sprite.scroll_sum) / 20) % 2
-        self.direction = (lambda num: self.sprite.img_left[num] if self.isLeft else self.sprite.img_right[num])
+        self._img_number = int((self.sprite.x + self.sprite.scroll_sum) / 20) % 2
+        self._direction = (lambda num: self.sprite.img_left[num] if self.isLeft else self.sprite.img_right[num])
 
         # 地面判定
         if self.sprite.isGrounding:
@@ -160,7 +162,16 @@ class Player:
         if self.sprite.y > 500:
             self.sprite.isDeath = True
 
-        self.sprite.update(self.direction(self.img_number))
+        self.animation()
+        self.sprite.update(self._direction(self._img_number))
+
+    # スプライト以外のアニメーション
+    def animation(self):
+        # ブロックの破壊アニメーション
+        for block_break in self.blockBreak_list:
+            block_break.update()
+            if block_break.isSuccess:
+                self.blockBreak_list.remove(block_break)
 
     # 死亡時のアニメーション
     def death(self):
@@ -174,7 +185,7 @@ class Player:
                 self.sprite.x_speed = 0.0
                 self.sprite.scroll = 0
 
-                self.img_number = 3
+                self._img_number = 3
                 self._jump_time = 0
                 self.sprite.y_speed = self.JUMP_SPEED
 
@@ -189,7 +200,7 @@ class Player:
             if self._jump_time >= 210:
                 return True
 
-            self.sprite.update(self.direction(self.img_number))
+            self.sprite.update(self._direction(self._img_number))
 
         return False
 
@@ -266,7 +277,7 @@ class Player:
                     self.block_animation('TOP', block)
                     self.sprite.y = block.rect.bottom
                     self.sprite.y_speed = 1.0
-                    self.img_number = 2
+                    self._img_number = 2
                     return False
 
                 # 下にある場合
@@ -276,7 +287,7 @@ class Player:
                     self.sprite.y_speed = 0.0
                     return True
 
-        self.img_number = 2
+        self._img_number = 2
         return False
 
     def block_animation(self, direction, block):
@@ -288,27 +299,14 @@ class Player:
                 self.sprite.isDeath = True
 
             if direction == 'TOP':
+                # ブロックを壊す
                 if block.data == 1:
-                    block.isAnimation = True
+                    self.blockBreak_list.append(BlockBreak(self.screen, block))
+                    block.remove()
+                    Stage.block_object_list.remove(block)
 
         # はてなブロック
         if block.name == 'block2' and direction == 'TOP':
             block.name = 'block3'
             block.data = 29
             block.image = LoadImage.image_list[block.name]
-
-        # ブロックが壊れるときのアニメーション
-        if block.isAnimation:
-            block_x = block_y = 0
-            # アニメーション初期化
-            if block in Stage.block_object_list:
-                block_x = block.rect.left
-                block_y = block.rect.top
-                block.remove()
-                Stage.block_object_list.remove(block)
-
-            def draw_circle(x, y):
-                pygame.draw.circle(self.screen, (0, 0, 0), (x, y), 10)
-                pygame.draw.circle(self.screen, (135, 95, 45), (x, y), 9)
-
-            draw_circle(block_x, block_y)
