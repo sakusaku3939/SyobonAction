@@ -134,7 +134,6 @@ class Stage:
                 # 甲羅亀
                 self.enemy_add('koura1', data, x, y, range(102, 104), tweak_x=0, tweak_y=-12)
 
-    # ブロックデータをSpriteクラスに追加
     def block_add(self, img_name, data, img_x, img_y, range_function=None, color=False, tweak_x=0, tweak_y=0):
         # ブロックの色を変更
         name = f'block{int(img_name[-1:]) + self._mode}' if color else img_name
@@ -145,7 +144,6 @@ class Stage:
         ))
         self._add(data, range_function, append)
 
-    # 敵データをSpriteクラスに追加
     def enemy_add(self, name, data, img_x, img_y, range_function=None, tweak_x=0, tweak_y=0):
         # enemy_object_listに追加
         append = (lambda: self.enemy_object_list.append(
@@ -153,7 +151,6 @@ class Stage:
         ))
         self._add(data, range_function, append)
 
-    # 画像のパターンマッチング
     def _add(self, data, range_function, append):
         # dataと一致しているか確認する場合
         if type(range_function) is int:

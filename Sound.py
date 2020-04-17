@@ -2,7 +2,7 @@ import pygame
 import pathlib
 import os
 
-pygame.mixer.init(buffer=512)
+pygame.mixer.init(channels=1, buffer=128)
 
 
 class Sound:

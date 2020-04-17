@@ -2,7 +2,8 @@ import pygame
 from pygame.locals import *
 import numpy as np
 
-from Image import LoadImage, BlockBreak
+from Image import LoadImage
+from Item import BlockBreak, BlockCoin
 from Sound import Sound
 from Stage import Stage
 
@@ -35,7 +36,7 @@ class Player:
         self.JUMP_SPEED = -6.5  # ジャンプ速度
         self.sprite.JUMP_SPEED = self.JUMP_SPEED  # ジャンプ速度 （スプライト用２セット）
         self.ADD_JUMP_SPEED = -2.0  # 追加のジャンプ速度
-        self.ADD_DASH_JUMP_SPEED = -0.8  # 追加のダッシュジャンプ速度
+        self.ADD_DASH_JUMP_SPEED = -1.0  # 追加のダッシュジャンプ速度
         self._jump_time = 0  # ジャンプ時間
 
         self.isLeft = False  # 左を向いているかどうか
@@ -47,7 +48,7 @@ class Player:
         self._death_init = True  # 初期化
         self._death_count = 0  # 静止時間を計るタイマー
 
-        self.blockBreak_list = []  # ブロック破壊モーションクラスを格納するリスト
+        self.block_animation_list = []  # ブロックアニメーションのオブジェクトを格納するリスト
 
         # 当たり判定を行わない背景画像
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
@@ -162,16 +163,16 @@ class Player:
         if self.sprite.y > 500:
             self.sprite.isDeath = True
 
-        self.animation()
         self.sprite.update(self._direction(self._img_number))
+        self.animation()
 
     # スプライト以外のアニメーション
     def animation(self):
-        # ブロックの破壊アニメーション
-        for block_break in self.blockBreak_list:
-            block_break.update()
-            if block_break.isSuccess:
-                self.blockBreak_list.remove(block_break)
+        # ブロックを叩いた時のアニメーション
+        for animation in self.block_animation_list:
+            animation.update()
+            if animation.isSuccess:
+                self.block_animation_list.remove(animation)
 
     # 死亡時のアニメーション
     def death(self):
@@ -201,89 +202,94 @@ class Player:
                 return True
 
             self.sprite.update(self._direction(self._img_number))
+            self.animation()
 
         return False
 
     # x方向の当たり判定
     def collision_x(self):
+        isHit_x = False
+
         # 移動先の座標と矩形を求める
-        start_x = self.sprite.x + self.sprite.x_speed
+        start_x = 3 + self.sprite.x + self.sprite.x_speed - self.sprite.scroll
         start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2 + 8
         end_x = self.sprite.width / 2
         end_y = self.sprite.height - 24
 
         new_rect_left = Rect(start_x, start_y, end_x, end_y)
-
-        start_x += end_x
-        new_rect_right = Rect(start_x, start_y, end_x, end_y)
+        new_rect_right = Rect(start_x + end_x - 3, start_y, end_x, end_y)
 
         # 当たり判定可視化 （デバック用）
-        pygame.draw.rect(self.screen, (255, 0, 0), new_rect_left)
-        pygame.draw.rect(self.screen, (255, 0, 0), new_rect_right)
+        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_left)
+        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_right)
 
         for block in Stage.block_object_list:
-            collide_left = new_rect_left.colliderect(block.rect)
-            collide_right = new_rect_right.colliderect(block.rect)
-            # 当たり判定に背景画像を除く
-            if block.name not in self.bg:
-                # 両隣にある場合
-                if collide_left and collide_right:
+            # 当たり判定に背景画像・隠しブロックを除く
+            if block.name not in self.bg and not block.isHide:
+                # 左にある場合
+                collide_left = new_rect_left.colliderect(block.rect)
+                if collide_left:
                     self.block_animation('LR', block)
                     self.sprite.x_speed = 0.0
                     self.sprite.scroll = 0
-                    return True
+                    isHit_x = True
+
+                    if self.sprite.x != 1 + block.rect.left - self.sprite.width:
+                        self.sprite.x = block.rect.right - 3
 
                 # 右にある場合
-                elif collide_right and self.sprite.x_speed > 0.0:
+                collide_right = new_rect_right.colliderect(block.rect)
+                if collide_right:
                     self.block_animation('LR', block)
-                    self.sprite.x = block.rect.left - self.sprite.width
                     self.sprite.x_speed = 0.0
                     self.sprite.scroll = 0
-                    return True
+                    isHit_x = True
 
-                # 左にある場合
-                elif collide_left and self.sprite.x_speed < 0.0:
-                    self.block_animation('LR', block)
-                    self.sprite.x = block.rect.right
-                    self.sprite.x_speed = 0.0
-                    self.sprite.scroll = 0
-                    return True
+                    if self.sprite.x != block.rect.right - 3:
+                        self.sprite.x = 1 + block.rect.left - self.sprite.width
 
-        return False
+        return isHit_x
 
     # y方向の当たり判定
     def collision_y(self):
         # 移動先の座標と矩形を求める
-        start_x = self.sprite.x + 4
-        start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2
-        end_x = self.sprite.width - 8
+        start_x = self.sprite.x + self.sprite.x_speed - self.sprite.scroll
+        start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2 + 3
+        end_x = self.sprite.width
         end_y = self.sprite.height / 4
 
-        new_rect_top = Rect(start_x, start_y, end_x, end_y)
-
-        start_y += end_y * 3
-        new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
+        new_rect_top = Rect(start_x + 9, start_y, end_x - 18, end_y)
+        new_rect_bottom = Rect(start_x + 5, start_y + end_y * 3, end_x - 10, end_y)
+        new_rect_block = Rect(start_x + 1, start_y - 15, end_x - 2, end_y)
 
         # 当たり判定可視化 （デバック用）
-        pygame.draw.rect(self.screen, (0, 0, 255), new_rect_top)
-        pygame.draw.rect(self.screen, (0, 0, 255), new_rect_bottom)
+        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_top)
+        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_bottom)
+        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_block)
 
         for block in Stage.block_object_list:
             collide_top = new_rect_top.colliderect(block.rect)
             collide_bottom = new_rect_bottom.colliderect(block.rect)
+            collide_block = new_rect_block.colliderect(block.rect)
+
             if block.name not in self.bg:
+                # 叩けないブロック
+                if collide_block and self.sprite.y_speed < 0 and not block.isHide:
+                    self.block_animation('TOP_BLOCK', block)
+
                 # 上にある場合
-                if collide_top:
+                if collide_top and self.sprite.y_speed < 0:
                     self.block_animation('TOP', block)
-                    self.sprite.y = block.rect.bottom
-                    self.sprite.y_speed = 1.0
-                    self._img_number = 2
+                    if not block.isHide and not block.data == 18:
+                        self.sprite.y = block.rect.bottom
+                        self.sprite.y_speed /= -5
+                        self._img_number = 2
                     return False
 
                 # 下にある場合
-                if collide_bottom:
+                if collide_bottom and self.sprite.y_speed > 0 and not block.isHide:
                     self.block_animation('BOTTOM', block)
-                    self.sprite.y = block.rect.top - self.sprite.height + 1
+                    self.sprite.y = block.rect.top - self.sprite.height
                     self.sprite.y_speed = 0.0
                     return True
 
@@ -293,20 +299,37 @@ class Player:
     def block_animation(self, direction, block):
         # 壊れるブロック
         if block.name == 'block1':
-            # トゲを生やす
+            # 叩くとトゲを生やす
             if block.data == 2:
                 block.isThorns = True
                 self.sprite.isDeath = True
 
             if direction == 'TOP':
-                # ブロックを壊す
+                # 叩くと壊れる
                 if block.data == 1:
-                    self.blockBreak_list.append(BlockBreak(self.screen, block))
+                    Sound.play_SE('brockbreak')
+                    self.block_animation_list.append(BlockBreak(self.screen, block))
                     block.remove()
                     Stage.block_object_list.remove(block)
 
         # はてなブロック
-        if block.name == 'block2' and direction == 'TOP':
-            block.name = 'block3'
-            block.data = 29
-            block.image = LoadImage.image_list[block.name]
+        if block.name == 'block2':
+            if direction == 'TOP':
+                pass
+                # # 叩くとコインが出る
+                # if block.data == 17:
+                #     Sound.play_SE('coin')
+                #     self.block_animation_list.append(BlockCoin(self.screen, block))
+                #     block.name = 'block3'
+                #     block.data = 29
+                #     block.image = LoadImage.image_list[block.name]
+
+            # 叩けないブロック
+            # elif direction == 'TOP_BLOCK' and block.data == 18 and self.sprite.y_speed < 0:
+            #     block.rect.bottom += self.sprite.y_speed
+
+        # 隠しブロック
+        # if block.name == 'block3' and direction == 'TOP' and block.isHide and self.sprite.y_speed < 0:
+        #     Sound.play_SE('coin')
+        #     self.block_animation_list.append(BlockCoin(self.screen, block))
+        #     block.isHide = False
