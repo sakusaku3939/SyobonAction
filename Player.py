@@ -315,7 +315,6 @@ class Player:
         # はてなブロック
         if block.name == 'block2':
             if direction == 'TOP':
-                pass
                 # 叩くとコインが出る
                 if block.data == 17:
                     Sound.play_SE('coin')
@@ -325,11 +324,11 @@ class Player:
                     block.image = LoadImage.image_list[block.name]
 
             # 叩けないブロック
-            # elif direction == 'TOP_BLOCK' and block.data == 18 and self.sprite.y_speed < 0:
-            #     block.rect.bottom += self.sprite.y_speed
+            elif direction == 'TOP_BLOCK' and block.data == 18 and self.sprite.y_speed < 0:
+                block.rect.bottom += self.sprite.y_speed
 
         # 隠しブロック
-        # if block.name == 'block3' and direction == 'TOP' and block.isHide and self.sprite.y_speed < 0:
-        #     Sound.play_SE('coin')
-        #     self.block_animation_list.append(BlockCoin(self.screen, block))
-        #     block.isHide = False
+        if block.name == 'block3' and direction == 'TOP' and block.isHide and self.sprite.y_speed < 0:
+            Sound.play_SE('coin')
+            self.block_animation_list.append(BlockCoin(self.screen, block))
+            block.isHide = False
