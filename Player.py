@@ -208,7 +208,7 @@ class Player:
     def collision_x(self):
         # 移動先の座標と矩形を求める
         start_x = self.sprite.x + self.sprite.x_speed
-        start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2 + 10
+        start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2 + 8
         end_x = self.sprite.width / 2
         end_y = self.sprite.height - 24
 
@@ -218,8 +218,8 @@ class Player:
         new_rect_right = Rect(start_x, start_y, end_x, end_y)
 
         # 当たり判定可視化 （デバック用）
-        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_left)
-        # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_right)
+        pygame.draw.rect(self.screen, (255, 0, 0), new_rect_left)
+        pygame.draw.rect(self.screen, (255, 0, 0), new_rect_right)
 
         for block in Stage.block_object_list:
             collide_left = new_rect_left.colliderect(block.rect)
@@ -257,16 +257,16 @@ class Player:
         start_x = self.sprite.x + 4
         start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2
         end_x = self.sprite.width - 8
-        end_y = self.sprite.height / 3
+        end_y = self.sprite.height / 4
 
         new_rect_top = Rect(start_x, start_y, end_x, end_y)
 
-        start_y += end_y * 2
+        start_y += end_y * 3
         new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
 
         # 当たり判定可視化 （デバック用）
-        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_top)
-        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_bottom)
+        pygame.draw.rect(self.screen, (0, 0, 255), new_rect_top)
+        pygame.draw.rect(self.screen, (0, 0, 255), new_rect_bottom)
 
         for block in Stage.block_object_list:
             collide_top = new_rect_top.colliderect(block.rect)
