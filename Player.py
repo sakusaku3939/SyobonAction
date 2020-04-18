@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 import numpy as np
 
-from Image import LoadImage
+from Image import LoadImage, SpritePlayer
 from Item import BlockBreak, BlockCoin
 from Sound import Sound
 from Stage import Stage
@@ -36,7 +36,7 @@ class Player:
         self.JUMP_SPEED = -6.5  # ジャンプ速度
         self.sprite.JUMP_SPEED = self.JUMP_SPEED  # ジャンプ速度 （スプライト用２セット）
         self.ADD_JUMP_SPEED = -2.0  # 追加のジャンプ速度
-        self.ADD_DASH_JUMP_SPEED = -1.0  # 追加のダッシュジャンプ速度
+        self.ADD_DASH_JUMP_SPEED = -0.8  # 追加のダッシュジャンプ速度
         self._jump_time = 0  # ジャンプ時間
 
         self.isLeft = False  # 左を向いているかどうか
@@ -224,10 +224,12 @@ class Player:
         # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_right)
 
         for block in Stage.block_object_list:
+            collide_right = new_rect_right.colliderect(block.rect)
+            collide_left = new_rect_left.colliderect(block.rect)
+
             # 当たり判定に背景画像・隠しブロックを除く
             if block.name not in self.bg and not block.isHide:
                 # 左にある場合
-                collide_left = new_rect_left.colliderect(block.rect)
                 if collide_left:
                     self.block_animation('LR', block)
                     self.sprite.x_speed = 0.0
@@ -248,6 +250,10 @@ class Player:
                     if self.sprite.x != block.rect.right - 3:
                         self.sprite.x = 1 + block.rect.left - self.sprite.width
 
+            # 背景画像のアニメーション
+            elif collide_left or collide_right:
+                self.block_animation('', block)
+
         return isHit_x
 
     # y方向の当たり判定
@@ -260,7 +266,7 @@ class Player:
 
         new_rect_top = Rect(start_x + 9, start_y, end_x - 18, end_y)
         new_rect_bottom = Rect(start_x + 5, start_y + end_y * 3, end_x - 10, end_y)
-        new_rect_block = Rect(start_x + 1, start_y - 15, end_x - 2, end_y)
+        new_rect_block = Rect(start_x + 1, start_y - 10, end_x - 2, end_y * 3)
 
         # 当たり判定可視化 （デバック用）
         # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_top)
@@ -282,7 +288,7 @@ class Player:
                     self.block_animation('TOP', block)
                     if not block.isHide and not block.data == 18:
                         self.sprite.y = block.rect.bottom
-                        self.sprite.y_speed /= -5
+                        self.sprite.y_speed /= -4
                         self._img_number = 2
                     return False
 
@@ -293,9 +299,14 @@ class Player:
                     self.sprite.y_speed = 0.0
                     return True
 
+            # 背景画像のアニメーション
+            elif collide_top or collide_bottom:
+                self.block_animation('', block)
+
         self._img_number = 2
         return False
 
+    # ブロックのアニメーション
     def block_animation(self, direction, block):
         # 壊れるブロック
         if block.name == 'block1':
@@ -325,10 +336,18 @@ class Player:
 
             # 叩けないブロック
             elif direction == 'TOP_BLOCK' and block.data == 18 and self.sprite.y_speed < 0:
-                block.rect.bottom += self.sprite.y_speed
+                block.rect.bottom = self.sprite.rect.top - 10
 
         # 隠しブロック
         if block.name == 'block3' and direction == 'TOP' and block.isHide and self.sprite.y_speed < 0:
             Sound.play_SE('coin')
             self.block_animation_list.append(BlockCoin(self.screen, block))
             block.isHide = False
+
+        if block.name == 'halfway' and direction == '':
+            SpritePlayer.initial_x = block.rect.left
+            SpritePlayer.initial_y = block.rect.top
+            SpritePlayer.initial_scroll = SpritePlayer.scroll_sum
+            # @TODO 中間地点取得後のスクロール処理追加
+            block.remove()
+            Stage.block_object_list.remove(block)

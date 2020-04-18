@@ -20,7 +20,8 @@ class Enemy:
 
     def update(self):
         for enemy in Stage.enemy_object_list:
-            if enemy.rect.left < 550:
+            # 画面内の領域のみ処理
+            if enemy.START_RANGE < enemy.rect.left < enemy.END_RANGE:
                 # 当たり判定
                 sign = self.collision(enemy)
                 self.player_collision(enemy)
@@ -30,6 +31,11 @@ class Enemy:
                 enemy.y += enemy.y_speed
 
             enemy.update()
+
+            # 画面外になったらオブジェクト削除
+            if enemy.rect.left < enemy.START_RANGE:
+                enemy.remove()
+                Stage.enemy_object_list.remove(enemy)
 
     # ブロックとの当たり判定
     def collision(self, _enemy):

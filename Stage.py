@@ -54,13 +54,20 @@ class Stage:
 
     def bg_update(self):
         for image in self.block_object_list:
+            # 背景画像を描画
             if image.name in self.bg:
                 image.update()
 
     def update(self):
         for image in self.block_object_list:
+            # 背景画像を以外を描画
             if image.name not in self.bg:
                 image.update()
+
+            # 画面外になったらオブジェクト削除
+            if image.rect.left < image.START_RANGE:
+                image.remove()
+                self.block_object_list.remove(image)
 
     def draw(self):
         # ステージデータから取得
