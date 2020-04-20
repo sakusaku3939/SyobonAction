@@ -45,7 +45,7 @@ class Stage:
 
         # ステージデータを読み込む
         sheet_data = [sheet.col_values(row) for row in range(sheet.ncols)]
-        self.stage_data = [[int(item) for item in row if item != ''] for row in sheet_data]
+        self.stage_data = [[item for item in row if item != ''] for row in sheet_data]
         self.draw()
 
         # 当たり判定を行わない背景画像
@@ -77,65 +77,64 @@ class Stage:
                     pass
 
                 # 壊れるブロック
-                self.block_add('block1', data, x, y, range(1, 17), color=True)
+                self.block_add('block1', data, x, y, start=1, end=2.6, color=True)
 
                 # はてなブロック
-                self.block_add('block2', data, x, y, range(17, 29), color=True)
+                self.block_add('block2', data, x, y, start=3, end=4.1, color=True)
 
                 # 隠しブロック
-                self.block_add('block3', data, x, y, range(29, 41), color=True)
+                self.block_add('block3', data, x, y, start=5, end=6.1, color=True)
 
                 # 硬いブロック
-                self.block_add('block4', data, x, y, range(41, 43), color=True)
+                self.block_add('block4', data, x, y, start=7, end=7.1, color=True)
 
                 # 足場ブロック
-                if data == 43:
-                    if stage_position_top != 43:
+                if data == 8:
+                    if stage_position_top != 8:
                         self.block_add('block5', data, x, y, color=True)
                     else:
                         self.block_add('block6', data, x, y, color=True)
 
                 # 落ちる足場ブロック
-                if data == 44:
-                    if stage_position_top != 44:
+                if data == 8.1:
+                    if stage_position_top != 8.1:
                         self.block_add('block5', data, x, y, color=True)
                     else:
                         self.block_add('block6', data, x, y, color=True)
 
                 # 針
-                self.block_add('block7', data, x, y, 47, color=True)
+                self.block_add('block7', data, x, y, 40, color=True)
 
                 # ポール
-                self.block_add('block4', data, x, y, range(48, 50))
-                self.block_add('goal_pole', data, x, y, range(50, 52), tweak_x=3, tweak_y=-10)
+                self.block_add('goal_pole', data, x, y, start=9.1, end=9.4, tweak_x=3, tweak_y=-10)
 
                 # 顔付きの雲
-                self.block_add('cloud2', data, x, y, 75)
+                self.block_add('cloud2', data, x, y, 19.1)
 
                 # 土管
-                self.block_add('dokan1', data, x, y, range(81, 85))
-                self.block_add('dokan1', data, x, y, 79)
-                self.block_add('dokan2', data, x, y, 80, tweak_x=0, tweak_y=1)
+                self.block_add('dokan1', data, x, y, 20)
+                self.block_add('dokan1', data, x, y, start=20.2, end=20.5)
+                self.block_add('dokan2', data, x, y, 20.1, tweak_x=0, tweak_y=1)
 
                 # 草
-                self.block_add('grass', data, x, y, 88)
+                self.block_add('grass', data, x, y, 22)
 
                 # 山
-                self.block_add('mountain', data, x, y, 89)
+                self.block_add('mountain', data, x, y, 22.1)
 
                 # 中間地点
-                self.block_add('halfway', data, x, y, 95)
+                self.block_add('halfway', data, x, y, 24)
 
                 # ゴール塔
-                self.block_add('end', data, x, y, 96)
+                self.block_add('end', data, x, y, 24.1)
 
                 # まるい敵
-                self.enemy_add('enemy', data, x, y, range(99, 102))
+                self.enemy_add('enemy', data, x, y, start=27, end=27.2)
 
                 # 甲羅亀
-                self.enemy_add('koura1', data, x, y, range(102, 104), tweak_x=0, tweak_y=-12)
+                self.enemy_add('koura1', data, x, y, start=28, end=28.1, tweak_x=0, tweak_y=-12)
 
-    def block_add(self, img_name, data, img_x, img_y, range_function=None, color=False, tweak_x=0, tweak_y=0):
+    def block_add(self, img_name, data, img_x, img_y, match=0.0, start=0.0, end=0.0, color=False, tweak_x=0, tweak_y=0):
         # ブロックの色を変更
         name = f'block{int(img_name[-1:]) + self._mode}' if color else img_name
 
@@ -143,26 +142,28 @@ class Stage:
         append = (lambda: self.block_object_list.append(
             Sprite(self.screen, name, data, img_x, img_y, tweak_x, tweak_y)
         ))
-        self._add(data, range_function, append)
+        self._add(data, match, start, end, append)
 
-    def enemy_add(self, name, data, img_x, img_y, range_function=None, tweak_x=0, tweak_y=0):
+    def enemy_add(self, name, data, img_x, img_y, match=0.0, start=0.0, end=0.0, tweak_x=0, tweak_y=0):
         # enemy_object_listに追加
         append = (lambda: self.enemy_object_list.append(
             SpriteEnemy(self.screen, name, data, img_x, img_y, tweak_x, tweak_y)
         ))
-        self._add(data, range_function, append)
+        self._add(data,  match, start, end, append)
 
-    def _add(self, data, range_function, append):
+    def _add(self, data, match, start, end, append):
         # dataと一致しているか確認する場合
-        if type(range_function) is int:
-            if data == range_function:
+        if match != 0.0:
+            if data == match:
                 append()
 
-        # 呼び出し元でdataと一致しているか確認する場合
-        elif range_function is None:
-            append()
-
-        else:  # 画像のパターンマッチング
-            for i in range_function:
-                if data == i:
+        # 画像のパターンマッチング
+        elif start != 0.0 or end != 0.0:
+            start = int(start * 10)
+            end = int(end * 10)
+            for i in range(start, end + 1):
+                if data == i / 10:
                     append()
+
+        else:  # 呼び出し元でdataと一致しているか確認する場合
+            append()
