@@ -55,7 +55,7 @@ class Player:
                    'triangle', 'goal_pole']
 
     def update(self):
-        # 死亡アニメーション時は戻る
+        # 死亡アニメーション中は戻る
         if self.sprite.isDeath:
             return
 
@@ -292,7 +292,7 @@ class Player:
                     self.block_animation('TOP_BLOCK', block)
 
                 # 上にある場合
-                if collide_top and self.sprite.y_speed < 0:
+                if collide_top and self.sprite.y_speed < 0 and not self.sprite.isGrounding:
                     self.block_animation('TOP', block)
                     if not block.isHide and not block.data == 18:
                         self.sprite.y = block.rect.bottom
@@ -353,8 +353,8 @@ class Player:
             block.isHide = False
 
         if block.name == 'halfway' and direction == '':
-            SpritePlayer.initial_x = block.rect.left + 29
-            SpritePlayer.initial_y = block.rect.top
-            SpritePlayer.initial_scroll_sum = SpritePlayer.scroll_sum + 29
+            SpritePlayer.initial_x = 210
+            SpritePlayer.initial_y = block.y
+            SpritePlayer.initial_scroll_sum = block.x - 210
             block.remove()
             Stage.block_object_list.remove(block)

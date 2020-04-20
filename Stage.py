@@ -115,7 +115,7 @@ class Stage:
                 # 土管
                 self.block_add('dokan1', data, x, y, range(81, 85))
                 self.block_add('dokan1', data, x, y, 79)
-                self.block_add('dokan2', data, x, y, 80, tweak_x=-1, tweak_y=1)
+                self.block_add('dokan2', data, x, y, 80, tweak_x=0, tweak_y=1)
 
                 # 草
                 self.block_add('grass', data, x, y, 88)

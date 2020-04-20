@@ -214,6 +214,9 @@ class Stage_1:
                         SpritePlayer.initial_y = 320
                         SpritePlayer.initial_scroll_sum = 0
                         return
+                    # oキーが押されたら自殺
+                    if event.key == K_o:
+                        Stage.player_object.isDeath = True
 
 
 if __name__ == "__main__":
