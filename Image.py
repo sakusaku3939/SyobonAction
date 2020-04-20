@@ -65,7 +65,7 @@ class Sprite(pygame.sprite.Sprite):
 
         # 描画する範囲
         self.START_RANGE = -150
-        self.END_RANGE = 550
+        self.END_RANGE = 480
 
         # トゲを生やすか
         self.isThorns = False
@@ -77,11 +77,11 @@ class Sprite(pygame.sprite.Sprite):
         self.isHide = True if img_name == 'block3' else False
 
     def update(self):
+        # 画面スクロール
+        self.rect.left = self.x - SpritePlayer.scroll_sum
+
         # 画面内の領域のみ描画
         if self.START_RANGE < self.x - SpritePlayer.scroll_sum < self.END_RANGE:
-            # 画面スクロール
-            self.rect.left = self.x - SpritePlayer.scroll_sum
-
             # トゲを生やす場合
             if self.isThorns:
                 thorns_x = self.rect.left + self.thorns_tweak_x
@@ -107,10 +107,13 @@ class SpriteEnemy(Sprite):
         # 描画する範囲
         self.START_RANGE = -100
         self.END_RANGE = 550
+        self.isDraw = False
+        self.isRemove = False
 
     def update(self, list_number=0):
-        # 画面内の領域のみ描画
-        if self.START_RANGE < self.x - SpritePlayer.scroll_sum < self.END_RANGE:
+        if self.x - SpritePlayer.scroll_sum < self.END_RANGE or self.isDraw:
+            self.isDraw = True
+
             # 描画位置を計算
             self.rect.left = self.x - SpritePlayer.scroll_sum
             self.rect.top = self.y
@@ -120,6 +123,10 @@ class SpriteEnemy(Sprite):
                 self.screen.blit(self.img_left[list_number], self.rect)
             else:
                 self.screen.blit(self.img_right[list_number], self.rect)
+
+            # 画面外になったらオブジェクト削除
+            if self.x - SpritePlayer.scroll_sum < self.START_RANGE:
+                self.isRemove = True
 
     # 画像の読み込み
     def _load_image(self):

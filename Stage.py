@@ -23,9 +23,6 @@ class Stage:
         Stage.block_object_list.clear()
         Stage.enemy_object_list.clear()
 
-        # 画面スクロール上限
-        self.SCROLL_LIMIT = 3605
-
         # ステージのブロックの色 （1～4）
         self._mode = 7 * (block_color - 1)
 
@@ -55,12 +52,6 @@ class Stage:
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
                    'triangle', 'goal_pole']
 
-    def bg_update(self):
-        for image in self.block_object_list:
-            # 背景画像を描画
-            if image.name in self.bg:
-                image.update()
-
     def update(self):
         for image in self.block_object_list:
             # 背景画像を以外を描画
@@ -71,20 +62,6 @@ class Stage:
             if image.rect.left < image.START_RANGE:
                 image.remove()
                 self.block_object_list.remove(image)
-
-        # 画面スクロール
-        self.screen_scroll()
-
-    def screen_scroll(self):
-        sprite = Stage.player_object
-        if sprite.x >= 210:
-            # スクロール上限
-            if SpritePlayer.scroll_sum < self.SCROLL_LIMIT:
-                sprite.x = 210
-                SpritePlayer.scroll = round(sprite.x_speed)
-                SpritePlayer.scroll_sum += SpritePlayer.scroll
-            else:
-                SpritePlayer.scroll = 0
 
     def draw(self):
         # ステージデータから取得

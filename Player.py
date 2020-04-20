@@ -26,6 +26,9 @@ class Player:
         self.sprite.AIR_MAX_SPEED = self.MAX_SPEED_X - 1  # 空中加速時の最大速度
         self.sprite.max_speed = 0  # x方向の最大速度 （変数）
 
+        # 画面スクロール上限
+        self.SCROLL_LIMIT = 3605
+
         self.sprite.isGrounding = True  # 地面に着地しているか
         self.FALL_ACCELERATION = 0.25  # 落下加速度
 
@@ -146,12 +149,28 @@ class Player:
         self.sprite.y += self.sprite.y_speed
         self.sprite.x += self.sprite.x_speed
 
+        if self.sprite.x >= 210:
+            # スクロール上限
+            if SpritePlayer.scroll_sum < self.SCROLL_LIMIT:
+                self.sprite.x = 210
+                SpritePlayer.scroll = round(self.sprite.x_speed)
+                SpritePlayer.scroll_sum += SpritePlayer.scroll
+            else:
+                SpritePlayer.scroll = 0
+
         # 画面外に落下したら死亡
         if self.sprite.y > 500:
             self.sprite.isDeath = True
 
+        self.bg_update()
         self.sprite.update(self._direction(self._img_number))
         self.animation()
+
+    # 背景画像の描画
+    def bg_update(self):
+        for image in Stage.block_object_list:
+            if image.name in self.bg:
+                image.update()
 
     # スプライト以外のアニメーション
     def animation(self):
@@ -188,6 +207,7 @@ class Player:
             if self._jump_time >= 210:
                 return True
 
+            self.bg_update()
             self.sprite.update(self._direction(self._img_number))
             self.animation()
 
@@ -195,14 +215,17 @@ class Player:
 
     # x方向の当たり判定
     def collision_x(self):
+        x = self.sprite.rect.left + self.sprite.x_speed
+        y = self.sprite.y + self.sprite.y_speed
+
         # 移動先の座標と矩形を求める
-        start_x = 3 + self.sprite.x + self.sprite.x_speed - SpritePlayer.scroll
-        start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2 + 8
+        start_x = (x - SpritePlayer.scroll) + 3
+        start_y = y + self.FALL_ACCELERATION * 2 + 8
         end_x = self.sprite.width / 2
         end_y = self.sprite.height - 24
 
         new_rect_left = Rect(start_x, start_y, end_x, end_y)
-        new_rect_right = Rect(start_x + end_x - 3, start_y, end_x, end_y)
+        new_rect_right = Rect(start_x + end_x - 4, start_y, end_x, end_y)
 
         # 当たり判定可視化 （デバック用）
         # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_left)
@@ -214,24 +237,25 @@ class Player:
 
             # 当たり判定に背景画像・隠しブロックを除く
             if block.name not in self.bg and not block.isHide:
+                # pygame.draw.rect(self.screen, (255, 0, 0), block.rect)  # 当たり判定可視化 （デバック用）
+
                 # 左にある場合
                 if collide_left:
                     self.block_animation('LR', block)
                     self.sprite.x_speed = 0.0
                     SpritePlayer.scroll = 0
 
-                    if self.sprite.x != 1 + block.rect.left - self.sprite.width:
+                    if self.sprite.x != 2 + block.rect.left - self.sprite.width:
                         self.sprite.x = block.rect.right - 3
 
                 # 右にある場合
-                collide_right = new_rect_right.colliderect(block.rect)
                 if collide_right:
                     self.block_animation('LR', block)
                     self.sprite.x_speed = 0.0
                     SpritePlayer.scroll = 0
 
-                    if self.sprite.x != block.rect.right - 3:
-                        self.sprite.x = 1 + block.rect.left - self.sprite.width
+                    if self.sprite.x != block.rect.right - 4:
+                        self.sprite.x = 2 + block.rect.left - self.sprite.width
 
             # 背景画像のアニメーション
             elif collide_left or collide_right:
@@ -239,13 +263,16 @@ class Player:
 
     # y方向の当たり判定
     def collision_y(self):
+        x = self.sprite.rect.left + self.sprite.x_speed
+        y = self.sprite.y + self.sprite.y_speed
+
         # 移動先の座標と矩形を求める
-        start_x = self.sprite.x + self.sprite.x_speed - SpritePlayer.scroll
-        start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2 + 3
+        start_x = x - SpritePlayer.scroll
+        start_y = y + self.FALL_ACCELERATION * 2 + 3
         end_x = self.sprite.width
         end_y = self.sprite.height / 4
 
-        new_rect_top = Rect(start_x + 10, start_y + 1, end_x - 20, end_y)
+        new_rect_top = Rect(start_x + 10, start_y + 1, end_x - 18, end_y)
         new_rect_bottom = Rect(start_x + 5, start_y + end_y * 3, end_x - 10, end_y)
         new_rect_block = Rect(start_x + 1, start_y - 10, end_x - 2, end_y * 3)
 
@@ -269,14 +296,14 @@ class Player:
                     self.block_animation('TOP', block)
                     if not block.isHide and not block.data == 18:
                         self.sprite.y = block.rect.bottom
-                        self.sprite.y_speed /= -4
+                        self.sprite.y_speed /= -3
                         self._img_number = 2
                     return False
 
                 # 下にある場合
                 if collide_bottom and self.sprite.y_speed > 0 and not block.isHide:
                     self.block_animation('BOTTOM', block)
-                    self.sprite.y = block.rect.top - self.sprite.height
+                    self.sprite.y = block.rect.top - self.sprite.height + 1
                     self.sprite.y_speed = 0.0
                     return True
 
@@ -326,8 +353,8 @@ class Player:
             block.isHide = False
 
         if block.name == 'halfway' and direction == '':
-            SpritePlayer.initial_x = block.rect.left
+            SpritePlayer.initial_x = block.rect.left + 29
             SpritePlayer.initial_y = block.rect.top
-            SpritePlayer.initial_scroll_sum = SpritePlayer.scroll_sum
+            SpritePlayer.initial_scroll_sum = SpritePlayer.scroll_sum + 29
             block.remove()
             Stage.block_object_list.remove(block)

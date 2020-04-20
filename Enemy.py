@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 
+from Image import SpritePlayer
 from Sound import Sound
 from Stage import Stage
 
@@ -21,7 +22,7 @@ class Enemy:
     def update(self):
         for enemy in Stage.enemy_object_list:
             # 画面内の領域のみ処理
-            if enemy.START_RANGE < enemy.rect.left < enemy.END_RANGE:
+            if enemy.isDraw:
                 # 当たり判定
                 sign = self.collision(enemy)
                 self.player_collision(enemy)
@@ -33,7 +34,7 @@ class Enemy:
             enemy.update()
 
             # 画面外になったらオブジェクト削除
-            if enemy.rect.left < enemy.START_RANGE:
+            if enemy.isRemove:
                 enemy.remove()
                 Stage.enemy_object_list.remove(enemy)
 

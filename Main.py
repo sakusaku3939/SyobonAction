@@ -180,7 +180,6 @@ class Stage_1:
     def main(self):
         while 1:
             screen.fill((160, 180, 250))
-            self.stage.bg_update()
 
             # 死亡時にコンテニュー
             if self.player.death():
