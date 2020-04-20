@@ -47,8 +47,8 @@ class Sprite(pygame.sprite.Sprite):
         self.image = LoadImage.image_list[img_name]
 
         # ステージ全体での座標
-        self.x = x * 29 + tweak_x
-        self.y = y * 29 - 12 + tweak_y
+        self.x = int(x * 29 + tweak_x)
+        self.y = int(y * 29 - 12 + tweak_y)
 
         """ # 画面内での座標
         self.rect.left = self.x - SpritePlayer.scroll_sum
@@ -60,12 +60,12 @@ class Sprite(pygame.sprite.Sprite):
         self.height = self.image.get_height()
 
         # 初期位置に描画
-        self.rect = Rect(int(self.x), int(self.y), self.width, self.height)
+        self.rect = Rect(self.x - SpritePlayer.initial_scroll_sum, self.y, self.width, self.height)
         screen.blit(self.image, self.rect)
 
         # 描画する範囲
         self.START_RANGE = -150
-        self.END_RANGE = 480
+        self.END_RANGE = 550
 
         # トゲを生やすか
         self.isThorns = False
@@ -77,11 +77,11 @@ class Sprite(pygame.sprite.Sprite):
         self.isHide = True if img_name == 'block3' else False
 
     def update(self):
-        # 画面スクロール
-        self.rect.left -= SpritePlayer.scroll
-
         # 画面内の領域のみ描画
-        if self.START_RANGE < self.rect.left < self.END_RANGE:
+        if self.START_RANGE < self.x - SpritePlayer.scroll_sum < self.END_RANGE:
+            # 画面スクロール
+            self.rect.left = self.x - SpritePlayer.scroll_sum
+
             # トゲを生やす場合
             if self.isThorns:
                 thorns_x = self.rect.left + self.thorns_tweak_x
@@ -109,13 +109,11 @@ class SpriteEnemy(Sprite):
         self.END_RANGE = 550
 
     def update(self, list_number=0):
-        # 画面スクロール
-        self.rect.left -= SpritePlayer.scroll
-
         # 画面内の領域のみ描画
-        if self.START_RANGE < self.rect.left < self.END_RANGE:
-            self.rect.left = round(self.x) - SpritePlayer.scroll_sum
-            self.rect.top = round(self.y)
+        if self.START_RANGE < self.x - SpritePlayer.scroll_sum < self.END_RANGE:
+            # 描画位置を計算
+            self.rect.left = self.x - SpritePlayer.scroll_sum
+            self.rect.top = self.y
 
             # 向きによって画像を変更
             if self.direction == 1:
@@ -140,7 +138,7 @@ class SpritePlayer(pygame.sprite.Sprite):
     # 初期座標
     initial_x = 80
     initial_y = 320
-    initial_scroll = 0
+    initial_scroll_sum = 0
 
     scroll = 0  # 1フレームの画面スクロール値
     scroll_sum = 0  # 画面スクロール量の合計
@@ -167,16 +165,14 @@ class SpritePlayer(pygame.sprite.Sprite):
         # 初期座標セット
         self.x = SpritePlayer.initial_x
         self.y = SpritePlayer.initial_y
+        SpritePlayer.scroll_sum = SpritePlayer.initial_scroll_sum
         self.width = self.image.get_width()
         self.height = self.image.get_height()
         self.rect = Rect(self.x, self.y, self.width, self.height)
 
     def update(self, image):
-        SpritePlayer.scroll = int(self.scroll)
-        SpritePlayer.scroll_sum = int(self.scroll_sum)
-
-        self.rect.left = int(self.x)
-        self.rect.top = int(self.y)
+        self.rect.left = self.x
+        self.rect.top = self.y
         self.screen.blit(image, self.rect)
 
     # 空中時の最大速度を計算

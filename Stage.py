@@ -20,8 +20,11 @@ class Stage:
         Stage.player_object = SpritePlayer(screen)
 
         # オブジェクトリストの初期化
-        self.block_object_list.clear()
-        self.enemy_object_list.clear()
+        Stage.block_object_list.clear()
+        Stage.enemy_object_list.clear()
+
+        # 画面スクロール上限
+        self.SCROLL_LIMIT = 3605
 
         # ステージのブロックの色 （1～4）
         self._mode = 7 * (block_color - 1)
@@ -68,6 +71,20 @@ class Stage:
             if image.rect.left < image.START_RANGE:
                 image.remove()
                 self.block_object_list.remove(image)
+
+        # 画面スクロール
+        self.screen_scroll()
+
+    def screen_scroll(self):
+        sprite = Stage.player_object
+        if sprite.x >= 210:
+            # スクロール上限
+            if SpritePlayer.scroll_sum < self.SCROLL_LIMIT:
+                sprite.x = 210
+                SpritePlayer.scroll = round(sprite.x_speed)
+                SpritePlayer.scroll_sum += SpritePlayer.scroll
+            else:
+                SpritePlayer.scroll = 0
 
     def draw(self):
         # ステージデータから取得

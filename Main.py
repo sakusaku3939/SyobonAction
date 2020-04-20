@@ -4,7 +4,7 @@ import sys
 from time import *
 
 from Enemy import Enemy
-from Image import LoadImage, Sprite
+from Image import LoadImage, SpritePlayer
 from Sound import Sound
 from Stage import Stage
 from Player import Player
@@ -12,7 +12,9 @@ from Player import Player
 pygame.init()
 
 # ウィンドウの設定
-screen = pygame.display.set_mode((480, 420))
+WINDOW_WIDTH = 480
+WINDOW_HEIGHT = 420
+screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption("しょぼんのアクション")
 pygame.display.set_icon(pygame.image.load(f"res/icon.ico"))
 
@@ -167,7 +169,7 @@ class Title:
 class Stage_1:
     def __init__(self):
         self.stage = Stage(screen, 1, '1-1')
-        self.player = Player(screen)
+        self.player = Player(screen, self.stage)
         self.enemy = Enemy(screen)
 
         remain_show()
@@ -192,7 +194,7 @@ class Stage_1:
             variable_FPS = FPS * (2 if pygame.key.get_pressed()[K_SPACE] else 1)
             clock.tick(variable_FPS)
 
-            pygame.display.update(Rect(0, 0, 480, 420))
+            pygame.display.update(Rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))
 
             for event in pygame.event.get():
                 # 「×」ボタンが押されたら終了
@@ -209,7 +211,9 @@ class Stage_1:
                     if event.key == K_F1:
                         global GAME_STATE
                         GAME_STATE = 0
-                        self.stage.block_object_list.clear()
+                        SpritePlayer.initial_x = 80
+                        SpritePlayer.initial_y = 320
+                        SpritePlayer.initial_scroll_sum = 0
                         return
 
 

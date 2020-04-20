@@ -66,5 +66,5 @@ class BlockBreak:
             self.isSuccess = True
 
     def draw_circle(self, x, y):
-        pygame.draw.circle(self.screen, (0, 0, 0), (round(x), round(y)), 10)
-        pygame.draw.circle(self.screen, (135, 95, 45), (round(x), round(y)), 9)
+        pygame.draw.circle(self.screen, (0, 0, 0), (int(x), int(y)), 10)
+        pygame.draw.circle(self.screen, (135, 95, 45), (int(x), int(y)), 9)
