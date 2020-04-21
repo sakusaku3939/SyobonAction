@@ -187,6 +187,7 @@ class Stage_1:
 
             self.player.update()
             self.enemy.update()
+            self.player.item_animation()
             self.stage.update()
 
             # スペースキーで2倍速

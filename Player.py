@@ -3,7 +3,7 @@ from pygame.locals import *
 import numpy as np
 
 from Image import LoadImage, SpritePlayer
-from Item import BlockBreak, BlockCoin
+from Item import BlockBreak, BlockCoin, BlockItem
 from Sound import Sound
 from Stage import Stage
 
@@ -164,7 +164,6 @@ class Player:
 
         self.bg_update()
         self.sprite.update(self._direction(self._img_number))
-        self.animation()
 
     # 背景画像の描画
     def bg_update(self):
@@ -172,9 +171,8 @@ class Player:
             if image.name in self.bg:
                 image.update()
 
-    # スプライト以外のアニメーション
-    def animation(self):
-        # ブロックを叩いた時のアニメーション
+    # アイテムなどのアニメーション
+    def item_animation(self):
         for animation in self.block_animation_list:
             animation.update()
             if animation.isSuccess:
@@ -209,7 +207,6 @@ class Player:
 
             self.bg_update()
             self.sprite.update(self._direction(self._img_number))
-            self.animation()
 
         return False
 
@@ -344,8 +341,7 @@ class Player:
 
                 # 叩くと赤キノコが出る
                 if block.data == 3.2:
-                    pass
-                    # self.block_animation_list.append(BlockCoin(self.screen, block))
+                    self.block_animation_list.append(BlockItem(self.screen, block, 'item2'))
 
             # 叩けないブロック
             elif direction == 'TOP_BLOCK' and block.data == 3.1 and self.sprite.y_speed < 0:

@@ -4,7 +4,7 @@ import sys
 import tkinter
 from tkinter import messagebox
 
-from Image import Sprite, SpriteEnemy, SpritePlayer
+from Image import SpriteBlock, SpriteObject, SpritePlayer
 
 
 class Stage:
@@ -134,24 +134,26 @@ class Stage:
                 # 甲羅亀
                 self.enemy_add('koura1', data, x, y, start=28, end=28.1, tweak_x=0, tweak_y=-12)
 
-    def block_add(self, img_name, data, img_x, img_y, match=0.0, start=0.0, end=0.0, color=False, tweak_x=0, tweak_y=0):
+    def block_add(self, img_name, data, img_x, img_y, match=0.0, start=0.0, end=0.0, tweak_x=0, tweak_y=0, color=False):
         # ブロックの色を変更
         name = f'block{int(img_name[-1:]) + self._mode}' if color else img_name
 
         # block_object_listに追加
         append = (lambda: self.block_object_list.append(
-            Sprite(self.screen, name, data, img_x, img_y, tweak_x, tweak_y)
+            SpriteBlock(self.screen, name, data, img_x, img_y, tweak_x, tweak_y)
         ))
-        self._add(data, match, start, end, append)
+
+        self._add(append, data, match, start, end)
 
     def enemy_add(self, name, data, img_x, img_y, match=0.0, start=0.0, end=0.0, tweak_x=0, tweak_y=0):
         # enemy_object_listに追加
         append = (lambda: self.enemy_object_list.append(
-            SpriteEnemy(self.screen, name, data, img_x, img_y, tweak_x, tweak_y)
+            SpriteObject(self.screen, name, img_x, img_y, tweak_x, tweak_y)
         ))
-        self._add(data,  match, start, end, append)
 
-    def _add(self, data, match, start, end, append):
+        self._add(append, data,  match, start, end)
+
+    def _add(self, append, data, match, start, end):
         # dataと一致しているか確認する場合
         if match != 0.0:
             if data == match:

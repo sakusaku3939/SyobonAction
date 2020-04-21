@@ -30,20 +30,16 @@ class LoadImage:
         LoadImage.image_list = image_list
 
 
-class Sprite(pygame.sprite.Sprite):
+class SpriteBlock(pygame.sprite.Sprite):
     def __init__(self, screen, img_name, data, x, y, tweak_x=0, tweak_y=0):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
-
-        # スプライトのアニメーション
-        self.isAnimation = False
-        self.ani_x = self.ani_y = 0
 
         # 画像の番号
         self.data = data
 
         # 画像の読み込み
-        self.name = img_name  # スプライトの名前
+        self.name = img_name
         self.image = LoadImage.image_list[img_name]
 
         # ステージ全体での座標
@@ -92,17 +88,51 @@ class Sprite(pygame.sprite.Sprite):
                 self.screen.blit(self.image, self.rect)
 
 
-class SpriteEnemy(Sprite):
-    def __init__(self, screen, img_name, data, x, y, tweak_x=0, tweak_y=0):
-        super().__init__(screen, img_name, data, x, y, tweak_x, tweak_y)
+class SpriteObject(pygame.sprite.Sprite):
+    def __init__(self, screen, img_name, x, y, tweak_x=0, tweak_y=0):
+        pygame.sprite.Sprite.__init__(self)
+        self.screen = screen
+
+        # 画像の読み込み
+        self.name = img_name
+        self.image = LoadImage.image_list[img_name]
+
+        def _load_image():
+            img = [self.image]
+
+            # 画像が複数ある場合はリストに追加
+            if "1" in self.name:
+                for i in range(1, 5):
+                    name = self.name[:-1] + str(i)
+                    if name in LoadImage.image_list:
+                        img.append(LoadImage.image_list[name])
+            return img
 
         # 画像を格納
-        self.img_left = self._load_image()
+        self.img_left = _load_image()
         self.img_right = [pygame.transform.flip(img, True, False) for img in self.img_left]
+
+        # 初期座標
+        self.x = int(x * 29 + tweak_x)
+        self.y = int(y * 29 - 12 + tweak_y)
+
+        """ # 画面内での座標
+        self.rect.left = self.x - SpritePlayer.scroll_sum
+        self.rect.top = self.y
+        """
 
         self.x_speed = 0.5  # 移動速度
         self.y_speed = 0.0  # 落下速度
         self.direction = 1  # 向き （1 or -1）
+        self.FALL_ACCELERATION = 0.27  # 落下加速度
+
+        # スプライトのサイズ
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+
+        # 初期位置に描画
+        self.rect = Rect(self.x - SpritePlayer.initial_scroll_sum, self.y, self.width, self.height)
+        screen.blit(self.image, self.rect)
 
         # 描画する範囲
         self.START_RANGE = -100
@@ -110,16 +140,26 @@ class SpriteEnemy(Sprite):
         self.isDraw = False
         self.isRemove = False
 
-    def update(self, list_number=0):
+        # 当たり判定を行わない背景画像
+        self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
+                   'triangle', 'goal_pole']
+
+    def update(self, block_list, list_number=0):
         if self.x - SpritePlayer.scroll_sum < self.END_RANGE or self.isDraw:
             self.isDraw = True
 
             # 描画位置を計算
+            self.x -= self.x_speed * self.direction
+            self.y_speed += self.FALL_ACCELERATION
+
             self.rect.left = self.x - SpritePlayer.scroll_sum
-            self.rect.top = self.y
+            self.rect.top += self.y_speed
+
+            # 当たり判定
+            self.collision(block_list)
 
             # 向きによって画像を変更
-            if self.direction == 1:
+            if self.direction == 1 or list_number == -1:
                 self.screen.blit(self.img_left[list_number], self.rect)
             else:
                 self.screen.blit(self.img_right[list_number], self.rect)
@@ -128,17 +168,51 @@ class SpriteEnemy(Sprite):
             if self.x - SpritePlayer.scroll_sum < self.START_RANGE:
                 self.isRemove = True
 
-    # 画像の読み込み
-    def _load_image(self):
-        img = [self.image]
+    # ブロックとの当たり判定
+    def collision(self, block_list):
+        def _collision_x():
+            # 移動先の座標と矩形を求める
+            start_x = self.rect.left + self.x_speed - 1
+            start_y = self.rect.top + 10
+            end_x = self.width
+            end_y = self.height - 20
 
-        # 画像が複数ある場合はリストに追加
-        if "1" in self.name:
-            for i in range(1, 5):
-                name = self.name[:-1] + str(i)
-                if name in LoadImage.image_list:
-                    img.append(LoadImage.image_list[name])
-        return img
+            new_rect = Rect(start_x, start_y, end_x, end_y)
+            # pygame.draw.rect(self.screen, (255, 0, 0), new_rect)  # 当たり判定可視化 （デバック用）
+
+            for block in block_list:
+                collide = new_rect.colliderect(block.rect)
+                # 歩く先にブロックがある場合向きを変える
+                if collide and block.name not in self.bg:
+                    self.direction *= -1
+
+        def _collision_y():
+            # 移動先の座標と矩形を求める
+            start_x = self.rect.left + 1
+            start_y = self.rect.top + self.y_speed + self.FALL_ACCELERATION * 2
+            end_x = self.width - 4
+            end_y = self.height - 2
+
+            new_rect = Rect(start_x, start_y, end_x, end_y)
+            # pygame.draw.rect(self.screen, (0, 0, 255), new_rect)  # 当たり判定可視化 （デバック用）
+
+            for block in block_list:
+                collide = new_rect.colliderect(block.rect)
+                if collide and block.name not in self.bg:
+                    # 下にある場合
+                    if self.y_speed > 0.0:
+                        self.rect.top = block.rect.top - self.height + 2
+                        self.y_speed = 0.0
+                        return
+
+                    # 上にある場合
+                    elif self.y_speed < 0.0:
+                        self.rect.top = block.rect.bottom
+                        self.y_speed = 0.0
+                        return
+
+        _collision_y()
+        return _collision_x()
 
 
 class SpritePlayer(pygame.sprite.Sprite):

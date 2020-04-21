@@ -1,5 +1,35 @@
 import pygame
-from Image import LoadImage, SpritePlayer
+from Image import LoadImage, SpritePlayer, SpriteObject
+from Stage import Stage
+
+
+class BlockItem:
+    def __init__(self, screen, block, item_name):
+        self.screen = screen
+        self.item = SpriteObject(screen, item_name, -30, -30)
+
+        self.isSuccess = False  # アニメーションが完了したかどうか
+        self.isAppear = False  # アイテム出現アニメーション中か
+
+        self.item.direction = -1  # アイテムが動く向き
+
+        # アイテムの座標
+        self.item.x = block.rect.left + int(block.width / 2 - self.item.width / 2) + SpritePlayer.scroll_sum
+        self.item.rect.top = block.rect.top
+        self.start_y = self.item.rect.top
+
+    def update(self):
+        # 一定の高さまで上がったらアイテム出現アニメーション完了
+        if self.start_y - self.item.rect.top >= 29:
+            self.isAppear = True
+
+        # アイテム移動アニメーション
+        if self.isAppear:
+            self.item.update(Stage.block_object_list, list_number=-1)
+        else:
+            self.item.rect.left = self.item.x - SpritePlayer.scroll_sum
+            self.item.rect.top -= 1
+            self.screen.blit(self.item.image, self.item.rect)
 
 
 class BlockCoin:
