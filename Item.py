@@ -28,11 +28,21 @@ class BlockItem:
 
         # アイテム移動アニメーション
         if self.isAppear:
-            self.item.update(Stage.block_object_list, list_number=-1)
+            self.item.update(list_number=-1)
+
+            # ブロックとの当たり判定
+            self.item.collision(Stage.block_object_list)
+
+            # プレイヤーとの当たり判定
+            collision_x, collision_y = self.item.sprite_collision(Stage.player_object)
+            collision_y(self._collision, self._collision)
         else:
             self.item.rect.left = self.item.x - SpritePlayer.scroll_sum
             self.item.rect.top -= 1
             self.screen.blit(self.item.image, self.item.rect)
+
+    def _collision(self):
+        self.isSuccess = True
 
 
 class BlockCoin:

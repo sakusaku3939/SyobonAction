@@ -61,7 +61,7 @@ class SpriteObject(pygame.sprite.Sprite):
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
                    'triangle', 'goal_pole']
 
-    def update(self, block_list, list_number=0):
+    def update(self, list_number=0):
         if self.x - SpritePlayer.scroll_sum < self.END_RANGE or self.isDraw:
             self.isDraw = True
 
@@ -71,9 +71,6 @@ class SpriteObject(pygame.sprite.Sprite):
 
             self.rect.left = self.x - SpritePlayer.scroll_sum
             self.rect.top += self.y_speed
-
-            # 当たり判定
-            self.collision(block_list)
 
             # 向きによって画像を変更
             if self.direction == 1 or list_number == -1:
@@ -130,6 +127,58 @@ class SpriteObject(pygame.sprite.Sprite):
 
         _collision_y()
         return _collision_x()
+
+    # スプライトとの当たり判定
+    def sprite_collision(self, sprite):
+        def _sprite_collision_x(_side_function):
+            # 移動先の座標と矩形を求める
+            start_x = sprite.rect.left + sprite.x_speed + 5
+            start_y = sprite.y + self.FALL_ACCELERATION * 2 + 15
+            end_x = sprite.width - 10
+            end_y = sprite.height - 30
+
+            new_rect = Rect(start_x, start_y, end_x, end_y)
+            # pygame.draw.rect(self.screen, (255, 0, 0), new_rect)  # 当たり判定可視化 （デバック用）
+
+            collide = new_rect.colliderect(self.rect)
+
+            # 横に当たった場合
+            if collide:
+                _side_function()
+                return
+
+        def _sprite_collision_y(_top_function, _bottom_function):
+            # 移動先の座標と矩形を求める
+            start_x = sprite.x + 2
+            start_y = sprite.y + sprite.y_speed + self.FALL_ACCELERATION * 2 + 4
+            end_x = sprite.width - 4
+            end_y = (sprite.height / 2) - 2
+
+            new_rect_top = Rect(start_x, start_y, end_x, end_y)
+
+            start_y += end_y
+            new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
+
+            # 当たり判定可視化 （デバック用）
+            # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_top)
+            # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_bottom)
+
+            collide_top = new_rect_top.colliderect(self.rect)
+            collide_bottom = new_rect_bottom.colliderect(self.rect)
+
+            # 上に当たった場合
+            if collide_top:
+                _top_function()
+                return True
+
+            # 下に当たった（踏まれた）場合
+            if collide_bottom and not sprite.isGrounding:
+                _bottom_function()
+                return True
+
+            return False
+
+        return _sprite_collision_x, _sprite_collision_y
 
 
 # ブロックのスプライト
@@ -191,7 +240,6 @@ class SpriteBlock(pygame.sprite.Sprite):
                 self.screen.blit(self.image, self.rect)
 
 
-# プレイヤーのスプライト
 class SpritePlayer(pygame.sprite.Sprite):
     # 初期座標
     initial_x = 80
