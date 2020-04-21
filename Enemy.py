@@ -49,9 +49,9 @@ class Enemy:
 
         def _player_collision_y():
             # 移動先の座標と矩形を求める
-            start_x = self.sprite.x + 3
+            start_x = self.sprite.x + 2
             start_y = self.sprite.y + self.sprite.y_speed + self.FALL_ACCELERATION * 2 + 4
-            end_x = self.sprite.width - 6
+            end_x = self.sprite.width - 4
             end_y = (self.sprite.height / 2) - 2
 
             new_rect_top = Rect(start_x, start_y, end_x, end_y)

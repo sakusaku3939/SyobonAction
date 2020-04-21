@@ -1,11 +1,13 @@
 import pygame
 from Image import LoadImage
+from Sound import Sound
 from Sprite import SpritePlayer, SpriteObject
 from Stage import Stage
 
 
 class BlockItem:
     def __init__(self, screen, block, item_name):
+        Sound.play_SE('brockkinoko')
         self.screen = screen
         self.item = SpriteObject(screen, item_name, -30, -30)
 
@@ -35,7 +37,13 @@ class BlockItem:
 
 class BlockCoin:
     def __init__(self, screen, block):
+        Sound.play_SE('coin')
         self.screen = screen
+
+        # ブロックデータの置き換え
+        block.name = 'block3'
+        block.data = 5
+        block.image = LoadImage.image_list[block.name]
 
         self.isSuccess = False  # アニメーションが完了したかどうか
 
@@ -59,6 +67,7 @@ class BlockCoin:
 
 class BlockBreak:
     def __init__(self, screen, block):
+        Sound.play_SE('brockbreak')
         self.screen = screen
 
         self.isSuccess = False  # アニメーションが完了したかどうか

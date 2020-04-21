@@ -271,7 +271,7 @@ class Player:
         end_y = self.sprite.height / 4
 
         new_rect_top = Rect(start_x + 10, self.sprite.y, end_x - 18, end_y)
-        new_rect_bottom = Rect(start_x + 5, start_y + end_y * 3, end_x - 10, end_y)
+        new_rect_bottom = Rect(start_x + 6, start_y + end_y * 3, end_x - 10, end_y)
         new_rect_block = Rect(start_x + 1, start_y - 10, end_x - 2, end_y * 3)
 
         # 当たり判定可視化 （デバック用）
@@ -324,7 +324,6 @@ class Player:
             if direction == 'TOP':
                 # 叩くと壊れる
                 if block.data == 1:
-                    Sound.play_SE('brockbreak')
                     self.block_animation_list.append(BlockBreak(self.screen, block))
                     block.remove()
                     Stage.block_object_list.remove(block)
@@ -334,11 +333,7 @@ class Player:
             if direction == 'TOP':
                 # 叩くとコインが出る
                 if block.data == 3:
-                    Sound.play_SE('coin')
                     self.block_animation_list.append(BlockCoin(self.screen, block))
-                    block.name = 'block3'
-                    block.data = 5
-                    block.image = LoadImage.image_list[block.name]
 
                 # 叩くと赤キノコが出る
                 if block.data == 3.2:
@@ -350,7 +345,6 @@ class Player:
 
         # 隠しブロック
         if block.name == 'block3' and direction == 'TOP' and block.isHide and self.sprite.y_speed < 0:
-            Sound.play_SE('coin')
             self.block_animation_list.append(BlockCoin(self.screen, block))
             block.isHide = False
 
