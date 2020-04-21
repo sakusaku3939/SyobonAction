@@ -2,7 +2,8 @@ import pygame
 from pygame.locals import *
 import numpy as np
 
-from Image import LoadImage, SpritePlayer
+from Image import LoadImage
+from Sprite import SpritePlayer
 from Item import BlockBreak, BlockCoin, BlockItem
 from Sound import Sound
 from Stage import Stage

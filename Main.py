@@ -4,7 +4,8 @@ import sys
 from time import *
 
 from Enemy import Enemy
-from Image import LoadImage, SpritePlayer
+from Image import LoadImage
+from Sprite import SpritePlayer
 from Sound import Sound
 from Stage import Stage
 from Player import Player

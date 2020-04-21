@@ -4,7 +4,7 @@ import sys
 import tkinter
 from tkinter import messagebox
 
-from Image import SpriteBlock, SpriteObject, SpritePlayer
+from Sprite import SpriteBlock, SpriteObject, SpritePlayer
 
 
 class Stage:

@@ -1,5 +1,6 @@
 import pygame
-from Image import LoadImage, SpritePlayer, SpriteObject
+from Image import LoadImage
+from Sprite import SpritePlayer, SpriteObject
 from Stage import Stage
 
 
