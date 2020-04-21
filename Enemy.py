@@ -1,6 +1,3 @@
-import pygame
-from pygame.locals import *
-
 from Sound import Sound
 from Stage import Stage
 

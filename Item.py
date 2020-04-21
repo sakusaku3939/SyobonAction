@@ -1,8 +1,11 @@
+from random import randint
+
 import pygame
 from Image import LoadImage
 from Sound import Sound
 from Sprite import SpritePlayer, SpriteObject
 from Stage import Stage
+from Text import Text
 
 
 class BlockItem:
@@ -43,6 +46,8 @@ class BlockItem:
 
     def _collision(self):
         self.isSuccess = True
+        Sound.play_SE('powerup')
+        Text.set(self.screen, 'まずい・・・', sprite=Stage.player_object)
 
 
 class BlockCoin:

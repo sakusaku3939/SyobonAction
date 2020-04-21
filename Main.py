@@ -9,6 +9,7 @@ from Sprite import SpritePlayer
 from Sound import Sound
 from Stage import Stage
 from Player import Player
+from Text import Text
 
 pygame.init()
 
@@ -37,6 +38,7 @@ REMAIN = 2
 
 def main():
     LoadImage()
+    Text()
     Sound()
 
     while 1:
@@ -190,6 +192,8 @@ class Stage_1:
             self.enemy.update()
             self.player.item_animation()
             self.stage.update()
+
+            Text.update()
 
             # スペースキーで2倍速
             variable_FPS = FPS * (2 if pygame.key.get_pressed()[K_SPACE] else 1)
