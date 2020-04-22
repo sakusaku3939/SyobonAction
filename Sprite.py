@@ -53,6 +53,8 @@ class SpriteObject(pygame.sprite.Sprite):
         self.rect = Rect(self.x - SpritePlayer.initial_scroll_sum, self.y, self.width, self.height)
         screen.blit(self.image, self.rect)
 
+        self.isGrounding = True  # 地面に着地しているか
+
         # 描画する範囲
         self.START_RANGE_X = -100
         self.END_RANGE_X = 550
@@ -104,12 +106,13 @@ class SpriteObject(pygame.sprite.Sprite):
                 # 歩く先にブロックがある場合向きを変える
                 if collide and block.name not in self.bg:
                     self.direction *= -1
+                    self.x -= self.direction
 
         def _collision_y():
             # 移動先の座標と矩形を求める
-            start_x = self.rect.left
+            start_x = self.rect.left + self.x_speed + 3
             start_y = self.rect.top + self.y_speed + self.FALL_ACCELERATION * 2
-            end_x = self.width - 2
+            end_x = self.width - 6
             end_y = self.height - 2
 
             new_rect = Rect(start_x, start_y, end_x, end_y)
@@ -120,27 +123,35 @@ class SpriteObject(pygame.sprite.Sprite):
                 if collide and block.name not in self.bg:
                     # 下にある場合
                     if self.y_speed > 0.0:
-                        self.rect.top = block.rect.top - self.height + 2
+                        self.rect.top = block.rect.top - self.height + 3
                         self.y_speed = 0.0
-                        return
+                        return True
 
                     # 上にある場合
                     elif self.y_speed < 0.0:
                         self.rect.top = block.rect.bottom
                         self.y_speed = 0.0
-                        return
+                        return False
 
-        _collision_y()
+            return False
+
+        self.isGrounding = _collision_y()
         return _collision_x()
 
     # スプライトとの当たり判定
-    def sprite_collision(self, player):
+    def sprite_collision(self, sprite):
         def _sprite_collision_x(_side_function):
             # 移動先の座標と矩形を求める
-            start_x = player.rect.left + player.x_speed - 2
-            start_y = player.y + self.FALL_ACCELERATION * 2 + 10
-            end_x = player.width + 4
-            end_y = player.height - 30
+            if sprite.name == 'player':
+                start_x = sprite.rect.left + sprite.x_speed - 2
+                start_y = sprite.y + self.FALL_ACCELERATION * 2 + 10
+                end_x = sprite.width + 4
+                end_y = sprite.height - 30
+            else:
+                start_x = sprite.rect.left + sprite.x_speed
+                start_y = sprite.rect.top
+                end_x = sprite.width
+                end_y = sprite.height
 
             new_rect = Rect(start_x, start_y, end_x, end_y)
             # pygame.draw.rect(self.screen, (255, 0, 0), new_rect)  # 当たり判定可視化 （デバック用）
@@ -154,15 +165,15 @@ class SpriteObject(pygame.sprite.Sprite):
 
         def _sprite_collision_y(_top_function, _bottom_function):
             # 移動先の座標と矩形を求める
-            start_x = player.x + 5
-            start_y = player.y + player.y_speed + self.FALL_ACCELERATION * 2 + 4
-            end_x = player.width - 10
-            end_y = (player.height / 3) - 2
+            start_x = sprite.rect.left + 5
+            start_y = sprite.y + sprite.y_speed + self.FALL_ACCELERATION * 2 + 4
+            end_x = sprite.width - 10
+            end_y = (sprite.height / 3) - 2
 
             new_rect_top = Rect(start_x, start_y, end_x, end_y)
 
-            start_x = player.x + 1
-            end_x = player.width - 2
+            start_x = sprite.rect.left + 1
+            end_x = sprite.width - 2
             start_y += end_y * 2
             new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
 
@@ -179,7 +190,7 @@ class SpriteObject(pygame.sprite.Sprite):
                 return True
 
             # 下に当たった（踏まれた）場合
-            if collide_bottom and not player.isGrounding:
+            if collide_bottom and not sprite.isGrounding:
                 _bottom_function()
                 return True
 
@@ -259,6 +270,7 @@ class SpritePlayer(pygame.sprite.Sprite):
     def __init__(self, screen):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
+        self.name = 'player'
 
         # 画像の格納
         img = LoadImage.image_list

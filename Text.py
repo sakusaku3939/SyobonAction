@@ -7,9 +7,9 @@ class Text:
     text_list = []
 
     class __DrawText:
-        def __init__(self, screen, player, text, x, y, size):
+        def __init__(self, screen, sprite, text, x, y, size):
             self.screen = screen
-            self.player = player
+            self.sprite = sprite
             self.text = text
             self.x = x
             self.y = y
@@ -18,9 +18,9 @@ class Text:
             self.time = 120
 
         def draw(self):
-            if self.player is not None:
-                self.x = self.player.rect.right
-                self.y = self.player.rect.top
+            if self.sprite is not None:
+                self.x = self.sprite.rect.right
+                self.y = self.sprite.rect.top
 
             # 文字のアウトライン
             for tweak in range(2):
@@ -39,13 +39,13 @@ class Text:
                 self.screen.blit(text_data, [self.x + tweak, self.y])
 
     @classmethod
-    def set(cls, screen, text, x=0, y=0, size=20, player=None):
+    def set(cls, screen, text, x=0, y=0, size=20, sprite=None):
         if type(text) is str:
-            cls.text_list.append(cls.__DrawText(screen, player, text, x, y, size))
+            cls.text_list.append(cls.__DrawText(screen, sprite, text, x, y, size))
 
         elif type(text) is list:
             index = random.randint(0, len(text) - 1)
-            cls.text_list.append(cls.__DrawText(screen, player, text[index], x, y, size))
+            cls.text_list.append(cls.__DrawText(screen, sprite, text[index], x, y, size))
 
     @classmethod
     def update(cls):
