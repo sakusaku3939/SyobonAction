@@ -27,8 +27,8 @@ class Enemy:
 
                 # 死亡アニメーション時は戻る
                 if not self.player.isDeath:
-                    if not player_collision_y(enemy.specific.top_collision, enemy.specific.bottom_collision):
-                        player_collision_x(enemy.specific.side_collision)
+                    if not player_collision_x(enemy.specific.side_collision):
+                        player_collision_y(enemy.specific.top_collision, enemy.specific.bottom_collision)
 
                 # 敵固有の動作
                 enemy.specific.update()
@@ -64,7 +64,7 @@ class AbstractEnemy(metaclass=ABCMeta):
     @abstractmethod  # プレイヤーの上に当たった場合
     def top_collision(self):
         self.player.isDeath = True
-        Text.set(self.screen, self.kill_text, player=self.enemy)
+        Text.set(self.screen, self.kill_text, sprite=self.enemy)
 
     @abstractmethod  # プレイヤーの下に当たった（踏まれた）場合
     def bottom_collision(self):
@@ -77,13 +77,13 @@ class AbstractEnemy(metaclass=ABCMeta):
         # 踏んだ勢いでジャンプ
         self.player.isGrounding = True
         self.player.isJump = True
-        self.player.y_speed = self.player.JUMP_SPEED
+        self.player.y_speed = self.player.JUMP_SPEED + 1
         self.player.limit_air_speed()
 
     @abstractmethod  # プレイヤーの横に当たった場合
     def side_collision(self):
         self.player.isDeath = True
-        Text.set(self.screen, self.kill_text, player=self.enemy)
+        Text.set(self.screen, self.kill_text, sprite=self.enemy)
 
 
 # まるい敵
@@ -123,8 +123,16 @@ class Koura(AbstractEnemy):
         super().__init__(screen, player, enemy, kill_text)
 
     def update(self):
-        pass
-        # player_collision_x, player_collision_y = self.enemy.player_collision(self.player)
+        for other_enemy in Stage.enemy_object_list:
+            if other_enemy.isDraw and other_enemy != self.enemy:
+                # 甲羅が他の敵に当たった時はそのまま倒す
+                if self.list_number == 1 and self.enemy.direction != 0:
+                    def _remove():
+                        other_enemy.remove()
+                        Stage.enemy_object_list.remove(other_enemy)
+
+                    enemy_collision_x, enemy_collision_y = self.enemy.sprite_collision(other_enemy)
+                    enemy_collision_x(_remove)
 
     def top_collision(self):
         super().top_collision()
@@ -147,22 +155,24 @@ class Koura(AbstractEnemy):
         elif self.list_number == 1:
             if self.enemy.direction == 0:
                 self.kick_koura()
-            else:
+            elif not self.player.isDeath:
                 self.enemy.direction = 0
 
         # 踏んだ勢いでジャンプ
         self.player.isGrounding = True
         self.player.isJump = True
-        self.player.y_speed = self.player.JUMP_SPEED
+        self.player.y_speed = self.player.JUMP_SPEED + 1
         self.player.limit_air_speed()
 
     def side_collision(self):
+        # 甲羅が止まっている場合はそのまま蹴る
         if self.list_number == 1 and self.enemy.direction == 0:
             self.kick_koura()
         else:
             self.player.isDeath = True
-            Text.set(self.screen, self.kill_text, player=self.enemy)
+            Text.set(self.screen, self.kill_text, sprite=self.enemy)
 
+    # 甲羅を蹴った時の動作
     def kick_koura(self):
         if self.player.x > self.enemy.rect.left:
             self.enemy.direction = 1
