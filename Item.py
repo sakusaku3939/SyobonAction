@@ -56,7 +56,7 @@ class BlockItem:
     def _collision(self):
         self.isSuccess = True
         Sound.play_SE('powerup')
-        Text.set(self.screen, 'まずい…', sprite=Stage.player_object)
+        Text.set(self.screen, 'まずい…', player=Stage.player_object)
 
 
 class BlockCoin:

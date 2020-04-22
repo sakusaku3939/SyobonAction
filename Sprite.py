@@ -9,7 +9,7 @@ class SpriteObject(pygame.sprite.Sprite):
     def __init__(self, screen, img_name, x, y, tweak_x=0, tweak_y=0):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
-        self.object = None  # スプライトに紐付けるインスタンスオブジェクト
+        self.specific = None  # スプライト固有の設定を入れるオブジェクト
 
         # 画像の読み込み
         self.name = img_name
@@ -134,13 +134,13 @@ class SpriteObject(pygame.sprite.Sprite):
         return _collision_x()
 
     # スプライトとの当たり判定
-    def sprite_collision(self, sprite):
+    def sprite_collision(self, player):
         def _sprite_collision_x(_side_function):
             # 移動先の座標と矩形を求める
-            start_x = sprite.rect.left + sprite.x_speed - 2
-            start_y = sprite.y + self.FALL_ACCELERATION * 2 + 10
-            end_x = sprite.width + 4
-            end_y = sprite.height - 30
+            start_x = player.rect.left + player.x_speed - 2
+            start_y = player.y + self.FALL_ACCELERATION * 2 + 10
+            end_x = player.width + 4
+            end_y = player.height - 30
 
             new_rect = Rect(start_x, start_y, end_x, end_y)
             # pygame.draw.rect(self.screen, (255, 0, 0), new_rect)  # 当たり判定可視化 （デバック用）
@@ -154,15 +154,15 @@ class SpriteObject(pygame.sprite.Sprite):
 
         def _sprite_collision_y(_top_function, _bottom_function):
             # 移動先の座標と矩形を求める
-            start_x = sprite.x + 5
-            start_y = sprite.y + sprite.y_speed + self.FALL_ACCELERATION * 2 + 4
-            end_x = sprite.width - 10
-            end_y = (sprite.height / 3) - 2
+            start_x = player.x + 5
+            start_y = player.y + player.y_speed + self.FALL_ACCELERATION * 2 + 4
+            end_x = player.width - 10
+            end_y = (player.height / 3) - 2
 
             new_rect_top = Rect(start_x, start_y, end_x, end_y)
 
-            start_x = sprite.x + 1
-            end_x = sprite.width - 2
+            start_x = player.x + 1
+            end_x = player.width - 2
             start_y += end_y * 2
             new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
 
@@ -179,7 +179,7 @@ class SpriteObject(pygame.sprite.Sprite):
                 return True
 
             # 下に当たった（踏まれた）場合
-            if collide_bottom and not sprite.isGrounding:
+            if collide_bottom and not player.isGrounding:
                 _bottom_function()
                 return True
 

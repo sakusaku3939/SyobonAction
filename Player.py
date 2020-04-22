@@ -15,27 +15,27 @@ class Player:
         self.stage = stage
 
         # プレイヤースプライトからデータ読み込み
-        self.sprite = Stage.player_object
+        self.player = Stage.player_object
 
-        self.sprite.x_speed = self.sprite.y_speed = 0.0  # 速度
+        self.player.x_speed = self.player.y_speed = 0.0  # 速度
         self.ACCELERATION = 0.08  # 加速度
         self.DASH_ACCELERATION = 0.14  # ダッシュ時・空中反転時の加速度
         self.TURN_ACCELERATION = 0.21  # 地面反転時の加速度
         self.FRICTION_ACCELERATION = 0.15  # 地面摩擦時の減速度
         self.MAX_SPEED_X = 4  # x方向の最大速度
         self.MAX_SPEED_Y = 9  # y方向の最大速度
-        self.sprite.AIR_MAX_SPEED = self.MAX_SPEED_X - 1  # 空中加速時の最大速度
-        self.sprite.max_speed = 0  # x方向の最大速度 （変数）
+        self.player.AIR_MAX_SPEED = self.MAX_SPEED_X - 1  # 空中加速時の最大速度
+        self.player.max_speed = 0  # x方向の最大速度 （変数）
 
         # 画面スクロール上限
         self.SCROLL_LIMIT = 3605
 
-        self.sprite.isGrounding = True  # 地面に着地しているか
+        self.player.isGrounding = True  # 地面に着地しているか
         self.FALL_ACCELERATION = 0.25  # 落下加速度
 
-        self.sprite.isJump = False  # ジャンプモーション中か
+        self.player.isJump = False  # ジャンプモーション中か
         self.JUMP_SPEED = -6.5  # ジャンプ速度
-        self.sprite.JUMP_SPEED = self.JUMP_SPEED  # ジャンプ速度 （スプライト用２セット）
+        self.player.JUMP_SPEED = self.JUMP_SPEED  # ジャンプ速度 （スプライト用２セット）
         self.ADD_JUMP_SPEED = -2.0  # 追加のジャンプ速度
         self.ADD_DASH_JUMP_SPEED = -0.8  # 追加のダッシュジャンプ速度
         self._jump_time = 0  # ジャンプ時間
@@ -45,7 +45,7 @@ class Player:
         self._img_number = 0  # x座標が20変わるごとに画像を切り替え
         self._direction = None  # 向きに応じて画像を切り替え
 
-        self.sprite.isDeath = False  # 敵に当たったかどうか
+        self.player.isDeath = False  # 敵に当たったかどうか
         self._death_init = True  # 初期化
         self._death_count = 0  # 静止時間を計るタイマー
 
@@ -57,30 +57,30 @@ class Player:
 
     def update(self):
         # 死亡アニメーション中は戻る
-        if self.sprite.isDeath:
+        if self.player.isDeath:
             return
 
         pressed_key = pygame.key.get_pressed()
 
         # 画像アニメーション
-        self._img_number = int((self.sprite.x + SpritePlayer.scroll_sum) / 20) % 2
-        self._direction = (lambda num: self.sprite.img_left[num] if self.isLeft else self.sprite.img_right[num])
+        self._img_number = int((self.player.x + SpritePlayer.scroll_sum) / 20) % 2
+        self._direction = (lambda num: self.player.img_left[num] if self.isLeft else self.player.img_right[num])
 
         # 地面判定
-        if self.sprite.isGrounding:
-            self.sprite.max_speed = self.MAX_SPEED_X
+        if self.player.isGrounding:
+            self.player.max_speed = self.MAX_SPEED_X
 
         # ジャンプ
         jump_key = pressed_key[K_UP] or pressed_key[K_z]
-        if jump_key and self.sprite.isGrounding:
-            if not self.sprite.isJump:
+        if jump_key and self.player.isGrounding:
+            if not self.player.isJump:
                 Sound.play_SE('jump')
-            self.sprite.isJump = True
+            self.player.isJump = True
             self._jump_time = 0
-            self.sprite.y_speed = self.JUMP_SPEED
+            self.player.y_speed = self.JUMP_SPEED
 
             # 空中時の最大速度を計算
-            self.sprite.limit_air_speed()
+            self.player.limit_air_speed()
 
         # 土管に入る
         elif pressed_key[K_DOWN]:
@@ -88,83 +88,83 @@ class Player:
 
         # 8フレーム以内にキーを離した場合小ジャンプ
         if not jump_key:
-            self.sprite.isJump = False
+            self.player.isJump = False
             self._jump_time = 0
-        elif self.sprite.isJump:
+        elif self.player.isJump:
             # 8フレーム以上キー長押しで大ジャンプ
             if self._jump_time >= 8:
-                self.sprite.y_speed += self.ADD_JUMP_SPEED
-                self.sprite.isJump = False
+                self.player.y_speed += self.ADD_JUMP_SPEED
+                self.player.isJump = False
                 # 移動スピードが最大の時、更にジャンプの高さを追加
-                if abs(self.sprite.x_speed) == self.MAX_SPEED_X:
-                    self.sprite.y_speed += self.ADD_DASH_JUMP_SPEED
+                if abs(self.player.x_speed) == self.MAX_SPEED_X:
+                    self.player.y_speed += self.ADD_DASH_JUMP_SPEED
             else:
                 self._jump_time += 1
 
         # 左移動
         if pressed_key[K_LEFT]:
-            if self.sprite.x_speed < -1:
-                self.sprite.x_speed -= self.ACCELERATION
-            elif self.sprite.x_speed > 0 and self.sprite.isGrounding:
-                self.sprite.x_speed -= self.TURN_ACCELERATION
+            if self.player.x_speed < -1:
+                self.player.x_speed -= self.ACCELERATION
+            elif self.player.x_speed > 0 and self.player.isGrounding:
+                self.player.x_speed -= self.TURN_ACCELERATION
             else:
-                self.sprite.x_speed -= self.DASH_ACCELERATION
+                self.player.x_speed -= self.DASH_ACCELERATION
 
             self.isLeft = True
 
         # 右移動
         elif pressed_key[K_RIGHT]:
-            if self.sprite.x_speed > 1:
-                self.sprite.x_speed += self.ACCELERATION
-            elif self.sprite.x_speed < 0 and self.sprite.isGrounding:
-                self.sprite.x_speed += self.TURN_ACCELERATION
+            if self.player.x_speed > 1:
+                self.player.x_speed += self.ACCELERATION
+            elif self.player.x_speed < 0 and self.player.isGrounding:
+                self.player.x_speed += self.TURN_ACCELERATION
             else:
-                self.sprite.x_speed += self.DASH_ACCELERATION
+                self.player.x_speed += self.DASH_ACCELERATION
 
             self.isLeft = False
 
         # 地面摩擦
-        elif self.sprite.isGrounding:
-            if abs(self.sprite.x_speed) > 0.1:
-                self.sprite.x_speed -= self.FRICTION_ACCELERATION * np.sign(self.sprite.x_speed)
+        elif self.player.isGrounding:
+            if abs(self.player.x_speed) > 0.1:
+                self.player.x_speed -= self.FRICTION_ACCELERATION * np.sign(self.player.x_speed)
             else:
-                self.sprite.x_speed = 0.0
+                self.player.x_speed = 0.0
 
         # 最大速度
-        self.sprite.x_speed = np.clip(self.sprite.x_speed, -self.sprite.max_speed, self.sprite.max_speed)
-        self.sprite.y_speed = np.clip(self.sprite.y_speed, None, self.MAX_SPEED_Y)
+        self.player.x_speed = np.clip(self.player.x_speed, -self.player.max_speed, self.player.max_speed)
+        self.player.y_speed = np.clip(self.player.y_speed, None, self.MAX_SPEED_Y)
 
         # 画面外に出ないようにする
-        if (self.sprite.x + self.sprite.x_speed < 0) and not (pressed_key[K_RIGHT] and self.sprite.x_speed >= 0):
-            self.sprite.x_speed = 0.0
-            self.sprite.x = 0
-        if (self.sprite.x + self.sprite.x_speed > 450) and not (pressed_key[K_LEFT] and self.sprite.x_speed <= 0):
-            self.sprite.x_speed = 0.0
-            self.sprite.x = 450
+        if (self.player.x + self.player.x_speed < 0) and not (pressed_key[K_RIGHT] and self.player.x_speed >= 0):
+            self.player.x_speed = 0.0
+            self.player.x = 0
+        if (self.player.x + self.player.x_speed > 450) and not (pressed_key[K_LEFT] and self.player.x_speed <= 0):
+            self.player.x_speed = 0.0
+            self.player.x = 450
 
         # 当たり判定
-        self.sprite.isGrounding = self.collision_y()
+        self.player.isGrounding = self.collision_y()
         self.collision_x()
 
-        self.sprite.y_speed += self.FALL_ACCELERATION
-        self.sprite.y += self.sprite.y_speed
-        self.sprite.x += self.sprite.x_speed
+        self.player.y_speed += self.FALL_ACCELERATION
+        self.player.y += self.player.y_speed
+        self.player.x += self.player.x_speed
 
-        if self.sprite.x >= 210:
+        if self.player.x >= 210:
             # スクロール上限
             if SpritePlayer.scroll_sum < self.SCROLL_LIMIT:
-                self.sprite.x = 210
-                SpritePlayer.scroll = round(self.sprite.x_speed)
+                self.player.x = 210
+                SpritePlayer.scroll = round(self.player.x_speed)
                 SpritePlayer.scroll_sum += SpritePlayer.scroll
             else:
                 SpritePlayer.scroll = 0
 
         # 画面外に落下したら死亡
-        if self.sprite.y > 500:
-            self.sprite.isDeath = True
+        if self.player.y > 500:
+            self.player.isDeath = True
 
         self.bg_update()
-        self.sprite.update(self._direction(self._img_number))
+        self.player.update(self._direction(self._img_number))
 
     # 背景画像の描画
     def bg_update(self):
@@ -181,46 +181,46 @@ class Player:
 
     # 死亡時のアニメーション
     def death(self):
-        if self.sprite.isDeath:
+        if self.player.isDeath:
             if self._death_init:
                 self._death_init = False
 
                 Sound.stop_BGM()
                 Sound.play_SE('death')
 
-                self.sprite.x_speed = 0.0
+                self.player.x_speed = 0.0
                 SpritePlayer.scroll = 0
 
                 self._img_number = 3
                 self._jump_time = 0
-                self.sprite.y_speed = self.JUMP_SPEED
+                self.player.y_speed = self.JUMP_SPEED
 
             self._jump_time += 1
 
             # 20フレーム後に落下
             if self._jump_time >= 20:
-                self.sprite.y_speed += self.FALL_ACCELERATION
-                self.sprite.y += self.sprite.y_speed
+                self.player.y_speed += self.FALL_ACCELERATION
+                self.player.y += self.player.y_speed
 
             # 時間が経過したら戻って残機表示
             if self._jump_time >= 210:
                 return True
 
             self.bg_update()
-            self.sprite.update(self._direction(self._img_number))
+            self.player.update(self._direction(self._img_number))
 
         return False
 
     # x方向の当たり判定
     def collision_x(self):
-        x = self.sprite.rect.left + self.sprite.x_speed
-        y = self.sprite.y + self.sprite.y_speed
+        x = self.player.rect.left + self.player.x_speed
+        y = self.player.y + self.player.y_speed
 
         # 移動先の座標と矩形を求める
         start_x = (x - SpritePlayer.scroll) + 3
         start_y = y + self.FALL_ACCELERATION * 2 + 8
-        end_x = self.sprite.width / 2
-        end_y = self.sprite.height - 24
+        end_x = self.player.width / 2
+        end_y = self.player.height - 24
 
         new_rect_left = Rect(start_x, start_y, end_x, end_y)
         new_rect_right = Rect(start_x + end_x - 4, start_y, end_x, end_y)
@@ -241,19 +241,19 @@ class Player:
                 if collide_left:
                     self.block_animation('LR', block)
 
-                    if self.sprite.x != 2 + block.rect.left - self.sprite.width and not self.sprite.x_speed > 0:
-                        self.sprite.x_speed = 0.0
+                    if self.player.x != 2 + block.rect.left - self.player.width and not self.player.x_speed > 0:
+                        self.player.x_speed = 0.0
                         SpritePlayer.scroll = 0
-                        self.sprite.x = block.rect.right - 3
+                        self.player.x = block.rect.right - 3
 
                 # 右にある場合
                 if collide_right:
                     self.block_animation('LR', block)
 
-                    if self.sprite.x != block.rect.right - 4 and not self.sprite.x_speed < 0:
-                        self.sprite.x_speed = 0.0
+                    if self.player.x != block.rect.right - 4 and not self.player.x_speed < 0:
+                        self.player.x_speed = 0.0
                         SpritePlayer.scroll = 0
-                        self.sprite.x = 2 + block.rect.left - self.sprite.width
+                        self.player.x = 2 + block.rect.left - self.player.width
 
             # 背景画像のアニメーション
             elif collide_left or collide_right:
@@ -261,16 +261,16 @@ class Player:
 
     # y方向の当たり判定
     def collision_y(self):
-        x = self.sprite.rect.left + self.sprite.x_speed
-        y = self.sprite.y + self.sprite.y_speed
+        x = self.player.rect.left + self.player.x_speed
+        y = self.player.y + self.player.y_speed
 
         # 移動先の座標と矩形を求める
         start_x = x - SpritePlayer.scroll
         start_y = y + self.FALL_ACCELERATION * 2 + 3
-        end_x = self.sprite.width
-        end_y = self.sprite.height / 4
+        end_x = self.player.width
+        end_y = self.player.height / 4
 
-        new_rect_top = Rect(start_x + 10, self.sprite.y, end_x - 18, end_y)
+        new_rect_top = Rect(start_x + 10, self.player.y, end_x - 18, end_y)
         new_rect_bottom = Rect(start_x + 6, start_y + end_y * 3, end_x - 10, end_y)
         new_rect_block = Rect(start_x + 1, start_y - 10, end_x - 2, end_y * 3)
 
@@ -286,23 +286,23 @@ class Player:
 
             if block.name not in self.bg:
                 # 叩けないブロック
-                if collide_block and self.sprite.y_speed < 0 and not block.isHide:
+                if collide_block and self.player.y_speed < 0 and not block.isHide:
                     self.block_animation('TOP_BLOCK', block)
 
                 # 上にある場合
-                if collide_top and self.sprite.y_speed < 0 and not self.sprite.isGrounding:
+                if collide_top and self.player.y_speed < 0 and not self.player.isGrounding:
                     self.block_animation('TOP', block)
                     if not block.isHide and not block.data == 18:
-                        self.sprite.y = block.rect.bottom
-                        self.sprite.y_speed /= -3
+                        self.player.y = block.rect.bottom
+                        self.player.y_speed /= -3
                         self._img_number = 2
                     return False
 
                 # 下にある場合
-                if collide_bottom and self.sprite.y_speed > 0 and not block.isHide:
+                if collide_bottom and self.player.y_speed > 0 and not block.isHide:
                     self.block_animation('BOTTOM', block)
-                    self.sprite.y = block.rect.top - self.sprite.height + 1
-                    self.sprite.y_speed = 0.0
+                    self.player.y = block.rect.top - self.player.height + 1
+                    self.player.y_speed = 0.0
                     return True
 
             # 背景画像のアニメーション
@@ -319,7 +319,7 @@ class Player:
             # 叩くとトゲを生やす
             if block.data == 1.1:
                 block.isThorns = True
-                self.sprite.isDeath = True
+                self.player.isDeath = True
 
             if direction == 'TOP':
                 # 叩くと壊れる
@@ -340,11 +340,11 @@ class Player:
                     self.block_animation_list.append(BlockItem(self.screen, block, 'item2'))
 
             # 叩けないブロック
-            elif direction == 'TOP_BLOCK' and block.data == 3.1 and self.sprite.y_speed < 0:
-                block.rect.bottom = self.sprite.rect.top - 10
+            elif direction == 'TOP_BLOCK' and block.data == 3.1 and self.player.y_speed < 0:
+                block.rect.bottom = self.player.rect.top - 10
 
         # 隠しブロック
-        if block.name == 'block3' and direction == 'TOP' and block.isHide and self.sprite.y_speed < 0:
+        if block.name == 'block3' and direction == 'TOP' and block.isHide and self.player.y_speed < 0:
             self.block_animation_list.append(BlockCoin(self.screen, block))
             block.isHide = False
 

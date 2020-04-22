@@ -1,3 +1,5 @@
+from abc import ABCMeta, abstractmethod
+
 from Sound import Sound
 from Stage import Stage
 from Text import Text
@@ -6,13 +8,14 @@ from Text import Text
 class Enemy:
     def __init__(self, screen):
         self.screen = screen
-        self.sprite = Stage.player_object
+        self.player = Stage.player_object
 
+        # 敵固有の設定
         self.specific_settings()
 
     def update(self):
         for enemy in Stage.enemy_object_list:
-            enemy.update(enemy.object.list_number)
+            enemy.update(enemy.specific.list_number)
 
             # 画面内の領域のみ処理
             if enemy.isDraw:
@@ -20,36 +23,73 @@ class Enemy:
                 enemy.collision(Stage.block_object_list)
 
                 # プレイヤーとの当たり判定
-                sprite_collision_x, sprite_collision_y = enemy.sprite_collision(self.sprite)
+                player_collision_x, player_collision_y = enemy.sprite_collision(self.player)
 
                 # 死亡アニメーション時は戻る
-                if not self.sprite.isDeath:
-                    if not sprite_collision_y(enemy.object.top_collision, enemy.object.bottom_collision):
-                        sprite_collision_x(enemy.object.side_collision)
+                if not self.player.isDeath:
+                    if not player_collision_y(enemy.specific.top_collision, enemy.specific.bottom_collision):
+                        player_collision_x(enemy.specific.side_collision)
+
+                # 敵固有の動作
+                enemy.specific.update()
 
             # 画面外になったらオブジェクト削除
             if enemy.isRemove:
                 enemy.remove()
                 Stage.enemy_object_list.remove(enemy)
 
-    # スプライト固有の設定
     def specific_settings(self):
         for enemy in Stage.enemy_object_list:
             if enemy.name == "enemy":
-                enemy.object = RoundEnemy(self.screen, self.sprite, enemy)
+                enemy.specific = Round(self.screen, self.player, enemy)
 
             elif enemy.name == 'koura1':
-                enemy.object = Koura(self.screen, self.sprite, enemy)
+                enemy.specific = Koura(self.screen, self.player, enemy)
 
 
-class RoundEnemy:
-    def __init__(self, screen, sprite, enemy):
+# 敵を実装する際に継承するクラス
+class AbstractEnemy(metaclass=ABCMeta):
+    def __init__(self, screen, player, enemy, kill_text):
         self.screen = screen
-        self.sprite = sprite
+        self.player = player
         self.enemy = enemy
 
-        self.list_number = 0
-        self.kill_text = [
+        self.kill_text = kill_text  # プレイヤーを倒した時に放つ言葉
+        self.list_number = 0  # 画像が複数枚ある場合の切り替え
+
+    @abstractmethod  # 敵独自の動き
+    def update(self):
+        pass
+
+    @abstractmethod  # プレイヤーの上に当たった場合
+    def top_collision(self):
+        self.player.isDeath = True
+        Text.set(self.screen, self.kill_text, player=self.enemy)
+
+    @abstractmethod  # プレイヤーの下に当たった（踏まれた）場合
+    def bottom_collision(self):
+        Sound.play_SE('humi')
+
+        # 踏まれたら消える
+        self.enemy.remove()
+        Stage.enemy_object_list.remove(self.enemy)
+
+        # 踏んだ勢いでジャンプ
+        self.player.isGrounding = True
+        self.player.isJump = True
+        self.player.y_speed = self.player.JUMP_SPEED
+        self.player.limit_air_speed()
+
+    @abstractmethod  # プレイヤーの横に当たった場合
+    def side_collision(self):
+        self.player.isDeath = True
+        Text.set(self.screen, self.kill_text, player=self.enemy)
+
+
+# まるい敵
+class Round(AbstractEnemy):
+    def __init__(self, screen, player, enemy):
+        kill_text = [
             "遅すぎるんだよ!!",
             "無駄無駄無駄無駄ァ!!",
             "テラヨワス",
@@ -59,42 +99,35 @@ class RoundEnemy:
             "カエレ!!",
             "ニマニマ"
         ]
+        super().__init__(screen, player, enemy, kill_text)
+
+    def update(self):
+        pass
 
     def top_collision(self):
-        self.sprite.isDeath = True
-        Text.set(self.screen, self.kill_text, sprite=self.enemy)
+        super().top_collision()
 
     def bottom_collision(self):
-        Sound.play_SE('humi')
-
-        # 踏まれたら消える
-        self.enemy.remove()
-        Stage.enemy_object_list.remove(self.enemy)
-
-        # 踏んだ勢いでジャンプ
-        self.sprite.isGrounding = True
-        self.sprite.isJump = True
-        self.sprite.y_speed = self.sprite.JUMP_SPEED
-        self.sprite.limit_air_speed()
+        super().bottom_collision()
 
     def side_collision(self):
-        self.sprite.isDeath = True
-        Text.set(self.screen, self.kill_text, sprite=self.enemy)
+        super().side_collision()
 
 
-class Koura:
-    def __init__(self, screen, sprite, enemy):
-        self.screen = screen
-        self.sprite = sprite
-        self.enemy = enemy
+# 甲羅亀
+class Koura(AbstractEnemy):
+    def __init__(self, screen, player, enemy):
+        kill_text = "鉄壁!!よって、無敵!!"
+        enemy.direction = -1
 
-        self.list_number = 0
-        self.enemy.direction = -1
-        self.kill_text = "鉄壁!!よって、無敵!!"
+        super().__init__(screen, player, enemy, kill_text)
+
+    def update(self):
+        pass
+        # player_collision_x, player_collision_y = self.enemy.player_collision(self.player)
 
     def top_collision(self):
-        self.sprite.isDeath = True
-        Text.set(self.screen, self.kill_text, sprite=self.enemy)
+        super().top_collision()
 
     def bottom_collision(self):
         Sound.play_SE('humi')
@@ -118,20 +151,20 @@ class Koura:
                 self.enemy.direction = 0
 
         # 踏んだ勢いでジャンプ
-        self.sprite.isGrounding = True
-        self.sprite.isJump = True
-        self.sprite.y_speed = self.sprite.JUMP_SPEED
-        self.sprite.limit_air_speed()
+        self.player.isGrounding = True
+        self.player.isJump = True
+        self.player.y_speed = self.player.JUMP_SPEED
+        self.player.limit_air_speed()
 
     def side_collision(self):
         if self.list_number == 1 and self.enemy.direction == 0:
             self.kick_koura()
         else:
-            self.sprite.isDeath = True
-            Text.set(self.screen, self.kill_text, sprite=self.enemy)
+            self.player.isDeath = True
+            Text.set(self.screen, self.kill_text, player=self.enemy)
 
     def kick_koura(self):
-        if self.sprite.x > self.enemy.rect.left:
+        if self.player.x > self.enemy.rect.left:
             self.enemy.direction = 1
             self.enemy.x -= 3
         else:
