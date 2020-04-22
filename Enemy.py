@@ -94,7 +94,7 @@ class Koura:
 
     def top_collision(self):
         self.sprite.isDeath = True
-        # Text.set(self.screen, self.kill_text, sprite=self.enemy)
+        Text.set(self.screen, self.kill_text, sprite=self.enemy)
 
     def bottom_collision(self):
         Sound.play_SE('humi')
