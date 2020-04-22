@@ -9,6 +9,7 @@ class SpriteObject(pygame.sprite.Sprite):
     def __init__(self, screen, img_name, x, y, tweak_x=0, tweak_y=0):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
+        self.object = None  # スプライトに紐付けるインスタンスオブジェクト
 
         # 画像の読み込み
         self.name = img_name
@@ -19,10 +20,11 @@ class SpriteObject(pygame.sprite.Sprite):
 
             # 画像が複数ある場合はリストに追加
             if "1" in self.name:
-                for i in range(1, 5):
+                for i in range(2, 5):
                     name = self.name[:-1] + str(i)
                     if name in LoadImage.image_list:
                         img.append(LoadImage.image_list[name])
+
             return img
 
         # 画像を格納
@@ -52,8 +54,10 @@ class SpriteObject(pygame.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
         # 描画する範囲
-        self.START_RANGE = -100
-        self.END_RANGE = 550
+        self.START_RANGE_X = -100
+        self.END_RANGE_X = 550
+        self.START_RANGE_Y = -50
+        self.END_RANGE_Y = 500
         self.isDraw = False
         self.isRemove = False
 
@@ -62,24 +66,25 @@ class SpriteObject(pygame.sprite.Sprite):
                    'triangle', 'goal_pole']
 
     def update(self, list_number=0):
-        if self.x - SpritePlayer.scroll_sum < self.END_RANGE or self.isDraw:
+        if self.isDraw or self.x - SpritePlayer.scroll_sum < self.END_RANGE_X:
             self.isDraw = True
 
             # 描画位置を計算
-            self.x -= self.x_speed * self.direction
+            self.x -= self.x_speed * self.direction if self.direction != 0 else 0
             self.y_speed += self.FALL_ACCELERATION
 
             self.rect.left = self.x - SpritePlayer.scroll_sum
             self.rect.top += self.y_speed
 
             # 向きによって画像を変更
-            if self.direction == 1 or list_number == -1:
+            if self.direction != -1 or list_number == -1:
                 self.screen.blit(self.img_left[list_number], self.rect)
             else:
                 self.screen.blit(self.img_right[list_number], self.rect)
 
             # 画面外になったらオブジェクト削除
-            if self.x - SpritePlayer.scroll_sum < self.START_RANGE:
+            if self.x - SpritePlayer.scroll_sum < self.START_RANGE_X \
+                    or not self.START_RANGE_Y < self.rect.top < self.END_RANGE_Y:
                 self.isRemove = True
 
     # ブロックとの当たり判定
@@ -87,7 +92,7 @@ class SpriteObject(pygame.sprite.Sprite):
         def _collision_x():
             # 移動先の座標と矩形を求める
             start_x = self.rect.left + self.x_speed - 1
-            start_y = self.rect.top + 10
+            start_y = self.rect.top + 15
             end_x = self.width
             end_y = self.height - 20
 
@@ -102,9 +107,9 @@ class SpriteObject(pygame.sprite.Sprite):
 
         def _collision_y():
             # 移動先の座標と矩形を求める
-            start_x = self.rect.left + 1
+            start_x = self.rect.left
             start_y = self.rect.top + self.y_speed + self.FALL_ACCELERATION * 2
-            end_x = self.width - 4
+            end_x = self.width - 2
             end_y = self.height - 2
 
             new_rect = Rect(start_x, start_y, end_x, end_y)
@@ -132,9 +137,9 @@ class SpriteObject(pygame.sprite.Sprite):
     def sprite_collision(self, sprite):
         def _sprite_collision_x(_side_function):
             # 移動先の座標と矩形を求める
-            start_x = sprite.rect.left + sprite.x_speed + 5
-            start_y = sprite.y + self.FALL_ACCELERATION * 2 + 15
-            end_x = sprite.width - 10
+            start_x = sprite.rect.left + sprite.x_speed - 2
+            start_y = sprite.y + self.FALL_ACCELERATION * 2 + 10
+            end_x = sprite.width + 4
             end_y = sprite.height - 30
 
             new_rect = Rect(start_x, start_y, end_x, end_y)
@@ -149,14 +154,16 @@ class SpriteObject(pygame.sprite.Sprite):
 
         def _sprite_collision_y(_top_function, _bottom_function):
             # 移動先の座標と矩形を求める
-            start_x = sprite.x + 2
+            start_x = sprite.x + 5
             start_y = sprite.y + sprite.y_speed + self.FALL_ACCELERATION * 2 + 4
-            end_x = sprite.width - 4
-            end_y = (sprite.height / 2) - 2
+            end_x = sprite.width - 10
+            end_y = (sprite.height / 3) - 2
 
             new_rect_top = Rect(start_x, start_y, end_x, end_y)
 
-            start_y += end_y
+            start_x = sprite.x + 1
+            end_x = sprite.width - 2
+            start_y += end_y * 2
             new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
 
             # 当たり判定可視化 （デバック用）

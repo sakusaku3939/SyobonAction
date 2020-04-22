@@ -240,19 +240,19 @@ class Player:
                 # 左にある場合
                 if collide_left:
                     self.block_animation('LR', block)
-                    self.sprite.x_speed = 0.0
-                    SpritePlayer.scroll = 0
 
-                    if self.sprite.x != 2 + block.rect.left - self.sprite.width:
+                    if self.sprite.x != 2 + block.rect.left - self.sprite.width and not self.sprite.x_speed > 0:
+                        self.sprite.x_speed = 0.0
+                        SpritePlayer.scroll = 0
                         self.sprite.x = block.rect.right - 3
 
                 # 右にある場合
                 if collide_right:
                     self.block_animation('LR', block)
-                    self.sprite.x_speed = 0.0
-                    SpritePlayer.scroll = 0
 
-                    if self.sprite.x != block.rect.right - 4:
+                    if self.sprite.x != block.rect.right - 4 and not self.sprite.x_speed < 0:
+                        self.sprite.x_speed = 0.0
+                        SpritePlayer.scroll = 0
                         self.sprite.x = 2 + block.rect.left - self.sprite.width
 
             # 背景画像のアニメーション

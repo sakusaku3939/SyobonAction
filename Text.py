@@ -40,12 +40,11 @@ class Text:
 
     @classmethod
     def set(cls, screen, text, x=0, y=0, size=20, sprite=None):
-        # 文字のセット
         if type(text) is str:
             cls.text_list.append(cls.__DrawText(screen, sprite, text, x, y, size))
-        # リストからランダムに選出してセット
-        if type(text) is list:
-            index = random.randint(0, len(text))
+
+        elif type(text) is list:
+            index = random.randint(0, len(text) - 1)
             cls.text_list.append(cls.__DrawText(screen, sprite, text[index], x, y, size))
 
     @classmethod

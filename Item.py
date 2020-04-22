@@ -1,5 +1,3 @@
-from random import randint
-
 import pygame
 from Image import LoadImage
 from Sound import Sound
@@ -12,10 +10,16 @@ class BlockItem:
     def __init__(self, screen, block, item_name):
         Sound.play_SE('brockkinoko')
         self.screen = screen
-        self.item = SpriteObject(screen, item_name, -30, -30)
+
+        # ブロックデータの置き換え
+        block.name = 'block3'
+        block.data = 5
+        block.image = LoadImage.image_list[block.name]
 
         self.isSuccess = False  # アニメーションが完了したかどうか
         self.isAppear = False  # アイテム出現アニメーション中か
+
+        self.item = SpriteObject(screen, item_name, -30, -30)
 
         self.item.direction = -1  # アイテムが動く向き
 
@@ -44,10 +48,15 @@ class BlockItem:
             self.item.rect.top -= 1
             self.screen.blit(self.item.image, self.item.rect)
 
+        # 画面外になったらオブジェクト削除
+        if self.item.isRemove:
+            self.item.remove()
+            self.isSuccess = True
+
     def _collision(self):
         self.isSuccess = True
         Sound.play_SE('powerup')
-        Text.set(self.screen, 'まずい・・・', sprite=Stage.player_object)
+        Text.set(self.screen, 'まずい…', sprite=Stage.player_object)
 
 
 class BlockCoin:
