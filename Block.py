@@ -1,4 +1,7 @@
 import pygame
+from abc import ABCMeta, abstractmethod
+
+from Enemy import Round
 from Image import LoadImage
 from Sound import Sound
 from Sprite import SpritePlayer, SpriteObject
@@ -6,8 +9,9 @@ from Stage import Stage
 from Text import Text
 
 
-class BlockItem:
-    def __init__(self, screen, block, item_name):
+# はてなブロックから出現するスプライトを実装する際に継承するクラス
+class AbstractBlock(metaclass=ABCMeta):
+    def __init__(self, screen, block, img_name):
         Sound.play_SE('brockkinoko')
         self.screen = screen
 
@@ -17,46 +21,94 @@ class BlockItem:
         block.image = LoadImage.image_list[block.name]
 
         self.isSuccess = False  # アニメーションが完了したかどうか
-        self.isAppear = False  # アイテム出現アニメーション中か
+        self.isAppear = False  # 出現アニメーション中か
 
-        self.item = SpriteObject(screen, item_name, -30, -30)
+        self.sprite = SpriteObject(screen, img_name, -30, -30)
 
-        self.item.direction = -1  # アイテムが動く向き
+        self.sprite.direction = -1  # アイテムが動く向き
+        self.list_number = -1  # 画像の切り替え
 
-        # アイテムの座標
-        self.item.x = block.rect.left + int(block.width / 2 - self.item.width / 2) + SpritePlayer.scroll_sum
-        self.item.rect.top = block.rect.top
-        self.start_y = self.item.rect.top
+        # オブジェクトの座標
+        self.sprite.x = block.rect.left + int(block.width / 2 - self.sprite.width / 2) + SpritePlayer.scroll_sum
+        self.sprite.rect.top = block.rect.top
+        self.start_y = self.sprite.rect.top
 
+    @abstractmethod
     def update(self):
-        # 一定の高さまで上がったらアイテム出現アニメーション完了
-        if self.start_y - self.item.rect.top >= 29:
-            self.isAppear = True
-
-        # アイテム移動アニメーション
         if self.isAppear:
-            self.item.update(list_number=-1)
-
-            # ブロックとの当たり判定
-            self.item.collision(Stage.block_object_list)
-
-            # プレイヤーとの当たり判定
-            collision_x, collision_y = self.item.sprite_collision(Stage.player_object)
-            collision_y(self._collision, self._collision)
+            self.move_animation()
         else:
-            self.item.rect.left = self.item.x - SpritePlayer.scroll_sum
-            self.item.rect.top -= 1
-            self.screen.blit(self.item.image, self.item.rect)
+            self.appear_animation()
 
-        # 画面外になったらオブジェクト削除
-        if self.item.isRemove:
-            self.item.remove()
+        # 画面外になったらスプライト削除
+        if self.sprite.isRemove:
+            self.sprite.remove()
             self.isSuccess = True
 
-    def _collision(self):
+    @abstractmethod  # ブロックから出現後の移動アニメーション
+    def move_animation(self):
+        self.sprite.update(self.list_number)
+
+        # ブロックとの当たり判定
+        self.sprite.collision(Stage.block_object_list)
+
+        # プレイヤーとの当たり判定
+        collision_x, collision_y = self.sprite.sprite_collision(Stage.player_object)
+        collision_y(self.collision, self.collision)
+
+    # ブロックから出現するアニメーション
+    def appear_animation(self):
+        # 一定の高さまで上がったら出現アニメーション完了
+        if self.start_y - self.sprite.rect.top >= 29:
+            self.isAppear = True
+
+        self.sprite.rect.left = self.sprite.x - SpritePlayer.scroll_sum
+        self.sprite.rect.top -= 1
+
+        # 向きによって画像を変更
+        if self.list_number == -1:
+            self.screen.blit(self.sprite.img_left[self.list_number], self.sprite.rect)
+        else:
+            self.screen.blit(self.sprite.img_right[self.list_number], self.sprite.rect)
+
+    # プレイヤーに当たった場合
+    def collision(self):
         self.isSuccess = True
+
+
+class BlockKinoko(AbstractBlock):
+    def __init__(self, screen, block, item_name):
+        super().__init__(screen, block, item_name)
+
+    def update(self):
+        super().update()
+
+    def move_animation(self):
+        super().move_animation()
+
+    def collision(self):
+        super().collision()
         Sound.play_SE('powerup')
         Text.set(self.screen, 'まずい…', sprite=Stage.player_object)
+
+
+class BlockEnemy(AbstractBlock):
+    def __init__(self, screen, block, enemy_name):
+        super().__init__(screen, block, enemy_name)
+
+        self.sprite.direction = -1
+        self.list_number = 0
+        self.sprite.x -= 2
+
+    def update(self):
+        super().update()
+
+    def move_animation(self):
+        self.sprite.specific = Round(self.screen, Stage.player_object, self.sprite)
+        Stage.enemy_object_list.append(self.sprite)
+
+        self.isSuccess = True
+        self.sprite.remove()
 
 
 class BlockCoin:

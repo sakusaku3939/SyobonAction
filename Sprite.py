@@ -93,26 +93,36 @@ class SpriteObject(pygame.sprite.Sprite):
     def collision(self, block_list):
         def _collision_x():
             # 移動先の座標と矩形を求める
-            start_x = self.rect.left + self.x_speed - 1
+            start_x = self.rect.left + self.x_speed - 2
             start_y = self.rect.top + 15
-            end_x = self.width
+            end_x = (self.width + 4) / 2
             end_y = self.height - 20
 
-            new_rect = Rect(start_x, start_y, end_x, end_y)
-            # pygame.draw.rect(self.screen, (255, 0, 0), new_rect)  # 当たり判定可視化 （デバック用）
+            new_rect_left = Rect(start_x, start_y, end_x, end_y)
+
+            start_x += end_x
+            new_rect_right = Rect(start_x, start_y, end_x, end_y)
+
+            # 当たり判定可視化 （デバック用）
+            # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_left)
+            # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_right)
 
             for block in block_list:
-                collide = new_rect.colliderect(block.rect)
+                collide_left = new_rect_left.colliderect(block.rect)
+                collide_right = new_rect_right.colliderect(block.rect)
+
                 # 歩く先にブロックがある場合向きを変える
-                if collide and block.name not in self.bg:
-                    self.direction *= -1
-                    self.x -= self.direction
+                if block.name not in self.bg:
+                    if collide_left:
+                        self.direction = -1
+                    elif collide_right:
+                        self.direction = 1
 
         def _collision_y():
             # 移動先の座標と矩形を求める
-            start_x = self.rect.left + self.x_speed + 3
+            start_x = self.rect.left + self.x_speed + 2
             start_y = self.rect.top + self.y_speed + self.FALL_ACCELERATION * 2
-            end_x = self.width - 6
+            end_x = self.width - 4
             end_y = self.height - 2
 
             new_rect = Rect(start_x, start_y, end_x, end_y)
@@ -161,7 +171,8 @@ class SpriteObject(pygame.sprite.Sprite):
             # 横に当たった場合
             if collide:
                 _side_function()
-                return
+                return True
+            return False
 
         def _sprite_collision_y(_top_function, _bottom_function):
             # 移動先の座標と矩形を求める

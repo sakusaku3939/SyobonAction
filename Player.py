@@ -4,7 +4,7 @@ import numpy as np
 
 from Image import LoadImage
 from Sprite import SpritePlayer
-from Item import BlockBreak, BlockCoin, BlockItem
+from Block import BlockBreak, BlockCoin, BlockKinoko, BlockEnemy
 from Sound import Sound
 from Stage import Stage
 
@@ -337,7 +337,11 @@ class Player:
 
                 # 叩くと赤キノコが出る
                 if block.data == 3.2:
-                    self.block_animation_list.append(BlockItem(self.screen, block, 'item2'))
+                    self.block_animation_list.append(BlockKinoko(self.screen, block, 'item2'))
+
+                # 叩くと敵が出る
+                if block.data == 3.8:
+                    self.block_animation_list.append(BlockEnemy(self.screen, block, 'enemy'))
 
             # 叩けないブロック
             elif direction == 'TOP_BLOCK' and block.data == 3.1 and self.player.y_speed < 0:
@@ -345,8 +349,10 @@ class Player:
 
         # 隠しブロック
         if block.name == 'block3' and direction == 'TOP' and block.isHide and self.player.y_speed < 0:
-            self.block_animation_list.append(BlockCoin(self.screen, block))
             block.isHide = False
+            # 叩くとコインが出る
+            if block.data == 5:
+                self.block_animation_list.append(BlockCoin(self.screen, block))
 
         if block.name == 'halfway' and direction == '':
             SpritePlayer.initial_x = 210
