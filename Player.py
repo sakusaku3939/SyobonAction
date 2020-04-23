@@ -95,7 +95,7 @@ class Player:
                 self.player.y_speed += self.ADD_JUMP_SPEED
                 self.player.isJump = False
                 # 移動スピードが最大の時、更にジャンプの高さを追加
-                if abs(self.player.x_speed) == self.MAX_SPEED_X:
+                if abs(self.player.x_speed) > self.MAX_SPEED_X - 2:
                     self.player.y_speed += self.ADD_DASH_JUMP_SPEED
             else:
                 self._jump_time += 1
