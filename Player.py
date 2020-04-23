@@ -2,9 +2,8 @@ import pygame
 from pygame.locals import *
 import numpy as np
 
-from Image import LoadImage
+import Block
 from Sprite import SpritePlayer
-from Block import BlockBreak, BlockCoin, BlockKinoko, BlockEnemy
 from Sound import Sound
 from Stage import Stage
 
@@ -49,7 +48,7 @@ class Player:
         self._death_init = True  # 初期化
         self._death_count = 0  # 静止時間を計るタイマー
 
-        self.block_animation_list = []  # ブロックアニメーションのオブジェクトを格納するリスト
+        self.item_animation_list = []  # ブロックアニメーションのオブジェクトを格納するリスト
 
         # 当たり判定を行わない背景画像
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
@@ -174,10 +173,17 @@ class Player:
 
     # アイテムなどのアニメーション
     def item_animation(self):
-        for animation in self.block_animation_list:
+        for animation in self.item_animation_list:
             animation.update()
+
+            # 新たに生成するか
+            if animation.isGenerate:
+                animation.isGenerate = False
+                self.item_animation_list.append(Block.PoisonKinoko(self.screen, animation.block, isLot=True))
+
+            # アニメーションが完了したか
             if animation.isSuccess:
-                self.block_animation_list.remove(animation)
+                self.item_animation_list.remove(animation)
 
     # 死亡時のアニメーション
     def death(self):
@@ -314,6 +320,9 @@ class Player:
 
     # ブロックのアニメーション
     def block_animation(self, direction, block):
+        def add_block(function):
+            self.item_animation_list.append(function)
+
         # 壊れるブロック
         if block.name == 'block1':
             # 叩くとトゲを生やす
@@ -324,7 +333,7 @@ class Player:
             if direction == 'TOP':
                 # 叩くと壊れる
                 if block.data == 1:
-                    self.block_animation_list.append(BlockBreak(self.screen, block))
+                    add_block(Block.Break(self.screen, block))
                     block.remove()
                     Stage.block_object_list.remove(block)
 
@@ -333,15 +342,15 @@ class Player:
             if direction == 'TOP':
                 # 叩くとコインが出る
                 if block.data == 3:
-                    self.block_animation_list.append(BlockCoin(self.screen, block))
+                    add_block(Block.Coin(self.screen, block))
 
                 # 叩くと赤キノコが出る
                 if block.data == 3.2:
-                    self.block_animation_list.append(BlockKinoko(self.screen, block, 'item2'))
+                    add_block(Block.Kinoko(self.screen, block))
 
                 # 叩くと敵が出る
                 if block.data == 3.8:
-                    self.block_animation_list.append(BlockEnemy(self.screen, block, 'enemy'))
+                    add_block(Block.Enemy(self.screen, block, 'enemy'))
 
             # 叩けないブロック
             elif direction == 'TOP_BLOCK' and block.data == 3.1 and self.player.y_speed < 0:
@@ -352,7 +361,11 @@ class Player:
             block.isHide = False
             # 叩くとコインが出る
             if block.data == 5:
-                self.block_animation_list.append(BlockCoin(self.screen, block))
+                add_block(Block.Coin(self.screen, block))
+
+            # 叩くと大量の毒キノコが出る
+            if block.data == 5.5:
+                add_block(Block.PoisonKinoko(self.screen, block, isLot=True))
 
         if block.name == 'halfway' and direction == '':
             SpritePlayer.initial_x = 210

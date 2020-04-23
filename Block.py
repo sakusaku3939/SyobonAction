@@ -9,11 +9,13 @@ from Stage import Stage
 from Text import Text
 
 
-# はてなブロックから出現するスプライトを実装する際に継承するクラス
+# ブロックから出現するスプライトを実装する際に継承するクラス
 class AbstractBlock(metaclass=ABCMeta):
-    def __init__(self, screen, block, img_name):
+    def __init__(self, screen, block, img_name, isLot=False):
         Sound.play_SE('brockkinoko')
         self.screen = screen
+        self.block = block
+        self.player = Stage.player_object
 
         # ブロックデータの置き換え
         block.name = 'block3'
@@ -22,15 +24,19 @@ class AbstractBlock(metaclass=ABCMeta):
 
         self.isSuccess = False  # アニメーションが完了したかどうか
         self.isAppear = False  # 出現アニメーション中か
+        self._isLot = isLot  # 大量に出現させるか
+        self.isGenerate = False  # 新たに生成するか
 
         self.sprite = SpriteObject(screen, img_name, -30, -30)
 
         self.sprite.direction = -1  # アイテムが動く向き
         self.list_number = -1  # 画像の切り替え
 
+        self.sprite.x_speed += 0.5 if isLot else 0  # 移動速度
+
         # オブジェクトの座標
         self.sprite.x = block.rect.left + int(block.width / 2 - self.sprite.width / 2) + SpritePlayer.scroll_sum
-        self.sprite.rect.top = block.rect.top
+        self.sprite.rect.top = block.rect.top + 2
         self.start_y = self.sprite.rect.top
 
     @abstractmethod
@@ -53,7 +59,7 @@ class AbstractBlock(metaclass=ABCMeta):
         self.sprite.collision(Stage.block_object_list)
 
         # プレイヤーとの当たり判定
-        collision_x, collision_y = self.sprite.sprite_collision(Stage.player_object)
+        collision_x, collision_y = self.sprite.sprite_collision(self.player)
         collision_y(self.collision, self.collision)
 
     # ブロックから出現するアニメーション
@@ -61,6 +67,7 @@ class AbstractBlock(metaclass=ABCMeta):
         # 一定の高さまで上がったら出現アニメーション完了
         if self.start_y - self.sprite.rect.top >= 29:
             self.isAppear = True
+            self.isGenerate = self._isLot
 
         self.sprite.rect.left = self.sprite.x - SpritePlayer.scroll_sum
         self.sprite.rect.top -= 1
@@ -76,9 +83,10 @@ class AbstractBlock(metaclass=ABCMeta):
         self.isSuccess = True
 
 
-class BlockKinoko(AbstractBlock):
-    def __init__(self, screen, block, item_name):
-        super().__init__(screen, block, item_name)
+# 叩くと赤キノコ
+class Kinoko(AbstractBlock):
+    def __init__(self, screen, block):
+        super().__init__(screen, block, 'item2')
 
     def update(self):
         super().update()
@@ -89,12 +97,30 @@ class BlockKinoko(AbstractBlock):
     def collision(self):
         super().collision()
         Sound.play_SE('powerup')
-        Text.set(self.screen, 'まずい…', sprite=Stage.player_object)
+        Text.set(self.screen, 'まずい…', sprite=self.player)
 
 
-class BlockEnemy(AbstractBlock):
-    def __init__(self, screen, block, enemy_name):
-        super().__init__(screen, block, enemy_name)
+# 叩くと毒キノコ
+class PoisonKinoko(AbstractBlock):
+    def __init__(self, screen, block, isLot=False):
+        super().__init__(screen, block, 'item4', isLot)
+
+    def update(self):
+        super().update()
+
+    def move_animation(self):
+        super().move_animation()
+
+    def collision(self):
+        super().collision()
+        self.player.isDeath = True
+        Text.set(self.screen, 'うほっ!!!!', sprite=self.player)
+
+
+# 叩くと敵
+class Enemy(AbstractBlock):
+    def __init__(self, screen, block, name):
+        super().__init__(screen, block, name)
 
         self.sprite.direction = -1
         self.list_number = 0
@@ -104,14 +130,15 @@ class BlockEnemy(AbstractBlock):
         super().update()
 
     def move_animation(self):
-        self.sprite.specific = Round(self.screen, Stage.player_object, self.sprite)
+        self.sprite.specific = Round(self.screen, self.player, self.sprite)
         Stage.enemy_object_list.append(self.sprite)
 
         self.isSuccess = True
         self.sprite.remove()
 
 
-class BlockCoin:
+# 叩くとコイン
+class Coin:
     def __init__(self, screen, block):
         Sound.play_SE('coin')
         self.screen = screen
@@ -122,6 +149,7 @@ class BlockCoin:
         block.image = LoadImage.image_list[block.name]
 
         self.isSuccess = False  # アニメーションが完了したかどうか
+        self.isGenerate = False  # 新たに生成するか
 
         # 画像の読み込み
         self.image = LoadImage.image_list['item1']
@@ -141,12 +169,14 @@ class BlockCoin:
             self.isSuccess = True
 
 
-class BlockBreak:
+# 叩くと壊れる
+class Break:
     def __init__(self, screen, block):
         Sound.play_SE('brockbreak')
         self.screen = screen
 
         self.isSuccess = False  # アニメーションが完了したかどうか
+        self.isGenerate = False  # 新たに生成するか
         self.FALL_ACCELERATION = 0.5  # 落下加速度
 
         # 破壊ブロックの座標
