@@ -128,6 +128,7 @@ class Koura(AbstractEnemy):
                 # 甲羅が他の敵に当たった時はそのまま倒す
                 if self.list_number == 1 and self.enemy.direction != 0:
                     def _remove():
+                        Sound.play_SE('koura')
                         other_enemy.remove()
                         Stage.enemy_object_list.remove(other_enemy)
 
