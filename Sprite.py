@@ -271,7 +271,7 @@ class SpriteBlock(pygame.sprite.Sprite):
 
 class SpritePlayer(pygame.sprite.Sprite):
     # 初期座標
-    initial_x = 80
+    initial_x = 55
     initial_y = 320
     initial_scroll_sum = 0
 

@@ -46,9 +46,9 @@ class Player:
 
         self.player.isDeath = False  # 敵に当たったかどうか
         self._death_init = True  # 初期化
-        self._death_count = 0  # 静止時間を計るタイマー
 
         self.player.dive_dokan = None  # 潜っている土管を格納するオブジェクト
+        self._fly_dokan = None  # 飛ぶ土管を格納するオブジェクト
         self._dokan_init = True  # 初期化
         self._dokan_count = 0  # 潜る時間を計るタイマー
 
@@ -188,6 +188,7 @@ class Player:
     # 死亡時のアニメーション
     def death(self):
         if self.player.isDeath:
+            # 初期化
             if self._death_init:
                 self._death_init = False
 
@@ -204,12 +205,12 @@ class Player:
             self._jump_time += 1
 
             # 20フレーム後に落下
-            if self._jump_time >= 20:
+            if self._jump_time > 20:
                 self.player.y_speed += self.FALL_ACCELERATION
                 self.player.y += self.player.y_speed
 
             # 時間が経過したら戻って残機表示
-            if self._jump_time >= 210:
+            if self._jump_time >= 190:
                 return True
 
             self.bg_update()
@@ -220,6 +221,8 @@ class Player:
     # 土管に入る時のアニメーション
     def dokan(self):
         if self.player.dive_dokan is not None:
+            isDeath = False
+            # 初期化
             if self._dokan_init:
                 self._dokan_init = False
                 Sound.play_SE('dokan')
@@ -227,10 +230,12 @@ class Player:
                 self.player.x_speed = 0.0
                 SpritePlayer.scroll = 0
 
-            # 40フレーム後に独自の処理を実行
-            if self._dokan_count >= 40:
-                if self.player.dive_dokan.data == 20.3:
-                    pass
+            # 一秒後に土管の処理を実行
+            if self._dokan_count >= 60:
+                if self.player.dive_dokan.data == 20.2:
+                    if self._fly_dokan is None:
+                        self._fly_dokan = Block.FlyDokan(self.player)
+                    isDeath = self._fly_dokan.update()
             else:
                 self._dokan_count += 1
                 self.player.y += 1
@@ -238,6 +243,7 @@ class Player:
             self.bg_update()
             self.player.update(self._direction(self._img_number))
 
+            return isDeath
         return False
 
     # x方向の当たり判定

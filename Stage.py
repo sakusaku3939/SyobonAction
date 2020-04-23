@@ -69,12 +69,15 @@ class Stage:
             for y, data in enumerate(list_data):
                 # 一つ前のステージデータを取得
                 try:
-                    stage_position_top = self.stage_data[x][y - 1]
+                    stage_position_up = self.stage_data[x][y - 1]
                     stage_position_down = self.stage_data[x][y + 1]
                     stage_position_left = self.stage_data[x - 1][y]
                     stage_position_right = self.stage_data[x + 1][y]
                 except IndexError:
-                    pass
+                    stage_position_up = 0
+                    stage_position_down = 0
+                    stage_position_left = 0
+                    stage_position_right = 0
 
                 # 壊れるブロック
                 self.block_add('block1', data, x, y, start=1, end=2.6, color=True)
@@ -90,14 +93,14 @@ class Stage:
 
                 # 足場ブロック
                 if data == 8:
-                    if stage_position_top != 8:
+                    if stage_position_up != 8:
                         self.block_add('block5', data, x, y, color=True)
                     else:
                         self.block_add('block6', data, x, y, color=True)
 
                 # 落ちる足場ブロック
                 if data == 8.1:
-                    if stage_position_top != 8.1:
+                    if stage_position_up != 8.1:
                         self.block_add('block5', data, x, y, color=True)
                     else:
                         self.block_add('block6', data, x, y, color=True)
@@ -114,7 +117,14 @@ class Stage:
                 # 土管
                 self.block_add('dokan1', data, x, y, 20)
                 self.block_add('dokan1', data, x, y, start=20.2, end=20.5)
-                self.block_add('dokan2', data, x, y, 20.1, tweak_x=0, tweak_y=1)
+
+                if data == 20.1:
+                    if stage_position_up == 20.2:
+                        # グループ化
+                        self.stage_data[x][y] = 20.2
+                        self.block_add('dokan2', 20.2, x, y, tweak_x=0, tweak_y=1)
+                    else:
+                        self.block_add('dokan2', 20.1, x, y, tweak_x=0, tweak_y=1)
 
                 # 草
                 self.block_add('grass', data, x, y, 22)

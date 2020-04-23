@@ -80,6 +80,7 @@ def remain_show():
         elif count == 3:
             tweak += 1
         screen.blit(text, [text_x + tweak, 200])
+        screen.blit(text, [text_x + tweak + 1, 200])
 
     REMAIN -= 1
 
@@ -220,7 +221,7 @@ class Stage_1:
                     if event.key == K_F1:
                         global GAME_STATE
                         GAME_STATE = 0
-                        SpritePlayer.initial_x = 80
+                        SpritePlayer.initial_x = 55
                         SpritePlayer.initial_y = 320
                         SpritePlayer.initial_scroll_sum = 0
                         return
