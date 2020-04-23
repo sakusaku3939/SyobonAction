@@ -48,6 +48,10 @@ class Player:
         self._death_init = True  # 初期化
         self._death_count = 0  # 静止時間を計るタイマー
 
+        self.player.dive_dokan = None  # 潜っている土管を格納するオブジェクト
+        self._dokan_init = True  # 初期化
+        self._dokan_count = 0  # 潜る時間を計るタイマー
+
         self.item_animation_list = []  # ブロックアニメーションのオブジェクトを格納するリスト
 
         # 当たり判定を行わない背景画像
@@ -56,7 +60,7 @@ class Player:
 
     def update(self):
         # 死亡アニメーション中は戻る
-        if self.player.isDeath:
+        if self.player.isDeath or self.player.dive_dokan is not None:
             return
 
         pressed_key = pygame.key.get_pressed()
@@ -80,10 +84,6 @@ class Player:
 
             # 空中時の最大速度を計算
             self.player.limit_air_speed()
-
-        # 土管に入る
-        elif pressed_key[K_DOWN]:
-            pass
 
         # 8フレーム以内にキーを離した場合小ジャンプ
         if not jump_key:
@@ -217,6 +217,29 @@ class Player:
 
         return False
 
+    # 土管に入る時のアニメーション
+    def dokan(self):
+        if self.player.dive_dokan is not None:
+            if self._dokan_init:
+                self._dokan_init = False
+                Sound.play_SE('dokan')
+
+                self.player.x_speed = 0.0
+                SpritePlayer.scroll = 0
+
+            # 40フレーム後に独自の処理を実行
+            if self._dokan_count >= 40:
+                if self.player.dive_dokan.data == 20.3:
+                    pass
+            else:
+                self._dokan_count += 1
+                self.player.y += 1
+
+            self.bg_update()
+            self.player.update(self._direction(self._img_number))
+
+        return False
+
     # x方向の当たり判定
     def collision_x(self):
         x = self.player.rect.left + self.player.x_speed
@@ -245,7 +268,7 @@ class Player:
 
                 # 左にある場合
                 if collide_left:
-                    self.block_animation('LR', block)
+                    self.block_animation('SIDE', block)
 
                     if self.player.x != 2 + block.rect.left - self.player.width and not self.player.x_speed > 0:
                         self.player.x_speed = 0.0
@@ -254,7 +277,7 @@ class Player:
 
                 # 右にある場合
                 if collide_right:
-                    self.block_animation('LR', block)
+                    self.block_animation('SIDE', block)
 
                     if self.player.x != block.rect.right - 4 and not self.player.x_speed < 0:
                         self.player.x_speed = 0.0
@@ -367,9 +390,23 @@ class Player:
             if block.data == 5.5:
                 add_block(Block.PoisonKinoko(self.screen, block, isLot=True))
 
+        # 土管に入る
+        if block.name == 'dokan1' :
+            # 上から入る場合
+            if direction == 'BOTTOM' and block.data in [20.2, 20.3, 20.5]:
+                if block.rect.left + 25 < self.player.rect.right - 5 and block.rect.right - 25 > self.player.rect.left + 6:
+                    if pygame.key.get_pressed()[K_DOWN]:
+                        self.player.dive_dokan = block
+
+            # 横からはいる場合
+            if direction == 'SIDE' and block.data in [20.6, 20.8] and self.player.isGrounding:
+                pass
+
+        # 中間地点
         if block.name == 'halfway' and direction == '':
             SpritePlayer.initial_x = 210
             SpritePlayer.initial_y = block.y
             SpritePlayer.initial_scroll_sum = block.x - 210
+
             block.remove()
             Stage.block_object_list.remove(block)

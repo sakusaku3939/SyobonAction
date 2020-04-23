@@ -188,6 +188,10 @@ class Stage_1:
             if self.player.death():
                 break
 
+            # 土管に入る時のアニメーション
+            if self.player.dokan():
+                break
+
             self.player.update()
             self.enemy.update()
             self.player.item_animation()

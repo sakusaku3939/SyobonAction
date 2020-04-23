@@ -298,6 +298,8 @@ class SpritePlayer(pygame.sprite.Sprite):
         self.isJump = False  # ジャンプモーション中か
         self.isDeath = False  # 敵に当たったかどうか
 
+        self.dive_dokan = None  # 潜っている土管を格納するオブジェクト
+
         # 初期座標セット
         self.x = SpritePlayer.initial_x
         self.y = SpritePlayer.initial_y
