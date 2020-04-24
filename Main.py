@@ -94,6 +94,15 @@ def remain_show():
             sleep(0.01)
 
 
+# ゲームの状態を変更する
+def state_change(state_number):
+    global GAME_STATE
+    GAME_STATE = state_number
+    SpritePlayer.initial_x = 55
+    SpritePlayer.initial_y = 320
+    SpritePlayer.initial_scroll_sum = 0
+
+
 # タイトル画面
 class Title:
     def __init__(self):
@@ -164,8 +173,7 @@ class Title:
 
                     # ENTERキー or Zキーが押されたらスタート
                     if event.key == 13 or event.key == 122:
-                        global GAME_STATE
-                        GAME_STATE = self.goto_stage
+                        state_change(self.goto_stage)
                         return
 
 
@@ -186,8 +194,13 @@ class Stage_1:
             screen.fill((160, 180, 250))
 
             # 強制アニメーション
-            if self.Player.dokan_animation() or self.Player.goal_animation() or self.Player.death_animation():
-                break
+            if self.Player.goal_animation():
+                global REMAIN
+                REMAIN += 1
+                state_change(1)
+                return
+            if self.Player.dokan_animation() or self.Player.death_animation():
+                return
 
             self.Player.update()
             self.Enemy.update()
@@ -215,11 +228,7 @@ class Stage_1:
                         sys.exit()
                     # F1キーが押されたらタイトルに戻る
                     if event.key == K_F1:
-                        global GAME_STATE
-                        GAME_STATE = 0
-                        SpritePlayer.initial_x = 55
-                        SpritePlayer.initial_y = 320
-                        SpritePlayer.initial_scroll_sum = 0
+                        state_change(0)
                         return
                     # oキーが押されたら自殺
                     if event.key == K_o:
