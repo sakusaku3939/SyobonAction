@@ -6,10 +6,11 @@ from Image import LoadImage
 
 # 敵やアイテム等のスプライト
 class SpriteObject(pygame.sprite.Sprite):
-    def __init__(self, screen, img_name, x, y, tweak_x=0, tweak_y=0):
+    def __init__(self, screen, img_name, data, x, y, tweak_x=0, tweak_y=0):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
         self.specific = None  # スプライト固有の設定を入れるオブジェクト
+        self.data = data  # 画像の番号
 
         # 画像の読み込み
         self.name = img_name
@@ -123,25 +124,32 @@ class SpriteObject(pygame.sprite.Sprite):
             start_x = self.rect.left + self.x_speed + 2
             start_y = self.rect.top + self.y_speed + self.FALL_ACCELERATION * 2
             end_x = self.width - 4
-            end_y = self.height - 2
+            end_y = (self.height - 2) / 2
 
-            new_rect = Rect(start_x, start_y, end_x, end_y)
-            # pygame.draw.rect(self.screen, (0, 0, 255), new_rect)  # 当たり判定可視化 （デバック用）
+            new_rect_top = Rect(start_x, start_y, end_x, end_y)
+
+            start_y += end_y
+            new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
+
+            # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_top)  # 当たり判定可視化 （デバック用）
+            # pygame.draw.rect(self.screen, (0, 0, 255), new_rect_bottom)  # 当たり判定可視化 （デバック用）
 
             for block in block_list:
-                collide = new_rect.colliderect(block.rect)
-                if collide and block.name not in self.bg:
+                collide_top = new_rect_top.colliderect(block.rect)
+                collide_bottom = new_rect_bottom.colliderect(block.rect)
+
+                if block.name not in self.bg:
+                    # 上にある場合
+                    if collide_top:
+                        self.rect.top = block.rect.bottom
+                        self.y_speed /= -3
+                        return False
+
                     # 下にある場合
-                    if self.y_speed > 0.0:
+                    elif collide_bottom:
                         self.rect.top = block.rect.top - self.height + 3
                         self.y_speed = 0.0
                         return True
-
-                    # 上にある場合
-                    elif self.y_speed < 0.0:
-                        self.rect.top = block.rect.bottom
-                        self.y_speed = 0.0
-                        return False
 
             return False
 

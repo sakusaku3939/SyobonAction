@@ -158,7 +158,7 @@ class Stage:
     def enemy_add(self, name, data, img_x, img_y, match=0.0, start=0.0, end=0.0, tweak_x=0, tweak_y=0):
         # enemy_object_listに追加
         append = (lambda: self.enemy_object_list.append(
-            SpriteObject(self.screen, name, img_x, img_y, tweak_x, tweak_y)
+            SpriteObject(self.screen, name, data, img_x, img_y, tweak_x, tweak_y)
         ))
 
         self._add(append, data,  match, start, end)

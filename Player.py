@@ -366,6 +366,10 @@ class Player:
                     block.remove()
                     Stage.block_object_list.remove(block)
 
+                # 叩くとスター
+                if block.data == 2.1:
+                    add_block(Block.Star(self.screen, block))
+
         # はてなブロック
         if block.name == 'block2':
             if direction == 'TOP':

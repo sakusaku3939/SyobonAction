@@ -11,7 +11,7 @@ from Text import Text
 
 # ブロックから出現するスプライトを実装する際に継承するクラス
 class AbstractBlock(metaclass=ABCMeta):
-    def __init__(self, screen, block, img_name, isLot=False):
+    def __init__(self, screen, block, img_name, data=0, isLot=False):
         Sound.play_SE('brockkinoko')
         self.screen = screen
         self.block = block
@@ -27,19 +27,18 @@ class AbstractBlock(metaclass=ABCMeta):
         self._isLot = isLot  # 大量に出現させるか
         self.isGenerate = False  # 新たに生成するか
 
-        self.sprite = SpriteObject(screen, img_name, -30, -30)
+        self.sprite = SpriteObject(screen, img_name, data, -30, -30)
 
         self.sprite.direction = -1  # アイテムが動く向き
         self.list_number = -1  # 画像の切り替え
 
-        self.sprite.x_speed += 0.5 if isLot else 0  # 移動速度
+        self.sprite.x_speed = 1.0 if isLot else 0.5  # 移動速度
 
         # オブジェクトの座標
         self.sprite.x = block.rect.left + int(block.width / 2 - self.sprite.width / 2) + SpritePlayer.scroll_sum
         self.sprite.rect.top = block.rect.top + 2
         self.start_y = self.sprite.rect.top
 
-    @abstractmethod
     def update(self):
         if self.isAppear:
             self.move_animation()
@@ -50,17 +49,6 @@ class AbstractBlock(metaclass=ABCMeta):
         if self.sprite.isRemove:
             self.sprite.remove()
             self.isSuccess = True
-
-    @abstractmethod  # ブロックから出現後の移動アニメーション
-    def move_animation(self):
-        self.sprite.update(self.list_number)
-
-        # ブロックとの当たり判定
-        self.sprite.collision(Stage.block_object_list)
-
-        # プレイヤーとの当たり判定
-        collision_x, collision_y = self.sprite.sprite_collision(self.player)
-        collision_y(self.collision, self.collision)
 
     # ブロックから出現するアニメーション
     def appear_animation(self):
@@ -78,7 +66,18 @@ class AbstractBlock(metaclass=ABCMeta):
         else:
             self.screen.blit(self.sprite.img_right[self.list_number], self.sprite.rect)
 
-    # プレイヤーに当たった場合
+    @abstractmethod  # ブロックから出現後の移動アニメーション
+    def move_animation(self):
+        self.sprite.update(self.list_number)
+
+        # ブロックとの当たり判定
+        self.sprite.collision(Stage.block_object_list)
+
+        # プレイヤーとの当たり判定
+        collision_x, collision_y = self.sprite.sprite_collision(self.player)
+        collision_y(self.collision, self.collision)
+
+    @abstractmethod  # プレイヤーに当たった場合
     def collision(self):
         self.isSuccess = True
 
@@ -87,9 +86,6 @@ class AbstractBlock(metaclass=ABCMeta):
 class Kinoko(AbstractBlock):
     def __init__(self, screen, block):
         super().__init__(screen, block, 'item2')
-
-    def update(self):
-        super().update()
 
     def move_animation(self):
         super().move_animation()
@@ -103,10 +99,7 @@ class Kinoko(AbstractBlock):
 # 叩くと毒キノコ
 class PoisonKinoko(AbstractBlock):
     def __init__(self, screen, block, isLot=False):
-        super().__init__(screen, block, 'item4', isLot)
-
-    def update(self):
-        super().update()
+        super().__init__(screen, block, 'item4', isLot=isLot)
 
     def move_animation(self):
         super().move_animation()
@@ -115,6 +108,32 @@ class PoisonKinoko(AbstractBlock):
         super().collision()
         self.player.isDeath = True
         Text.set(self.screen, 'うほっ!!!!', sprite=self.player)
+
+
+# 叩くとスター
+class Star(AbstractBlock):
+    def __init__(self, screen, block):
+        super().__init__(screen, block, 'item5')
+        self.sprite.x_speed = 0.85
+
+    def move_animation(self):
+        self.sprite.update(self.list_number)
+
+        # ブロックとの当たり判定
+        self.sprite.collision(Stage.block_object_list)
+
+        # 地面に着いたらジャンプ
+        if self.sprite.isGrounding:
+            self.sprite.y_speed = -7
+
+        # プレイヤーとの当たり判定
+        collision_x, collision_y = self.sprite.sprite_collision(self.player)
+        collision_y(self.collision, self.collision)
+
+    def collision(self):
+        super().collision()
+        self.player.isDeath = True
+        Text.set(self.screen, 'ぐふぅ!!', sprite=self.player)
 
 
 # 叩くと敵
@@ -126,15 +145,15 @@ class Enemy(AbstractBlock):
         self.list_number = 0
         self.sprite.x -= 2
 
-    def update(self):
-        super().update()
-
     def move_animation(self):
         self.sprite.specific = Round(self.screen, self.player, self.sprite)
         Stage.enemy_object_list.append(self.sprite)
 
         self.isSuccess = True
         self.sprite.remove()
+
+    def collision(self):
+        pass
 
 
 # 叩くとコイン

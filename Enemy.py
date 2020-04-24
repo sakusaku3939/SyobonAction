@@ -108,7 +108,15 @@ class Round(AbstractEnemy):
         super().top_collision()
 
     def bottom_collision(self):
-        super().bottom_collision()
+        # 踏めない敵
+        if self.enemy.data == 27.1:
+            Sound.play_SE('humi')
+
+            # 踏んだ勢いでジャンプ
+            self.player.y_speed = self.player.JUMP_SPEED - 4.3
+            self.player.limit_air_speed()
+        else:
+            super().bottom_collision()
 
     def side_collision(self):
         super().side_collision()
