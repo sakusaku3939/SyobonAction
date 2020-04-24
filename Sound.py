@@ -31,9 +31,9 @@ class Sound:
     def play_SE(cls, name):
         cls.SE_list[name].play()
 
-    # @classmethod
-    # def stop_SE(cls, name=''):
-    #     if name == '':
-    #         [cls.SE_list[_name].stop() for _name in cls.SE_list]
-    #     else:
-    #         cls.SE_list[name].stop()
+    @classmethod
+    def stop_SE(cls, name=''):
+        if name == '':
+            [cls.SE_list[_name].stop() for _name in cls.SE_list]
+        else:
+            cls.SE_list[name].stop()
