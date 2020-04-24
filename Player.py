@@ -94,7 +94,7 @@ class Player:
             if self._jump_time >= 8:
                 self.player.y_speed += self.ADD_JUMP_SPEED
                 self.player.isJump = False
-                # 移動スピードが最大の時、更にジャンプの高さを追加
+                # 移動スピードが一定値を超えた時、更にジャンプの高さを追加
                 if abs(self.player.x_speed) > self.MAX_SPEED_X - 2:
                     self.player.y_speed += self.ADD_DASH_JUMP_SPEED
             else:
@@ -153,7 +153,7 @@ class Player:
             # スクロール上限
             if SpritePlayer.scroll_sum < self.SCROLL_LIMIT:
                 self.player.x = 210
-                SpritePlayer.scroll = round(self.player.x_speed)
+                SpritePlayer.scroll = self.player.x_speed
                 SpritePlayer.scroll_sum += SpritePlayer.scroll
             else:
                 SpritePlayer.scroll = 0
@@ -253,9 +253,9 @@ class Player:
 
         # 移動先の座標と矩形を求める
         start_x = (x - SpritePlayer.scroll) + 3
-        start_y = y + self.FALL_ACCELERATION * 2 + 8
+        start_y = y + self.FALL_ACCELERATION * 2 + 15
         end_x = self.player.width / 2
-        end_y = self.player.height - 24
+        end_y = self.player.height - 30
 
         new_rect_left = Rect(start_x, start_y, end_x, end_y)
         new_rect_right = Rect(start_x + end_x - 4, start_y, end_x, end_y)
