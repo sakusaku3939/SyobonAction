@@ -246,7 +246,6 @@ class FlyDokan:
         self.count = -40
 
         self.isFly = False
-        self.isDeath = False
 
         # 少し左にずれる
         for dokan in Stage.block_object_list:
@@ -259,16 +258,9 @@ class FlyDokan:
 
         # 画面外に出たら死
         if self.player_y < -900:
-            if not self.isDeath:
-                self.isDeath = True
-                self.count = -190
-                Sound.stop_BGM()
-                Sound.play_SE('death')
+            self.player.isDeath = True
 
             self.y_speed = 0.0
-
-            if self.count >= 0:
-                return True
 
         # ある程度まで揺れたら飛行開始
         if self.x_speed > 5:
@@ -301,5 +293,4 @@ class FlyDokan:
                 dokan.x += self.x_speed * self.direction
                 dokan.y -= self.y_speed
                 dokan.rect.top = int(dokan.y)
-
-        return False
+        return

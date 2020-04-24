@@ -172,12 +172,12 @@ class Title:
 # ステージ1-1
 class Stage_1:
     def __init__(self):
-        self.stage = Stage(screen, 1, '1-1')
-        self.player = Player(screen, self.stage)
-        self.enemy = Enemy(screen)
+        self.Stage = Stage(screen, 1, '1-1')
+        self.Player = Player(screen, self.Stage)
+        self.Enemy = Enemy(screen)
 
         remain_show()
-        Sound.play_BGM('titerman')
+        # Sound.play_BGM('titerman')
 
         self.main()
 
@@ -185,18 +185,14 @@ class Stage_1:
         while 1:
             screen.fill((160, 180, 250))
 
-            # 死亡時にコンテニュー
-            if self.player.death():
+            # 強制アニメーション
+            if self.Player.dokan_animation() or self.Player.goal_animation() or self.Player.death_animation():
                 break
 
-            # 土管に入る時のアニメーション
-            if self.player.dokan():
-                break
-
-            self.player.update()
-            self.enemy.update()
-            self.player.item_animation()
-            self.stage.update()
+            self.Player.update()
+            self.Enemy.update()
+            self.Player.item_animation()
+            self.Stage.update()
 
             Text.update()
 

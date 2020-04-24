@@ -17,7 +17,7 @@ class Player:
         self.player = Stage.player_object
 
         self.player.x_speed = self.player.y_speed = 0.0  # 速度
-        self.ACCELERATION = 0.08  # 加速度
+        self.ACCELERATION = 0.1  # 加速度
         self.DASH_ACCELERATION = 0.14  # ダッシュ時・空中反転時の加速度
         self.TURN_ACCELERATION = 0.21  # 地面反転時の加速度
         self.FRICTION_ACCELERATION = 0.15  # 地面摩擦時の減速度
@@ -52,6 +52,13 @@ class Player:
         self._dokan_init = True  # 初期化
         self._dokan_count = 0  # 潜る時間を計るタイマー
 
+        self.player.goal = None  # ゴールブロックを格納するオブジェクト
+        self.goal_isMove = False  # 移動するかどうか
+        self._inGoal_tower = False  # ゴール塔に入ったかどうか
+        self._goal_init = True  # 初期化
+        self._goal_count = 0  # ゴールの計るタイマー
+        self._goal_scene_y = 500  # ゴール時に次のシーンへ移るy座標
+
         self.item_animation_list = []  # ブロックアニメーションのオブジェクトを格納するリスト
 
         # 当たり判定を行わない背景画像
@@ -59,15 +66,16 @@ class Player:
                    'triangle', 'goal_pole']
 
     def update(self):
-        # 死亡アニメーション中は戻る
-        if self.player.isDeath or self.player.dive_dokan is not None:
+        # 強制アニメーション中は戻る
+        if not (self._death_init and self._dokan_init and (self._goal_init or self.goal_isMove)):
             return
 
         pressed_key = pygame.key.get_pressed()
 
         # 画像アニメーション
         self._img_number = int((self.player.x + SpritePlayer.scroll_sum) / 20) % 2
-        self._direction = (lambda num: self.player.img_left[num] if self.isLeft else self.player.img_right[num])
+        self._direction =\
+            (lambda num: self.player.img_right[num] if not self.isLeft or self.goal_isMove else self.player.img_left[num])
 
         # 地面判定
         if self.player.isGrounding:
@@ -75,7 +83,7 @@ class Player:
 
         # ジャンプ
         jump_key = pressed_key[K_UP] or pressed_key[K_z]
-        if jump_key and self.player.isGrounding:
+        if jump_key and self.player.isGrounding and not self.goal_isMove:
             if not self.player.isJump:
                 Sound.play_SE('jump')
             self.player.isJump = True
@@ -101,7 +109,7 @@ class Player:
                 self._jump_time += 1
 
         # 左移動
-        if pressed_key[K_LEFT]:
+        if pressed_key[K_LEFT] and not self.goal_isMove:
             if self.player.x_speed < -1:
                 self.player.x_speed -= self.ACCELERATION
             elif self.player.x_speed > 0 and self.player.isGrounding:
@@ -112,7 +120,7 @@ class Player:
             self.isLeft = True
 
         # 右移動
-        elif pressed_key[K_RIGHT]:
+        elif pressed_key[K_RIGHT] and not self.goal_isMove:
             if self.player.x_speed > 1:
                 self.player.x_speed += self.ACCELERATION
             elif self.player.x_speed < 0 and self.player.isGrounding:
@@ -186,12 +194,13 @@ class Player:
                 self.item_animation_list.remove(animation)
 
     # 死亡時のアニメーション
-    def death(self):
+    def death_animation(self):
         if self.player.isDeath:
             # 初期化
             if self._death_init:
                 self._death_init = False
 
+                Sound.stop_SE()
                 Sound.stop_BGM()
                 Sound.play_SE('death')
 
@@ -214,14 +223,14 @@ class Player:
                 return True
 
             self.bg_update()
-            self.player.update(self._direction(self._img_number))
+            if not self._inGoal_tower:
+                self.player.update(self._direction(self._img_number))
 
         return False
 
     # 土管に入る時のアニメーション
-    def dokan(self):
+    def dokan_animation(self):
         if self.player.dive_dokan is not None:
-            isDeath = False
             # 初期化
             if self._dokan_init:
                 self._dokan_init = False
@@ -235,7 +244,7 @@ class Player:
                 if self.player.dive_dokan.data == 20.2:
                     if self._fly_dokan is None:
                         self._fly_dokan = Block.FlyDokan(self.player)
-                    isDeath = self._fly_dokan.update()
+                    self._fly_dokan.update()
             else:
                 self._dokan_count += 1
                 self.player.y += 1
@@ -243,7 +252,57 @@ class Player:
             self.bg_update()
             self.player.update(self._direction(self._img_number))
 
-            return isDeath
+        return False
+
+    # ゴール時のアニメーション
+    def goal_animation(self):
+        if not (self.player.isDeath or self.player.goal is None):
+            # 初期化
+            if self._goal_init:
+                self._goal_init = False
+                Sound.play_SE('goal')
+                self._goal_count = 0
+
+                # プレイヤー座標のセット
+                self.player.x_speed = self.player.y_speed = 0
+                self.player.x = self.player.goal.rect.left - self.player.width + 7
+
+                # ポール下の地面の座標を格納
+                goal_block_list = [block for block in Stage.block_object_list if block.data == 7]
+                for block in goal_block_list:
+                    if block.rect.left == self.player.goal.rect.left - 3:
+                        self._goal_scene_y = block.rect.top - 1
+
+            # 一定の時間が経過したら次の面へ
+            self._goal_count += 1
+            if self._goal_count > 400:
+                return True
+
+            # ゴール塔に入った場合
+            if self._inGoal_tower:
+                self.bg_update()
+
+            # 強制移動中
+            elif self.goal_isMove:
+                self.player.x_speed = 1.5
+
+            # ポール掴み中
+            else:
+                # 一定の時間が経過したら移動モード切り替え
+                if self._goal_count > 100 and self._goal_scene_y != 500:
+                    self.goal_isMove = True
+                    self._goal_count = 0
+
+                # 地面に着いたらそのまま停止
+                if not self.player.rect.bottom > self._goal_scene_y:
+                    self.player.y += 3
+
+                    # 画面外に出たら死
+                    if self.player.y > 450:
+                        self.player.isDeath = True
+
+                self.bg_update()
+                self.player.update(self.player.img_right[2])
         return False
 
     # x方向の当たり判定
@@ -401,7 +460,7 @@ class Player:
                 add_block(Block.PoisonKinoko(self.screen, block, isLot=True))
 
         # 土管に入る
-        if block.name == 'dokan1' :
+        if block.name == 'dokan1':
             # 上から入る場合
             if direction == 'BOTTOM' and block.data in [20.2, 20.3, 20.5]:
                 if block.rect.left + 25 < self.player.rect.right - 5 and block.rect.right - 25 > self.player.rect.left + 6:
@@ -420,3 +479,23 @@ class Player:
 
             block.remove()
             Stage.block_object_list.remove(block)
+
+        # ゴールポール
+        if block.name == 'goal_pole':
+            if block.data == 9.1 and not self.goal_isMove:
+                self.player.goal = block
+
+        # ゴール塔
+        if block.name == 'end' and self.goal_isMove:
+            start_x = block.x - SpritePlayer.scroll_sum + 60
+            start_y = block.rect.top + 45
+            end_x = block.width - 80
+            end_y = block.height - 45
+            block_rect = Rect(start_x, start_y, end_x, end_y)
+            player_rect = Rect(self.player.x, self.player.y, self.player.width, self.player.height)
+
+            # ゴール塔の中に入る
+            if player_rect.colliderect(block_rect):
+                self._inGoal_tower = True
+                self._goal_init = False
+                self.goal_isMove = False
