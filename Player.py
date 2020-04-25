@@ -397,7 +397,7 @@ class Player:
                 # 下にある場合
                 if collide_bottom and self.player.y_speed > 0 and not block.isHide:
                     self.block_animation('BOTTOM', block)
-                    if not block.isAnimation:
+                    if not block.isFall_animation:
                         self.player.y = block.rect.top - self.player.height + 1
                         self.player.y_speed = 0.0
                     return True
@@ -489,7 +489,7 @@ class Player:
             Text.set(self.screen, 'うめぇ!!', sprite=block)
 
         # 落ちる足場ブロック
-        if direction == 'BOTTOM' and block.data == 8.1 and not block.isAnimation:
+        if direction == 'BOTTOM' and block.data == 8.1 and not block.isFall_animation:
             add_block(Block.RideFall())
 
         # 中間地点

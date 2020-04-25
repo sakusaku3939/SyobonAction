@@ -131,14 +131,14 @@ class RideFall(AbstractBlock):
         self.y_speed += SpritePlayer.FALL_ACCELERATION
 
         for block in self.block_list:
-            block.isAnimation = True
+            block.isFall_animation = True
             block.y += self.y_speed
             block.rect.top = block.y + 1
 
             # 画面外まで行ったらアニメーション完了
             if block.rect.top > 600:
                 self.isSuccess = True
-                block.isAnimation = False
+                block.isFall_animation = False
 
 
 # ブロックから出現するスプライトを実装する際に継承するクラス

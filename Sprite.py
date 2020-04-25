@@ -223,7 +223,7 @@ class SpriteBlock(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
         self.data = data  # 画像のExcel番号
-        self.isAnimation = False  # アニメーション中か
+        self.isFall_animation = False  # アニメーション中か
         self.group = group  # グループ化されている場合 "start" -> "end" が格納
 
         # 画像の読み込み
