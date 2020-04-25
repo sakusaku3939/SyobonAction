@@ -261,6 +261,7 @@ class Player:
             # 初期化
             if self._goal_init:
                 self._goal_init = False
+                Sound.stop_BGM()
                 Sound.play_SE('goal')
                 self._goal_count = 0
 

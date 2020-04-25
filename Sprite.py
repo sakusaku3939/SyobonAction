@@ -219,11 +219,12 @@ class SpriteObject(pygame.sprite.Sprite):
 
 # ブロックのスプライト
 class SpriteBlock(pygame.sprite.Sprite):
-    def __init__(self, screen, img_name, data, x, y, tweak_x=0, tweak_y=0):
+    def __init__(self, screen, img_name, data, x, y, tweak_x=0, tweak_y=0, group=''):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
         self.data = data  # 画像のExcel番号
         self.isAnimation = False  # アニメーション中か
+        self.group = group  # グループ化されている場合 "start" -> "end" が格納
 
         # 画像の読み込み
         self.name = img_name

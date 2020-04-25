@@ -101,9 +101,11 @@ class Stage:
                 # 落ちる足場ブロック
                 if data == 8.1:
                     if stage_position_up != 8.1:
-                        self.block_add('block5', data, x, y, color=True)
+                        group = 'start' if stage_position_left != 8.1 else ''
+                        self.block_add('block5', data, x, y, group=group, color=True)
                     else:
-                        self.block_add('block6', data, x, y, color=True)
+                        group = 'end' if stage_position_right != 8.1 else ''
+                        self.block_add('block6', data, x, y, group=group, color=True)
 
                 # 針
                 self.block_add('block7', data, x, y, 40, color=True)
@@ -147,13 +149,14 @@ class Stage:
                 # 甲羅亀
                 self.enemy_add('koura1', data, x, y, start=28, end=28.1, tweak_x=0, tweak_y=-12)
 
-    def block_add(self, img_name, data, img_x, img_y, match=0.0, start=0.0, end=0.0, tweak_x=0, tweak_y=0, color=False):
+    def block_add(self, img_name, data, img_x, img_y, match=0.0,
+                  start=0.0, end=0.0, tweak_x=0, tweak_y=0, group='', color=False):
         # ブロックの色を変更
         name = f'block{int(img_name[-1:]) + self._mode}' if color else img_name
 
         # block_object_listに追加
         append = (lambda: self.block_object_list.append(
-            SpriteBlock(self.screen, name, data, img_x, img_y, tweak_x, tweak_y)
+            SpriteBlock(self.screen, name, data, img_x, img_y, tweak_x, tweak_y, group)
         ))
 
         self._add(append, data, match, start, end)
