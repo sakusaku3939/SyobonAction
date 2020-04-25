@@ -1,3 +1,6 @@
+import tkinter
+from tkinter import messagebox
+
 import pygame
 from pygame.locals import *
 import sys
@@ -48,6 +51,15 @@ def main():
         # ステージ 1-1
         elif GAME_STATE == 1:
             Stage_1()
+        # ステージ 1-2
+        elif GAME_STATE == 2:
+            Stage_2()
+        # ステージ 1-4
+        elif GAME_STATE == 3:
+            Stage_3()
+        # ステージ 1-4
+        elif GAME_STATE == 4:
+            Stage_4()
 
 
 # 黒画面にして残機を表示
@@ -197,7 +209,7 @@ class Stage_1:
             if self.Player.goal_animation():
                 global REMAIN
                 REMAIN += 1
-                state_change(1)
+                state_change(2)
                 return
             if self.Player.dokan_animation() or self.Player.death_animation():
                 return
@@ -233,6 +245,69 @@ class Stage_1:
                     # oキーが押されたら自殺
                     if event.key == K_o:
                         Stage.player_object.isDeath = True
+
+
+# ステージ1-2
+class Stage_2:
+    def __init__(self):
+        root = tkinter.Tk()
+        root.withdraw()
+        messagebox.showinfo("", "1-2は未実装です")
+
+        # self.Stage = Stage(screen, 1, '1-2')
+        # self.Player = Player(screen, self.Stage)
+        # self.Enemy = Enemy(screen)
+
+        # remain_show()
+        # Sound.play_BGM('titerman')
+
+        self.main()
+
+    def main(self):
+        state_change(0)
+        return
+
+
+# ステージ1-3
+class Stage_3:
+    def __init__(self):
+        root = tkinter.Tk()
+        root.withdraw()
+        messagebox.showinfo("", "1-3は未実装です")
+
+        # self.Stage = Stage(screen, 1, '1-3')
+        # self.Player = Player(screen, self.Stage)
+        # self.Enemy = Enemy(screen)
+
+        # remain_show()
+        # Sound.play_BGM('titerman')
+
+        self.main()
+
+    def main(self):
+        state_change(0)
+        return
+
+
+# ステージ1-4
+class Stage_4:
+    def __init__(self):
+        root = tkinter.Tk()
+        root.withdraw()
+        messagebox.showinfo("", "1-4は未実装です")
+
+        # self.Stage = Stage(screen, 4, '1-4')
+        # self.Player = Player(screen, self.Stage)
+        # self.Enemy = Enemy(screen)
+
+        # remain_show()
+        # Sound.play_BGM('makaimura')
+
+        self.main()
+
+    def main(self):
+        state_change(0)
+        return
 
 
 if __name__ == "__main__":
