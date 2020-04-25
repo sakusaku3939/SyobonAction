@@ -3,9 +3,11 @@ from pygame.locals import *
 import numpy as np
 
 import Block
+from Image import LoadImage
 from Sprite import SpritePlayer
 from Sound import Sound
 from Stage import Stage
+from Text import Text
 
 
 class Player:
@@ -417,6 +419,7 @@ class Player:
             if block.data == 1.1:
                 block.isThorns = True
                 self.player.isDeath = True
+                Text.set(self.screen, 'シャキーン', sprite=block)
 
             if direction == 'TOP':
                 # 叩くと壊れる
@@ -470,6 +473,13 @@ class Player:
             # 横からはいる場合
             if direction == 'SIDE' and block.data in [20.6, 20.8] and self.player.isGrounding:
                 pass
+
+        # うめぇ
+        if block.name == 'cloud2' and block.data == 19.2:
+            self.player.isDeath = True
+            block.name = 'cloud3'
+            block.image = LoadImage.image_list[block.name]
+            Text.set(self.screen, 'うめぇ!!', sprite=block)
 
         # 中間地点
         if block.name == 'halfway' and direction == '':
