@@ -258,8 +258,8 @@ class SpriteBlock(pygame.sprite.Sprite):
         self.thorns_tweak_x = self.width / 2 - self.thorns_img.get_width() / 2 - 1
         self.thorns_tweak_y = self.height / 2 - self.thorns_img.get_height() / 2 - 1
 
-        # 隠しブロック
-        self.isHide = True if img_name == 'block3' else False
+        # 隠しスプライト
+        self.isHide = True if img_name == 'block3' or img_name == 'cloud4' else False
 
     def update(self):
         # 画面スクロール
@@ -279,9 +279,7 @@ class SpriteBlock(pygame.sprite.Sprite):
 
 class SpritePlayer(pygame.sprite.Sprite):
     # 初期座標
-    initial_x = 55
-    initial_y = 320
-    initial_scroll_sum = 0
+    initial_x = initial_y = initial_scroll_sum = 0
 
     scroll = 0  # 1フレームの画面スクロール値
     scroll_sum = 0  # 画面スクロール量の合計

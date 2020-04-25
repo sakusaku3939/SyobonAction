@@ -481,8 +481,14 @@ class Player:
             block.image = LoadImage.image_list[block.name]
             Text.set(self.screen, 'うめぇ!!', sprite=block)
 
+        # 透明のうめぇ
+        if block.name == 'cloud4':
+            self.player.isDeath = True
+            block.isHide = False
+            Text.set(self.screen, 'うめぇ!!', sprite=block)
+
         # 中間地点
-        if block.name == 'halfway' and direction == '':
+        if block.name == 'halfway':
             SpritePlayer.initial_x = 210
             SpritePlayer.initial_y = block.y
             SpritePlayer.initial_scroll_sum = block.x - 210

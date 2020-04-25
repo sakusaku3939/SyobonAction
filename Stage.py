@@ -114,6 +114,9 @@ class Stage:
                 # 顔付きの雲
                 self.block_add('cloud2', data, x, y, start=19.1, end=19.2)
 
+                # 透明のうめぇ
+                self.block_add('cloud4', data, x, y, 19.3)
+
                 # 土管
                 self.block_add('dokan1', data, x, y, 20)
                 self.block_add('dokan1', data, x, y, start=20.2, end=20.5)
