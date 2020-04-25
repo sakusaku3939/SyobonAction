@@ -258,7 +258,8 @@ class SpriteBlock(pygame.sprite.Sprite):
         self.thorns_tweak_y = self.height / 2 - self.thorns_img.get_height() / 2 - 1
 
         # 隠しスプライト
-        self.isHide = True if img_name == 'block3' or img_name == 'cloud4' else False
+        hide = ['block3', 'cloud4', 'beam']
+        self.isHide = True if img_name in hide else False
 
     def update(self):
         # 画面スクロール

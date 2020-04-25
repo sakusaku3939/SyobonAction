@@ -77,7 +77,7 @@ class AbstractEnemy(metaclass=ABCMeta):
         # 踏んだ勢いでジャンプ
         self.player.isGrounding = True
         self.player.isJump = True
-        self.player.y_speed = self.player.JUMP_SPEED + 1
+        self.player.y_speed = self.player.JUMP_SPEED + 0.5
         self.player.limit_air_speed()
 
     @abstractmethod  # プレイヤーの横に当たった場合

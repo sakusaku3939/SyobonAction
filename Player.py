@@ -34,10 +34,10 @@ class Player:
         self.player.isGrounding = True  # 地面に着地しているか
 
         self.player.isJump = False  # ジャンプモーション中か
-        self.JUMP_SPEED = -6.5  # ジャンプ速度
+        self.JUMP_SPEED = -6.0  # ジャンプ速度
         self.player.JUMP_SPEED = self.JUMP_SPEED  # ジャンプ速度 （スプライト用２セット）
-        self.ADD_JUMP_SPEED = -2.0  # 追加のジャンプ速度
-        self.ADD_DASH_JUMP_SPEED = -0.8  # 追加のダッシュジャンプ速度
+        self.ADD_JUMP_SPEED = -2.2  # 追加のジャンプ速度
+        self.ADD_DASH_JUMP_SPEED = -1.0  # 追加のダッシュジャンプ速度
         self._jump_time = 0  # ジャンプ時間
 
         self.isLeft = False  # 左を向いているかどうか
@@ -61,10 +61,11 @@ class Player:
         self._goal_scene_y = 500  # ゴール時に次のシーンへ移るy座標
 
         self.item_animation_list = []  # ブロックアニメーションのオブジェクトを格納するリスト
+        Block.Beam.instance = False  # インスタンス状態を初期化
 
         # 当たり判定を行わない背景画像
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
-                   'triangle', 'goal_pole']
+                   'triangle', 'goal_pole', 'beam']
 
     def update(self):
         # 強制アニメーション中は戻る
@@ -89,6 +90,7 @@ class Player:
                 Sound.play_SE('jump')
             self.player.isJump = True
             self._jump_time = 0
+            self.player.y -= 15
             self.player.y_speed = self.JUMP_SPEED
 
             # 空中時の最大速度を計算
@@ -171,6 +173,7 @@ class Player:
         if self.player.y > 500:
             self.player.isDeath = True
 
+        self.block_animation()
         self.bg_update()
         self.player.update(self._direction(self._img_number))
 
@@ -353,7 +356,7 @@ class Player:
 
             # 背景画像のアニメーション
             elif collide_left or collide_right:
-                self.block_animation('', block)
+                self.block_animation(block=block)
 
     # y方向の当たり判定
     def collision_y(self):
@@ -404,119 +407,136 @@ class Player:
 
             # 背景画像のアニメーション
             elif collide_top or collide_bottom:
-                self.block_animation('', block)
+                self.block_animation(block=block)
 
         self._img_number = 2
         return False
 
     # ブロックのアニメーション
-    def block_animation(self, direction, block):
+    def block_animation(self, direction='', block=None):
         def add_block(function):
             self.item_animation_list.append(function)
 
-        # 壊れるブロック
-        if block.name == 'block1':
-            # 叩くとトゲを生やす
-            if block.data == 1.1:
-                block.isThorns = True
-                self.player.isDeath = True
-                Text.set(self.screen, 'シャキーン', sprite=block)
+        # 近づくとアニメーション開始
+        if block is None:
+            for block in Stage.block_object_list:
+                # ジャンプすると光線を放つ
+                if block.data == 9.3 and not Block.Beam.instance and not self.player.isGrounding:
+                    if block.rect.left - self.player.rect.left < 82:
+                        if block.y - self.player.y > -10:
+                            block.isHide = False
+                            add_block(Block.Beam(block))
+                            Text.set(self.screen, 'ビーー', sprite=block, tweak_x=10)
 
-            if direction == 'TOP':
-                # 叩くと壊れる
-                if block.data == 1:
-                    add_block(Block.Break(self.screen, block))
-                    block.remove()
-                    Stage.block_object_list.remove(block)
+        # 当たるとアニメーション開始
+        else:
+            # 壊れるブロック
+            if block.name == 'block1':
+                # 叩くとトゲを生やす
+                if block.data == 1.1:
+                    block.isThorns = True
+                    self.player.isDeath = True
+                    Text.set(self.screen, 'シャキーン', sprite=block)
 
-                # 叩くとスター
-                if block.data == 2.1:
-                    add_block(Block.Star(self.screen, block))
+                if direction == 'TOP':
+                    # 叩くと壊れる
+                    if block.data == 1:
+                        add_block(Block.Break(self.screen, block))
+                        block.remove()
+                        Stage.block_object_list.remove(block)
 
-        # はてなブロック
-        if block.name == 'block2':
-            if direction == 'TOP':
+                    # 叩くとスター
+                    if block.data == 2.1:
+                        add_block(Block.Star(self.screen, block))
+
+            # はてなブロック
+            if block.name == 'block2':
+                if direction == 'TOP':
+                    # 叩くとコインが出る
+                    if block.data == 3:
+                        add_block(Block.Coin(self.screen, block))
+
+                    # 叩くと赤キノコが出る
+                    if block.data == 3.2:
+                        add_block(Block.Kinoko(self.screen, block))
+
+                    # 叩くと敵が出る
+                    if block.data == 3.8:
+                        add_block(Block.Enemy(self.screen, block, 'enemy'))
+
+                # 叩けないブロック
+                elif direction == 'TOP_BLOCK' and block.data == 3.1 and self.player.y_speed < 0:
+                    block.rect.bottom = self.player.rect.top - 10
+
+            # 隠しブロック
+            if block.name == 'block3' and direction == 'TOP' and block.isHide and self.player.y_speed < 0:
+                block.isHide = False
                 # 叩くとコインが出る
-                if block.data == 3:
+                if block.data == 5:
                     add_block(Block.Coin(self.screen, block))
 
-                # 叩くと赤キノコが出る
-                if block.data == 3.2:
-                    add_block(Block.Kinoko(self.screen, block))
+                # 叩くと大量の毒キノコが出る
+                if block.data == 5.5:
+                    add_block(Block.PoisonKinoko(self.screen, block, isLot=True))
 
-                # 叩くと敵が出る
-                if block.data == 3.8:
-                    add_block(Block.Enemy(self.screen, block, 'enemy'))
+            # 土管に入る
+            if block.name == 'dokan1':
+                # 上から入る場合
+                if direction == 'BOTTOM' and block.data in [20.2, 20.3, 20.5]:
+                    if block.rect.left + 25 < self.player.rect.right - 5 and block.rect.right - 25 > self.player.rect.left + 6:
+                        if pygame.key.get_pressed()[K_DOWN]:
+                            self.player.dive_dokan = block
 
-            # 叩けないブロック
-            elif direction == 'TOP_BLOCK' and block.data == 3.1 and self.player.y_speed < 0:
-                block.rect.bottom = self.player.rect.top - 10
+                # 横からはいる場合
+                if direction == 'SIDE' and block.data in [20.6, 20.8] and self.player.isGrounding:
+                    pass
 
-        # 隠しブロック
-        if block.name == 'block3' and direction == 'TOP' and block.isHide and self.player.y_speed < 0:
-            block.isHide = False
-            # 叩くとコインが出る
-            if block.data == 5:
-                add_block(Block.Coin(self.screen, block))
+            # うめぇ
+            if block.data == 19.2:
+                self.player.isDeath = True
+                block.name = 'cloud3'
+                block.image = LoadImage.image_list[block.name]
+                Text.set(self.screen, 'うめぇ!!', sprite=block)
 
-            # 叩くと大量の毒キノコが出る
-            if block.data == 5.5:
-                add_block(Block.PoisonKinoko(self.screen, block, isLot=True))
+            # 透明のうめぇ
+            if block.data == 19.3:
+                self.player.isDeath = True
+                block.isHide = False
+                Text.set(self.screen, 'うめぇ!!', sprite=block)
 
-        # 土管に入る
-        if block.name == 'dokan1':
-            # 上から入る場合
-            if direction == 'BOTTOM' and block.data in [20.2, 20.3, 20.5]:
-                if block.rect.left + 25 < self.player.rect.right - 5 and block.rect.right - 25 > self.player.rect.left + 6:
-                    if pygame.key.get_pressed()[K_DOWN]:
-                        self.player.dive_dokan = block
+            # 落ちる足場ブロック
+            if direction == 'BOTTOM' and block.data == 8.1 and not block.isFall_animation:
+                add_block(Block.RideFall())
 
-            # 横からはいる場合
-            if direction == 'SIDE' and block.data in [20.6, 20.8] and self.player.isGrounding:
-                pass
+            # 光線の当たり判定
+            if block.name == 'beam' and not block.isHide and self.player.y + self.player.height > block.y + 20:
+                self.player.isDeath = True
 
-        # うめぇ
-        if block.data == 19.2:
-            self.player.isDeath = True
-            block.name = 'cloud3'
-            block.image = LoadImage.image_list[block.name]
-            Text.set(self.screen, 'うめぇ!!', sprite=block)
+            # 中間地点
+            if block.name == 'halfway':
+                SpritePlayer.initial_x = 210
+                SpritePlayer.initial_y = block.y
+                SpritePlayer.initial_scroll_sum = block.x - 210
 
-        # 透明のうめぇ
-        if block.data == 19.3:
-            self.player.isDeath = True
-            block.isHide = False
-            Text.set(self.screen, 'うめぇ!!', sprite=block)
+                block.remove()
+                Stage.block_object_list.remove(block)
 
-        # 落ちる足場ブロック
-        if direction == 'BOTTOM' and block.data == 8.1 and not block.isFall_animation:
-            add_block(Block.RideFall())
+            # ゴールポール
+            if block.name == 'goal_pole':
+                if block.data == 9.1 and not self.goal_isMove:
+                    self.player.goal = block
 
-        # 中間地点
-        if block.name == 'halfway':
-            SpritePlayer.initial_x = 210
-            SpritePlayer.initial_y = block.y
-            SpritePlayer.initial_scroll_sum = block.x - 210
+            # ゴール塔
+            if block.name == 'end' and self.goal_isMove:
+                start_x = block.x - SpritePlayer.scroll_sum + 60
+                start_y = block.rect.top + 45
+                end_x = block.width - 80
+                end_y = block.height - 45
+                block_rect = Rect(start_x, start_y, end_x, end_y)
+                player_rect = Rect(self.player.x, self.player.y, self.player.width, self.player.height)
 
-            block.remove()
-            Stage.block_object_list.remove(block)
-
-        # ゴールポール
-        if block.name == 'goal_pole':
-            if block.data == 9.1 and not self.goal_isMove:
-                self.player.goal = block
-
-        # ゴール塔
-        if block.name == 'end' and self.goal_isMove:
-            start_x = block.x - SpritePlayer.scroll_sum + 60
-            start_y = block.rect.top + 45
-            end_x = block.width - 80
-            end_y = block.height - 45
-            block_rect = Rect(start_x, start_y, end_x, end_y)
-            player_rect = Rect(self.player.x, self.player.y, self.player.width, self.player.height)
-
-            # ゴール塔の中に入る
-            if player_rect.colliderect(block_rect):
-                self._inGoal_tower = True
-                self._goal_init = False
-                self.goal_isMove = False
+                # ゴール塔の中に入る
+                if player_rect.colliderect(block_rect):
+                    self._inGoal_tower = True
+                    self._goal_init = False
+                    self.goal_isMove = False

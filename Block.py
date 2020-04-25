@@ -141,6 +141,23 @@ class RideFall(AbstractBlock):
                 block.isFall_animation = False
 
 
+# 近づいてジャンプすると光線を放つ
+class Beam(AbstractBlock):
+    instance = False
+
+    def __init__(self, block):
+        super().__init__()
+        Beam.instance = True
+        self.block = block
+
+    def update(self):
+        self.block.x -= 7
+
+        # 画面外まで行ったらアニメーション完了
+        if self.block.rect.left < -150:
+            self.isSuccess = True
+
+
 # ブロックから出現するスプライトを実装する際に継承するクラス
 class AbstractSpriteAppear(metaclass=ABCMeta):
     def __init__(self, screen, block, img_name, data=0, isLot=False):

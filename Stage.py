@@ -111,7 +111,10 @@ class Stage:
                 self.block_add('block7', data, x, y, 40, color=True)
 
                 # ポール
-                self.block_add('goal_pole', data, x, y, start=9.1, end=9.4, tweak_x=3, tweak_y=-10)
+                self.block_add('goal_pole', data, x, y, 9.1, tweak_x=3, tweak_y=-10)
+
+                # 光線
+                self.block_add('beam', data, x, y, 9.3, tweak_x=-88, tweak_y=4)
 
                 # 顔付きの雲
                 self.block_add('cloud2', data, x, y, start=19.1, end=19.2)
