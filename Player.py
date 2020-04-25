@@ -36,7 +36,7 @@ class Player:
         self.player.isJump = False  # ジャンプモーション中か
         self.JUMP_SPEED = -6.0  # ジャンプ速度
         self.player.JUMP_SPEED = self.JUMP_SPEED  # ジャンプ速度 （スプライト用２セット）
-        self.ADD_JUMP_SPEED = -2.2  # 追加のジャンプ速度
+        self.ADD_JUMP_SPEED = -2.3  # 追加のジャンプ速度
         self.ADD_DASH_JUMP_SPEED = -1.0  # 追加のダッシュジャンプ速度
         self._jump_time = 0  # ジャンプ時間
 
@@ -90,7 +90,7 @@ class Player:
                 Sound.play_SE('jump')
             self.player.isJump = True
             self._jump_time = 0
-            self.player.y -= 15
+            self.player.y -= 10
             self.player.y_speed = self.JUMP_SPEED
 
             # 空中時の最大速度を計算
@@ -349,7 +349,7 @@ class Player:
                 if collide_right:
                     self.block_animation('SIDE', block)
 
-                    if self.player.x != block.rect.right - 4 and not self.player.x_speed < 0:
+                    if self.player.x != block.rect.right - 3 and not self.player.x_speed < 0:
                         self.player.x_speed = 0.0
                         SpritePlayer.scroll = 0
                         self.player.x = 2 + block.rect.left - self.player.width
@@ -389,12 +389,13 @@ class Player:
                     self.block_animation('TOP_BLOCK', block)
 
                 # 上にある場合
-                if collide_top and self.player.y_speed < 0 and not self.player.isGrounding:
+                if collide_top and self.player.y_speed < -1 and not self.player.isGrounding:
                     self.block_animation('TOP', block)
-                    if not block.isHide and not block.data == 18:
+                    self._img_number = 2
+                    if not block.isHide and self.player.y_speed < -1:
                         self.player.y = block.rect.bottom
+                        self.player.isJump = False
                         self.player.y_speed /= -3
-                        self._img_number = 2
                     return False
 
                 # 下にある場合
@@ -465,12 +466,13 @@ class Player:
                         add_block(Block.Enemy(self.screen, block, 'enemy'))
 
                 # 叩けないブロック
-                elif direction == 'TOP_BLOCK' and block.data == 3.1 and self.player.y_speed < 0:
+                elif direction == 'TOP_BLOCK' and block.data == 3.1:
                     block.rect.bottom = self.player.rect.top - 10
 
             # 隠しブロック
-            if block.name == 'block3' and direction == 'TOP' and block.isHide and self.player.y_speed < 0:
+            if direction == 'TOP' and block.name == 'block3' and block.isHide:
                 block.isHide = False
+
                 # 叩くとコインが出る
                 if block.data == 5:
                     add_block(Block.Coin(self.screen, block))
@@ -509,7 +511,7 @@ class Player:
                 add_block(Block.RideFall())
 
             # 光線の当たり判定
-            if block.name == 'beam' and not block.isHide and self.player.y + self.player.height > block.y + 20:
+            if block.name == 'beam' and not block.isHide and self.player.y + self.player.height > block.y + 22:
                 self.player.isDeath = True
 
             # 中間地点
