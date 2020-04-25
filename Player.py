@@ -32,7 +32,6 @@ class Player:
         self.SCROLL_LIMIT = 3605
 
         self.player.isGrounding = True  # 地面に着地しているか
-        self.FALL_ACCELERATION = 0.25  # 落下加速度
 
         self.player.isJump = False  # ジャンプモーション中か
         self.JUMP_SPEED = -6.5  # ジャンプ速度
@@ -155,7 +154,7 @@ class Player:
         self.player.isGrounding = self.collision_y()
         self.collision_x()
 
-        self.player.y_speed += self.FALL_ACCELERATION
+        self.player.y_speed += SpritePlayer.FALL_ACCELERATION
         self.player.y += self.player.y_speed
         self.player.x += self.player.x_speed
 
@@ -217,7 +216,7 @@ class Player:
 
             # 20フレーム後に落下
             if self._jump_time > 20:
-                self.player.y_speed += self.FALL_ACCELERATION
+                self.player.y_speed += SpritePlayer.FALL_ACCELERATION
                 self.player.y += self.player.y_speed
 
             # 時間が経過したら戻って残機表示
@@ -314,7 +313,7 @@ class Player:
 
         # 移動先の座標と矩形を求める
         start_x = (x - SpritePlayer.scroll) + 3
-        start_y = y + self.FALL_ACCELERATION * 2 + 15
+        start_y = y + SpritePlayer.FALL_ACCELERATION * 2 + 15
         end_x = self.player.width / 2
         end_y = self.player.height - 30
 
@@ -362,7 +361,7 @@ class Player:
 
         # 移動先の座標と矩形を求める
         start_x = x - SpritePlayer.scroll
-        start_y = y + self.FALL_ACCELERATION * 2 + 3
+        start_y = y + SpritePlayer.FALL_ACCELERATION * 2 + 3
         end_x = self.player.width
         end_y = self.player.height / 4
 
@@ -397,8 +396,9 @@ class Player:
                 # 下にある場合
                 if collide_bottom and self.player.y_speed > 0 and not block.isHide:
                     self.block_animation('BOTTOM', block)
-                    self.player.y = block.rect.top - self.player.height + 1
-                    self.player.y_speed = 0.0
+                    if not block.isAnimation:
+                        self.player.y = block.rect.top - self.player.height + 1
+                        self.player.y_speed = 0.0
                     return True
 
             # 背景画像のアニメーション
@@ -475,17 +475,21 @@ class Player:
                 pass
 
         # うめぇ
-        if block.name == 'cloud2' and block.data == 19.2:
+        if block.data == 19.2:
             self.player.isDeath = True
             block.name = 'cloud3'
             block.image = LoadImage.image_list[block.name]
             Text.set(self.screen, 'うめぇ!!', sprite=block)
 
         # 透明のうめぇ
-        if block.name == 'cloud4':
+        if block.data == 19.3:
             self.player.isDeath = True
             block.isHide = False
             Text.set(self.screen, 'うめぇ!!', sprite=block)
+
+        # 落ちる足場ブロック
+        if direction == 'BOTTOM' and block.data == 8.1 and not block.isAnimation:
+            add_block(Block.RideFall())
 
         # 中間地点
         if block.name == 'halfway':

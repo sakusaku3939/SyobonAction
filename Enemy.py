@@ -155,7 +155,7 @@ class Koura(AbstractEnemy):
             self.kill_text = "ざまぁｗ"
 
             self.enemy.direction = 0
-            self.enemy.x += 3
+            self.enemy.x += 4
             self.enemy.x_speed = 4.0
             self.enemy.width = self.enemy.img_left[self.list_number].get_width()
             self.enemy.height = self.enemy.img_left[self.list_number].get_height()

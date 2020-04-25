@@ -10,7 +10,7 @@ class SpriteObject(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
         self.specific = None  # スプライト固有の設定を入れるオブジェクト
-        self.data = data  # 画像の番号
+        self.data = data  # 画像のExcel番号
 
         # 画像の読み込み
         self.name = img_name
@@ -44,7 +44,6 @@ class SpriteObject(pygame.sprite.Sprite):
         self.x_speed = 0.5  # 移動速度
         self.y_speed = 0.0  # 落下速度
         self.direction = 1  # 向き （1 or -1）
-        self.FALL_ACCELERATION = 0.27  # 落下加速度
 
         # スプライトのサイズ
         self.width = self.image.get_width()
@@ -74,7 +73,7 @@ class SpriteObject(pygame.sprite.Sprite):
 
             # 描画位置を計算
             self.x -= self.x_speed * self.direction if self.direction != 0 else 0
-            self.y_speed += self.FALL_ACCELERATION
+            self.y_speed += SpritePlayer.FALL_ACCELERATION
 
             self.rect.left = self.x - SpritePlayer.scroll_sum
             self.rect.top += self.y_speed
@@ -85,10 +84,10 @@ class SpriteObject(pygame.sprite.Sprite):
             else:
                 self.screen.blit(self.img_right[list_number], self.rect)
 
-            # 画面外になったらオブジェクト削除
-            if self.x - SpritePlayer.scroll_sum < self.START_RANGE_X \
-                    or not self.START_RANGE_Y < self.rect.top < self.END_RANGE_Y:
-                self.isRemove = True
+        # 画面外になったらオブジェクト削除
+        if self.x - SpritePlayer.scroll_sum < self.START_RANGE_X \
+                or not self.START_RANGE_Y < self.rect.top < self.END_RANGE_Y:
+            self.isRemove = True
 
     # ブロックとの当たり判定
     def collision(self, block_list):
@@ -122,7 +121,7 @@ class SpriteObject(pygame.sprite.Sprite):
         def _collision_y():
             # 移動先の座標と矩形を求める
             start_x = self.rect.left + self.x_speed + 2
-            start_y = self.rect.top + self.y_speed + self.FALL_ACCELERATION * 2
+            start_y = self.rect.top + self.y_speed + SpritePlayer.FALL_ACCELERATION * 2
             end_x = self.width - 4
             end_y = (self.height - 2) / 2
 
@@ -162,7 +161,7 @@ class SpriteObject(pygame.sprite.Sprite):
             # 移動先の座標と矩形を求める
             if sprite.name == 'player':
                 start_x = sprite.rect.left + sprite.x_speed - 2
-                start_y = sprite.y + self.FALL_ACCELERATION * 2 + 10
+                start_y = sprite.y + SpritePlayer.FALL_ACCELERATION * 2 + 10
                 end_x = sprite.width + 4
                 end_y = sprite.height - 30
             else:
@@ -185,7 +184,7 @@ class SpriteObject(pygame.sprite.Sprite):
         def _sprite_collision_y(_top_function, _bottom_function):
             # 移動先の座標と矩形を求める
             start_x = sprite.rect.left + 5
-            start_y = sprite.y + sprite.y_speed + self.FALL_ACCELERATION * 2 + 4
+            start_y = sprite.y + sprite.y_speed + SpritePlayer.FALL_ACCELERATION * 2 + 4
             end_x = sprite.width - 10
             end_y = (sprite.height / 3) - 2
 
@@ -223,9 +222,8 @@ class SpriteBlock(pygame.sprite.Sprite):
     def __init__(self, screen, img_name, data, x, y, tweak_x=0, tweak_y=0):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
-
-        # 画像の番号
-        self.data = data
+        self.data = data  # 画像のExcel番号
+        self.isAnimation = False  # アニメーション中か
 
         # 画像の読み込み
         self.name = img_name
@@ -283,6 +281,8 @@ class SpritePlayer(pygame.sprite.Sprite):
 
     scroll = 0  # 1フレームの画面スクロール値
     scroll_sum = 0  # 画面スクロール量の合計
+
+    FALL_ACCELERATION = 0.25  # 落下加速度
 
     def __init__(self, screen):
         pygame.sprite.Sprite.__init__(self)
