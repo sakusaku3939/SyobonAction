@@ -104,13 +104,12 @@ class RideFall(AbstractBlock):
         self.y = self.y_speed = 0
         self.block_list = [b for b in Stage.block_object_list if b.data == 8.1]
 
-        self._isAnimation_change(True)
-
     def update(self):
         # 落下アニメーション
         self.y_speed += SpritePlayer.FALL_ACCELERATION
 
         for block in self.block_list:
+            block.isAnimation = True
             block.y += self.y_speed
             block.rect.top = block.y + 1
             self.y = block.y
@@ -118,11 +117,8 @@ class RideFall(AbstractBlock):
         # 画面外まで行ったらアニメーション完了
         if self.y > 600:
             self.isSuccess = True
-            self._isAnimation_change(False)
-
-    def _isAnimation_change(self, animation_bool):
-        for block in self.block_list:
-            block.isAnimation = animation_bool
+            for block in self.block_list:
+                block.isAnimation = False
 
 
 # ブロックから出現するスプライトを実装する際に継承するクラス
