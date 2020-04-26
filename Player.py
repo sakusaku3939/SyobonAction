@@ -77,9 +77,8 @@ class Player:
 
         # 画像アニメーション
         self._img_number = int((self.player.x + SpritePlayer.scroll_sum) / 20) % 2
-        self._direction = \
-            (lambda num: self.player.img_right[num] if not self.isLeft or self.goal_isMove else self.player.img_left[
-                num])
+        self._direction = (lambda num: self.player.img_right[
+            num] if not self.isLeft or self.goal_isMove else self.player.img_left[num])
 
         # 地面判定
         if self.player.isGrounding:
@@ -92,7 +91,7 @@ class Player:
                 Sound.play_SE('jump')
             self.player.isJump = True
             self._jump_time = 0
-            self.player.y -= 10
+            self.player.y -= 11
             self.player.y_speed = self.JUMP_SPEED
 
             # 空中時の最大速度を計算
@@ -314,11 +313,11 @@ class Player:
 
     # x方向の当たり判定
     def collision_x(self):
-        x = self.player.rect.left + self.player.x_speed
+        x = self.player.x + self.player.x_speed
         y = self.player.y + self.player.y_speed
 
         # 移動先の座標と矩形を求める
-        start_x = (x - SpritePlayer.scroll) + 3
+        start_x = (x - SpritePlayer.scroll) + 2
         start_y = y + SpritePlayer.FALL_ACCELERATION * 2 + 15
         end_x = self.player.width / 2
         end_y = self.player.height - 30
@@ -362,17 +361,17 @@ class Player:
 
     # y方向の当たり判定
     def collision_y(self):
-        x = self.player.rect.left + self.player.x_speed
+        x = self.player.x + self.player.x_speed
         y = self.player.y + self.player.y_speed
 
         # 移動先の座標と矩形を求める
         start_x = x - SpritePlayer.scroll
-        start_y = y + SpritePlayer.FALL_ACCELERATION * 2 + 3
+        start_y = y + SpritePlayer.FALL_ACCELERATION * 2 + 4
         end_x = self.player.width
         end_y = self.player.height / 4
 
         new_rect_top = Rect(start_x + 10, self.player.y, end_x - 18, end_y)
-        new_rect_bottom = Rect(start_x + 6, start_y + end_y * 3, end_x - 10, end_y)
+        new_rect_bottom = Rect(start_x + 5, start_y + end_y * 3, end_x - 10, end_y)
         new_rect_block = Rect(start_x + 1, start_y - 10, end_x - 2, end_y * 3)
 
         # 当たり判定可視化 （デバック用）
@@ -513,7 +512,7 @@ class Player:
                 add_block(Block.RideFall())
 
             # 光線の当たり判定
-            if block.name == 'beam' and not block.isHide and self.player.y + self.player.height > block.y + 22:
+            if block.name == 'beam' and not block.isHide and self.player.y + self.player.height > block.y + 25:
                 self.player.isDeath = True
 
             # 中間地点

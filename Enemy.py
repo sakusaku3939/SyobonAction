@@ -241,7 +241,7 @@ class Fish(AbstractEnemy):
 
             if collide and block.name == 'dokan1':
                 self.y_speed = 4
-                self.enemy.x += 10
+                self.enemy.x += 5
                 self.enemy.rect.top = block.rect.bottom + 11
                 return True
         return False
@@ -255,7 +255,7 @@ class Fish(AbstractEnemy):
 
     # アニメーションのスタート
     def animation_start(self):
-        distance = 37 if self.isDive_dokan else 90
+        distance = 37 if self.isDive_dokan else 92
 
         if self.enemy.rect.left > 0 and self.enemy.rect.left - self.player.x < distance:
             Sound.play_SE('kirra')

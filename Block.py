@@ -151,7 +151,7 @@ class Beam(AbstractBlock):
         self.block = block
 
     def update(self):
-        self.block.x -= 7
+        self.block.x -= 8
 
         # 画面外まで行ったらアニメーション完了
         if self.block.rect.left < -150:
