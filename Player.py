@@ -3,6 +3,7 @@ from pygame.locals import *
 import numpy as np
 
 import Block
+from Enemy import Fish
 from Image import LoadImage
 from Sprite import SpritePlayer
 from Sound import Sound
@@ -76,8 +77,9 @@ class Player:
 
         # 画像アニメーション
         self._img_number = int((self.player.x + SpritePlayer.scroll_sum) / 20) % 2
-        self._direction =\
-            (lambda num: self.player.img_right[num] if not self.isLeft or self.goal_isMove else self.player.img_left[num])
+        self._direction = \
+            (lambda num: self.player.img_right[num] if not self.isLeft or self.goal_isMove else self.player.img_left[
+                num])
 
         # 地面判定
         if self.player.isGrounding:
@@ -484,9 +486,9 @@ class Player:
             # 土管に入る
             if block.name == 'dokan1':
                 # 上から入る場合
-                if direction == 'BOTTOM' and block.data in [20.2, 20.3, 20.5]:
-                    if block.rect.left + 25 < self.player.rect.right - 5 and block.rect.right - 25 > self.player.rect.left + 6:
-                        if pygame.key.get_pressed()[K_DOWN]:
+                if direction == 'BOTTOM':
+                    if block.data in [20.2, 20.3, 20.5] and block.rect.left + 25 < self.player.rect.right - 5:
+                        if block.rect.right - 25 > self.player.rect.left + 6 and pygame.key.get_pressed()[K_DOWN]:
                             self.player.dive_dokan = block
 
                 # 横からはいる場合

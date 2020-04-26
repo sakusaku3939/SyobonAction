@@ -1,4 +1,6 @@
 from abc import ABCMeta, abstractmethod
+import pygame
+from pygame.locals import *
 
 from Sound import Sound
 from Stage import Stage
@@ -20,7 +22,8 @@ class Enemy:
             # 画面内の領域のみ処理
             if enemy.isDraw:
                 # ブロックとの当たり判定
-                enemy.collision(Stage.block_object_list)
+                if enemy.isPhysics:
+                    enemy.collision(Stage.block_object_list)
 
                 # プレイヤーとの当たり判定
                 player_collision_x, player_collision_y = enemy.sprite_collision(self.player)
@@ -46,6 +49,12 @@ class Enemy:
             elif enemy.name == 'koura1':
                 enemy.specific = Koura(self.screen, self.player, enemy)
 
+            elif enemy.name == 'fish1' or enemy.name == 'fish2':
+                enemy.specific = Fish(self.screen, self.player, enemy)
+
+            else:
+                enemy.specific = Round(self.screen, self.player, enemy)
+
 
 # 敵を実装する際に継承するクラス
 class AbstractEnemy(metaclass=ABCMeta):
@@ -63,25 +72,17 @@ class AbstractEnemy(metaclass=ABCMeta):
 
     @abstractmethod  # プレイヤーの上に当たった場合
     def top_collision(self):
-        self.player.isDeath = True
-        Text.set(self.screen, self.kill_text, sprite=self.enemy)
+        pass
 
     @abstractmethod  # プレイヤーの下に当たった（踏まれた）場合
     def bottom_collision(self):
-        Sound.play_SE('humi')
-
-        # 踏まれたら消える
-        self.enemy.remove()
-        Stage.enemy_object_list.remove(self.enemy)
-
-        # 踏んだ勢いでジャンプ
-        self.player.isGrounding = True
-        self.player.isJump = True
-        self.player.y_speed = self.player.JUMP_SPEED + 0.5
-        self.player.limit_air_speed()
+        pass
 
     @abstractmethod  # プレイヤーの横に当たった場合
     def side_collision(self):
+        pass
+
+    def kill(self):
         self.player.isDeath = True
         Text.set(self.screen, self.kill_text, sprite=self.enemy)
 
@@ -105,7 +106,7 @@ class Round(AbstractEnemy):
         pass
 
     def top_collision(self):
-        super().top_collision()
+        super().kill()
 
     def bottom_collision(self):
         # 踏めない敵
@@ -115,11 +116,23 @@ class Round(AbstractEnemy):
             # 踏んだ勢いでジャンプ
             self.player.y_speed = self.player.JUMP_SPEED - 4.3
             self.player.limit_air_speed()
+
+        # 踏める敵
         else:
-            super().bottom_collision()
+            Sound.play_SE('humi')
+
+            # 踏まれたら消える
+            self.enemy.remove()
+            Stage.enemy_object_list.remove(self.enemy)
+
+            # 踏んだ勢いでジャンプ
+            self.player.isGrounding = True
+            self.player.isJump = True
+            self.player.y_speed = self.player.JUMP_SPEED + 0.5
+            self.player.limit_air_speed()
 
     def side_collision(self):
-        super().side_collision()
+        super().kill()
 
 
 # 甲羅亀
@@ -144,7 +157,7 @@ class Koura(AbstractEnemy):
                     enemy_collision_x(_remove)
 
     def top_collision(self):
-        super().top_collision()
+        super().kill()
 
     def bottom_collision(self):
         Sound.play_SE('humi')
@@ -190,3 +203,69 @@ class Koura(AbstractEnemy):
             self.enemy.direction = -1
             self.enemy.x += 3
 
+
+# 飛ぶ魚
+class Fish(AbstractEnemy):
+    def __init__(self, screen, player, enemy):
+        kill_text = "Zzz"
+        enemy.isPhysics = False
+        enemy.direction = 0
+        super().__init__(screen, player, enemy, kill_text)
+
+        self.isAnimation = False
+        self.y_speed = 6
+
+        # 上向き
+        if enemy.name == 'fish1':
+            self.direction = -1
+            enemy.rect.top = 480
+            self.isDive_dokan = self._isDokan()
+        # 下向き
+        else:
+            self.direction = 1
+            enemy.rect.top = -45
+            self.isDive_dokan = False
+
+    # 下に土管がある場合は土管から出る
+    def _isDokan(self):
+        start_x = self.enemy.rect.left
+        start_y = self.enemy.y + self.enemy.height / 3 + 15
+        end_x = self.enemy.width
+        end_y = self.enemy.height / 3
+
+        new_rect = Rect(start_x, start_y, end_x, end_y)
+        # pygame.draw.rect(self.screen, (0, 0, 255), new_rect)  # 当たり判定可視化 （デバック用）
+
+        for block in Stage.block_object_list:
+            collide = new_rect.colliderect(block.rect)
+
+            if collide and block.name == 'dokan1':
+                self.y_speed = 4
+                self.enemy.x += 10
+                self.enemy.rect.top = block.rect.bottom + 11
+                return True
+        return False
+
+    def update(self):
+        if not self.isAnimation:
+            self.animation_start()
+
+        if self.isAnimation:
+            self.enemy.rect.top += self.y_speed * self.direction
+
+    # アニメーションのスタート
+    def animation_start(self):
+        distance = 37 if self.isDive_dokan else 90
+
+        if self.enemy.rect.left > 0 and self.enemy.rect.left - self.player.x < distance:
+            Sound.play_SE('kirra')
+            self.isAnimation = True
+
+    def top_collision(self):
+        super().kill()
+
+    def bottom_collision(self):
+        super().kill()
+
+    def side_collision(self):
+        super().kill()

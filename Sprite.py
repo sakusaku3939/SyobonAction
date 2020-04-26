@@ -44,6 +44,7 @@ class SpriteObject(pygame.sprite.Sprite):
         self.x_speed = 0.5  # 移動速度
         self.y_speed = 0.0  # 落下速度
         self.direction = 1  # 向き （1 or -1）
+        self.isPhysics = True  # 物理演算を行うか
 
         # スプライトのサイズ
         self.width = self.image.get_width()
@@ -73,7 +74,7 @@ class SpriteObject(pygame.sprite.Sprite):
 
             # 描画位置を計算
             self.x -= self.x_speed * self.direction if self.direction != 0 else 0
-            self.y_speed += SpritePlayer.FALL_ACCELERATION
+            self.y_speed += SpritePlayer.FALL_ACCELERATION if self.isPhysics else 0
 
             self.rect.left = self.x - SpritePlayer.scroll_sum
             self.rect.top += self.y_speed

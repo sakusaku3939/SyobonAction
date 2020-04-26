@@ -152,6 +152,10 @@ class Stage:
                 # 甲羅亀
                 self.enemy_add('koura1', data, x, y, start=28, end=28.1, tweak_x=0, tweak_y=-12)
 
+                # 飛ぶ魚
+                self.enemy_add('fish1', data, x, y, 29, tweak_x=5)
+                self.enemy_add('fish2', data, x, y, start=29.1, end=29.2, tweak_x=-5)
+
     def block_add(self, img_name, data, img_x, img_y, match=0.0,
                   start=0.0, end=0.0, tweak_x=0, tweak_y=0, group='', color=False):
         # ブロックの色を変更
