@@ -114,7 +114,8 @@ class Round(AbstractEnemy):
             Sound.play_SE('humi')
 
             # 踏んだ勢いでジャンプ
-            self.player.y_speed = self.player.JUMP_SPEED - 4.3
+            self.player.y_speed = self.player.JUMP_SPEED - 4.7
+            self.player.y -= 10
             self.player.limit_air_speed()
 
         # 踏める敵
@@ -128,7 +129,8 @@ class Round(AbstractEnemy):
             # 踏んだ勢いでジャンプ
             self.player.isGrounding = True
             self.player.isJump = True
-            self.player.y_speed = self.player.JUMP_SPEED + 0.5
+            self.player.y_speed = self.player.JUMP_SPEED + 1.0
+            self.player.y -= 10
             self.player.limit_air_speed()
 
     def side_collision(self):
@@ -184,6 +186,7 @@ class Koura(AbstractEnemy):
         self.player.isGrounding = True
         self.player.isJump = True
         self.player.y_speed = self.player.JUMP_SPEED + 1
+        self.player.y -= 10
         self.player.limit_air_speed()
 
     def side_collision(self):
@@ -198,10 +201,10 @@ class Koura(AbstractEnemy):
     def kick_koura(self):
         if self.player.x > self.enemy.rect.left:
             self.enemy.direction = 1
-            self.enemy.x -= 3
+            self.enemy.x -= 10
         else:
             self.enemy.direction = -1
-            self.enemy.x += 3
+            self.enemy.x += 10
 
 
 # 飛ぶ魚
@@ -242,7 +245,7 @@ class Fish(AbstractEnemy):
             if collide and block.name == 'dokan1':
                 self.y_speed = 4
                 self.enemy.x += 5
-                self.enemy.rect.top = block.rect.bottom + 11
+                self.enemy.rect.top = block.rect.bottom + 10
                 return True
         return False
 

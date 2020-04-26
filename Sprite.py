@@ -58,7 +58,7 @@ class SpriteObject(pygame.sprite.Sprite):
 
         # 描画する範囲
         self.START_RANGE_X = -100
-        self.END_RANGE_X = 550
+        self.END_RANGE_X = 500
         self.START_RANGE_Y = -50
         self.END_RANGE_Y = 500
         self.isDraw = False
@@ -161,9 +161,9 @@ class SpriteObject(pygame.sprite.Sprite):
         def _sprite_collision_x(_side_function):
             # 移動先の座標と矩形を求める
             if sprite.name == 'player':
-                start_x = sprite.rect.left + sprite.x_speed - 2
+                start_x = sprite.rect.left + sprite.x_speed + 2
                 start_y = sprite.y + SpritePlayer.FALL_ACCELERATION * 2 + 10
-                end_x = sprite.width + 4
+                end_x = sprite.width - 4
                 end_y = sprite.height - 30
             else:
                 start_x = sprite.rect.left + sprite.x_speed
@@ -172,6 +172,7 @@ class SpriteObject(pygame.sprite.Sprite):
                 end_y = sprite.height
 
             new_rect = Rect(start_x, start_y, end_x, end_y)
+
             # pygame.draw.rect(self.screen, (255, 0, 0), new_rect)  # 当たり判定可視化 （デバック用）
 
             collide = new_rect.colliderect(self.rect)
@@ -184,15 +185,15 @@ class SpriteObject(pygame.sprite.Sprite):
 
         def _sprite_collision_y(_top_function, _bottom_function):
             # 移動先の座標と矩形を求める
-            start_x = sprite.rect.left + 5
+            start_x = sprite.rect.left + 4
             start_y = sprite.y + sprite.y_speed + SpritePlayer.FALL_ACCELERATION * 2 + 4
-            end_x = sprite.width - 10
+            end_x = sprite.width - 8
             end_y = (sprite.height / 3) - 2
 
             new_rect_top = Rect(start_x, start_y, end_x, end_y)
 
-            start_x = sprite.rect.left + 1
-            end_x = sprite.width - 2
+            start_x = sprite.rect.left + 4
+            end_x = sprite.width - 8
             start_y += end_y * 2
             new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
 
