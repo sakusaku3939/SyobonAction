@@ -82,14 +82,10 @@ class Stage:
                 # 壊れるブロック
                 self.block_add('block1', data, x, y, start=1, end=1.2, color=True)
                 self.block_add('block1', data, x, y, start=1.4, end=2.6, color=True)
-                # 落ちるブロック
-                if data == 1.2:
-                    if stage_position_left != 1.3:
-                        group = 'start'
-                    elif stage_position_right != 1.3:
-                        group = 'end'
-                    else:
-                        group = ''
+
+                # 近づくと落ちるブロック
+                if data == 1.3:
+                    group = 'end' if stage_position_right != 1.3 else ''
                     self.block_add('block1', data, x, y, group=group, color=True)
 
                 # はてなブロック

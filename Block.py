@@ -115,29 +115,26 @@ class RideFall(AbstractBlock):
         super().__init__()
         self.player = Stage.player_object
         self.y = self.y_speed = 0
-
         self.block_list = []
 
         start_x = end_x = 0
-        _list = []
 
-        # プレイヤーに近いブロックを落下させる
-        for block in [block for block in Stage.block_object_list if block.data == 8.1]:
+        # プレイヤーに近いブロックグループを落下させる
+        for block in [b for b in Stage.block_object_list if b.data == 8.1]:
             if block.group == 'start':
                 start_x = block.rect.left - block.width
             if block.group == 'end':
-                end_x = block.rect.left
+                end_x = block.rect.left + 3
 
             if start_x != 0:
-                _list.append(block)
+                self.block_list.append(block)
 
             if end_x != 0:
                 if start_x < self.player.rect.left < end_x:
-                    self.block_list = _list
                     break
                 else:
                     start_x = end_x = 0
-                    _list.clear()
+                    self.block_list = []
 
     def update(self):
         # 落下アニメーション
@@ -152,6 +149,44 @@ class RideFall(AbstractBlock):
             if block.rect.top > 600:
                 self.isSuccess = True
                 block.isFall_animation = False
+
+
+# 近づくと落ちるブロック
+class NearFall(AbstractBlock):
+    def __init__(self, block_data):
+        super().__init__()
+        self.player = Stage.player_object
+        self.block = block_data
+        self.block_list = []
+        self.y_speed = 0
+        self.previous_y = 0
+
+        # ブロックのグループ化
+        for block in [b for b in Stage.block_object_list if b.data == 1.3]:
+            self.block_list.append(block)
+            if block.group == 'end':
+                if block_data in self.block_list:
+                    break
+                else:
+                    self.block_list = []
+
+    def update(self):
+        # 死亡アニメーション中は落下アニメーション停止
+        if self.player.isDeath:
+            for block in self.block_list:
+                block.rect.top = block.y + 20
+        else:
+            self.y_speed += SpritePlayer.FALL_ACCELERATION
+
+            for block in self.block_list:
+                block.isFall_animation = True
+                block.y += self.y_speed
+                block.rect.top = block.y
+
+                # 画面外まで行ったらアニメーション完了
+                if block.rect.top > 600:
+                    self.isSuccess = True
+                    block.isFall_animation = False
 
 
 # 近づいてジャンプすると光線を放つ

@@ -375,7 +375,7 @@ class Player:
         end_x = self.player.width
         end_y = self.player.height / 4
 
-        new_rect_top = Rect(start_x + 10, self.player.y, end_x - 18, end_y)
+        new_rect_top = Rect(start_x + 10, self.player.y, end_x - 18, end_y + 5)
         new_rect_bottom = Rect(start_x + 5, start_y + end_y * 3, end_x - 10, end_y)
         new_rect_block = Rect(start_x + 1, start_y - 10, end_x - 2, end_y * 3)
 
@@ -391,24 +391,23 @@ class Player:
 
             if block.name not in self.bg:
                 # 叩けないブロック
-                if collide_block and self.player.y_speed < 0 and not block.isHide:
+                if collide_block and not block.isHide:
                     self.block_animation('TOP_BLOCK', block)
 
                 # 上にある場合
                 if collide_top and self.player.y_speed < -1 and not self.player.isGrounding:
                     self.block_animation('TOP', block)
+                    self.player.y = block.rect.bottom
+                    self.player.isJump = False
+                    self.player.y_speed /= -2
                     self._img_number = 2
-                    if not block.isHide and self.player.y_speed < -1:
-                        self.player.y = block.rect.bottom
-                        self.player.isJump = False
-                        self.player.y_speed /= -3
                     return False
 
                 # 下にある場合
                 if collide_bottom and self.player.y_speed > 0 and not block.isHide:
                     self.block_animation('BOTTOM', block)
+                    self.player.y = block.rect.top - self.player.height + 1
                     if not block.isFall_animation:
-                        self.player.y = block.rect.top - self.player.height + 1
                         self.player.y_speed = 0.0
                     return True
 
@@ -435,6 +434,12 @@ class Player:
                             add_block(Block.Beam(block))
                             Text.set(self.screen, 'ビーー', sprite=block, tweak_x=10)
 
+                # 近づくと落ちるブロック
+                if block.data == 1.3 and not block.isFall_animation:
+                    if block.rect.left - self.player.rect.left < 0:
+                        if block.rect.bottom - self.player.rect.bottom < 0:
+                            add_block(Block.NearFall(block))
+
         # 当たるとアニメーション開始
         else:
             # 壊れるブロック
@@ -444,6 +449,10 @@ class Player:
                     block.isThorns = True
                     self.player.isDeath = True
                     Text.set(self.screen, 'シャキーン', sprite=block)
+
+                # 近づくと落ちるブロックの当たり判定
+                if block.data == 1.3 and block.isFall_animation and direction == 'TOP_BLOCK':
+                    self.player.isDeath = True
 
                 if direction == 'TOP':
                     # 叩くと壊れる
@@ -476,12 +485,13 @@ class Player:
                         add_block(Block.Enemy(self.screen, block, 'enemy'))
 
                 # 叩けないブロック
-                elif direction == 'TOP_BLOCK' and block.data == 3.1:
+                elif direction == 'TOP_BLOCK' and block.data == 3.1 and self.player.y_speed < 0:
                     block.rect.bottom = self.player.rect.top - 10
 
             # 隠しブロック
             if direction == 'TOP' and block.name == 'block3' and block.isHide:
                 block.isHide = False
+                self.player.y_speed /= -2
 
                 # 叩くとコインが出る
                 if block.data == 5:
