@@ -102,8 +102,7 @@ class Round(AbstractEnemy):
         ]
         super().__init__(screen, player, enemy, kill_text)
 
-        if enemy.data == 27.2:
-            enemy.set_event()
+        enemy.isEvent = True if enemy.data == 27.2 else False
 
     def update(self):
         pass

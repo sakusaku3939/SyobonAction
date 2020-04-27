@@ -141,14 +141,14 @@ class RideFall(AbstractBlock):
         self.y_speed += SpritePlayer.FALL_ACCELERATION
 
         for block in self.block_list:
-            block.isFall_animation = True
+            block.isAnimation = True
             block.y += self.y_speed
             block.rect.top = block.y + 1
 
             # 画面外まで行ったらアニメーション完了
             if block.rect.top > 600:
                 self.isSuccess = True
-                block.isFall_animation = False
+                block.isAnimation = False
 
 
 # 近づくと落ちるブロック
@@ -179,14 +179,14 @@ class NearFall(AbstractBlock):
             self.y_speed += SpritePlayer.FALL_ACCELERATION
 
             for block in self.block_list:
-                block.isFall_animation = True
+                block.isAnimation = True
                 block.y += self.y_speed
                 block.rect.top = block.y
 
                 # 画面外まで行ったらアニメーション完了
                 if block.rect.top > 600:
                     self.isSuccess = True
-                    block.isFall_animation = False
+                    block.isAnimation = False
 
 
 # 近づいてジャンプするとビームを放つ
@@ -204,6 +204,31 @@ class Beam(AbstractBlock):
         # 画面外まで行ったらアニメーション完了
         if self.block.rect.left < -150:
             self.isSuccess = True
+
+
+# 近づくと敵出現イベント発生
+class EventEnemy(AbstractBlock):
+    def __init__(self, block):
+        super().__init__()
+        self.block = block
+        block.isAnimation = True
+
+        _event_enemy_number = [27.2]  # 敵出現イベントを適用する敵リスト
+        self.enemy_list = [enemy for enemy in Stage.enemy_object_list if enemy.data in _event_enemy_number]
+
+        for enemy in self.enemy_list:
+            enemy.rect.bottom = 0
+            enemy.x -= 1
+            enemy.direction = 0
+
+    def update(self):
+        for enemy in self.enemy_list:
+            enemy.isDraw = True
+
+            # 地面につくまでは前進しない
+            if enemy.isGrounding:
+                enemy.direction = 1
+                enemy.isEvent = False
 
 
 # ブロックから出現するスプライトを実装する際に継承するクラス

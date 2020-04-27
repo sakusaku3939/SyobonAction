@@ -46,6 +46,9 @@ class SpriteObject(pygame.sprite.Sprite):
         self.direction = 1  # 向き （1 or -1）
         self.isPhysics = True  # 物理演算を行うか
 
+        self.isEvent = False  # イベントポイントによって出現するか
+        self._event = False
+
         # スプライトのサイズ
         self.width = self.image.get_width()
         self.height = self.image.get_height()
@@ -54,7 +57,7 @@ class SpriteObject(pygame.sprite.Sprite):
         self.rect = Rect(self.x - SpritePlayer.initial_scroll_sum, self.y, self.width, self.height)
         screen.blit(self.image, self.rect)
 
-        self.isGrounding = True  # 地面に着地しているか
+        self.isGrounding = False  # 地面に着地しているか
 
         # 描画する範囲
         self.START_RANGE_X = -100
@@ -64,17 +67,15 @@ class SpriteObject(pygame.sprite.Sprite):
         self.isDraw = False
         self.isRemove = False
 
-    # イベントスプライトとしてセット
-    def set_event(self):
-        self.rect.bottom = 0
-        self.isPhysics = False
-
     def update(self, list_number=0):
-        if self.isDraw or self.x - SpritePlayer.scroll_sum < self.END_RANGE_X:
+
+        if self.x - SpritePlayer.scroll_sum < self.END_RANGE_X and not self.isEvent:
             self.isDraw = True
 
+        if self.isDraw:
             # 描画位置を計算
-            self.x -= self.x_speed * self.direction if self.direction != 0 else 0
+            if self.direction != 0:
+                self.x -= self.x_speed * self.direction
             self.y_speed += SpritePlayer.FALL_ACCELERATION if self.isPhysics else 0
 
             self.rect.left = self.x - SpritePlayer.scroll_sum
@@ -232,7 +233,7 @@ class SpriteBlock(pygame.sprite.Sprite):
 
         self.data = data  # 画像のExcel番号
         self.isHide = hide  # 隠しスプライトかどうか
-        self.isFall_animation = False  # アニメーション中か
+        self.isAnimation = False  # アニメーション中か
         self.group = group  # グループ化されている場合 "start" -> "end" が格納
 
         # 画像の読み込み

@@ -20,7 +20,7 @@ class Player:
 
         self.player.x_speed = self.player.y_speed = 0.0  # 速度
         self.ACCELERATION = 0.1  # 加速度
-        self.DASH_ACCELERATION = 0.14  # ダッシュ時・空中反転時の加速度
+        self.DASH_ACCELERATION = 0.12  # ダッシュ時・空中反転時の加速度
         self.TURN_ACCELERATION = 0.21  # 地面反転時の加速度
         self.FRICTION_ACCELERATION = 0.15  # 地面摩擦時の減速度
         self.MAX_SPEED_X = 4  # x方向の最大速度
@@ -405,7 +405,7 @@ class Player:
                 if collide_bottom and self.player.y_speed > 0 and not block.isHide:
                     self.block_animation('BOTTOM', block)
                     self.player.y = block.rect.top - self.player.height + 1
-                    if not block.isFall_animation:
+                    if not block.isAnimation:
                         self.player.y_speed = 0.0
                     return True
 
@@ -433,10 +433,16 @@ class Player:
                             Text.set(self.screen, 'ビーー', sprite=block, tweak_x=10)
 
                 # 近づくと落ちるブロック
-                if block.data == 1.3 and not block.isFall_animation:
+                if block.data == 1.3 and not block.isAnimation:
                     if block.rect.left - self.player.rect.left < 0:
                         if block.rect.bottom - self.player.rect.bottom < 0:
                             add_block(Block.NearFall(block))
+
+                # 近づくと敵出現イベント発生
+                if block.data == 39 and not block.isAnimation:
+                    if block.rect.left - self.player.rect.left < 25:
+                        if self.player.rect.left - block.rect.left < 40:
+                            add_block(Block.EventEnemy(block))
 
         # 当たるとアニメーション開始
         else:
@@ -449,7 +455,7 @@ class Player:
                     Text.set(self.screen, 'シャキーン', sprite=block)
 
                 # 近づくと落ちるブロックの当たり判定
-                if block.data == 1.3 and block.isFall_animation and direction == 'TOP_BLOCK':
+                if block.data == 1.3 and block.isAnimation and direction == 'TOP_BLOCK':
                     self.player.isDeath = True
 
                 if direction == 'TOP':
@@ -525,7 +531,7 @@ class Player:
                 Text.set(self.screen, 'うめぇ!!', sprite=block)
 
             # 落ちる足場ブロック
-            if direction == 'BOTTOM' and block.data == 8.1 and not block.isFall_animation:
+            if direction == 'BOTTOM' and block.data == 8.1 and not block.isAnimation:
                 add_block(Block.RideFall())
 
             # ビームの当たり判定
