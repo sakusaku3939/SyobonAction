@@ -29,6 +29,7 @@ class Sound:
 
     @classmethod
     def play_SE(cls, name):
+        cls.SE_list[name].fadeout(300)
         cls.SE_list[name].play()
 
     @classmethod
