@@ -141,9 +141,9 @@ class Round(AbstractEnemy):
 class Koura(AbstractEnemy):
     def __init__(self, screen, player, enemy):
         kill_text = "鉄壁!!よって、無敵!!"
-        enemy.direction = -1
-
         super().__init__(screen, player, enemy, kill_text)
+
+        enemy.direction = -1
 
     def update(self):
         for other_enemy in Stage.enemy_object_list:
@@ -211,9 +211,10 @@ class Koura(AbstractEnemy):
 class Fish(AbstractEnemy):
     def __init__(self, screen, player, enemy):
         kill_text = "Zzz"
+        super().__init__(screen, player, enemy, kill_text)
+
         enemy.isPhysics = False
         enemy.direction = 0
-        super().__init__(screen, player, enemy, kill_text)
 
         self.isAnimation = False
         self.y_speed = 6

@@ -3,7 +3,6 @@ from pygame.locals import *
 import numpy as np
 
 import Block
-from Enemy import Fish
 from Image import LoadImage
 from Sprite import SpritePlayer
 from Sound import Sound
@@ -63,6 +62,7 @@ class Player:
 
         self.item_animation_list = []  # ブロックアニメーションのオブジェクトを格納するリスト
         Block.Beam.instance = False  # インスタンス状態を初期化
+        Block.Coin.generate_count = Block.PoisonKinoko.generate_count = 0  # 生成数を初期化
 
         # 当たり判定を行わない背景画像
         self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
@@ -192,7 +192,12 @@ class Player:
             # 新たに生成するか
             if animation.isGenerate:
                 animation.isGenerate = False
-                self.item_animation_list.append(Block.PoisonKinoko(self.screen, animation.block, isLot=True))
+                # 生成する個数
+                if animation.__class__.generate_count < animation.GENERATE_MAX - 1 or animation.GENERATE_MAX == -1:
+                    animation.__class__.generate_count += 1
+                    self.item_animation_list.append(animation.__class__(self.screen, animation.block, isLot=True))
+                else:
+                    animation.__class__.generate_count = 0
 
             # アニメーションが完了したか
             if animation.isSuccess:
@@ -434,7 +439,7 @@ class Player:
         else:
             # 壊れるブロック
             if block.name == 'block1':
-                # 叩くとトゲを生やす
+                # トゲを生やす
                 if block.data == 1.1:
                     block.isThorns = True
                     self.player.isDeath = True
@@ -446,6 +451,10 @@ class Player:
                         add_block(Block.Break(self.screen, block))
                         block.remove()
                         Stage.block_object_list.remove(block)
+
+                    # 叩くと大量のコインが出る
+                    if block.data == 1.6:
+                        add_block(Block.Coin(self.screen, block, isLot=True))
 
                     # 叩くとスター
                     if block.data == 2.1:

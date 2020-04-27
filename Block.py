@@ -22,10 +22,16 @@ class AbstractBlock(metaclass=ABCMeta):
 
 # 叩くとコイン
 class Coin(AbstractBlock):
-    def __init__(self, screen, block):
+    generate_count = 0
+
+    def __init__(self, screen, block, isLot=False):
         Sound.play_SE('coin')
         super().__init__()
         self.screen = screen
+        self.block = block
+
+        self.isLot = isLot  # 大量に生成させるか
+        self.GENERATE_MAX = 20  # 生成する個数
 
         # ブロックデータの置き換え
         block.name = 'block3'
@@ -36,14 +42,21 @@ class Coin(AbstractBlock):
         self.image = LoadImage.image_list['item1']
 
         # コインの座標
-        self.x = block.rect.left + int(block.width / 2 - self.image.get_width() / 2)
+        self.x = self.block.x - SpritePlayer.scroll_sum
         self.y = block.rect.top - 8
         self.start_y = self.y
+        self.y_speed = 4.0
 
     def update(self):
-        self.x -= SpritePlayer.scroll
-        self.y -= 3
-        self.screen.blit(self.image, (self.x, self.y))
+        self.x = self.block.x - SpritePlayer.scroll_sum
+        self.y -= self.y_speed
+        self.y_speed -= 0.1
+        self.screen.blit(self.image, (self.x, round(self.y)))
+
+        # 大量に出現させる場合、新たにコインを生成
+        if self.isLot and self.start_y - self.y > 20:
+            self.isLot = False
+            self.isGenerate = True
 
         # 一定の高さまで上がったらアニメーション完了
         if self.start_y - self.y > 72:
@@ -160,7 +173,7 @@ class Beam(AbstractBlock):
 
 # ブロックから出現するスプライトを実装する際に継承するクラス
 class AbstractSpriteAppear(metaclass=ABCMeta):
-    def __init__(self, screen, block, img_name, data=0, isLot=False):
+    def __init__(self, screen, block, img_name, data=0):
         Sound.play_SE('brockkinoko')
         self.screen = screen
         self.block = block
@@ -173,15 +186,12 @@ class AbstractSpriteAppear(metaclass=ABCMeta):
 
         self.isSuccess = False  # アニメーションが完了したかどうか
         self.isAppear = False  # 出現アニメーション中か
-        self._isLot = isLot  # 大量に出現させるか
         self.isGenerate = False  # 新たに生成するか
 
         self.sprite = SpriteObject(screen, img_name, data, -30, -30)
 
         self.sprite.direction = -1  # アイテムが動く向き
         self.list_number = -1  # 画像の切り替え
-
-        self.sprite.x_speed = 1.0 if isLot else 0.5  # 移動速度
 
         # オブジェクトの座標
         self.sprite.x = block.rect.left + int(block.width / 2 - self.sprite.width / 2) + SpritePlayer.scroll_sum
@@ -208,7 +218,6 @@ class AbstractSpriteAppear(metaclass=ABCMeta):
         # 一定の高さまで上がったら出現アニメーション完了
         if self.start_y - self.sprite.rect.top >= 29:
             self.isAppear = True
-            self.isGenerate = self._isLot
 
         self.sprite.rect.left = self.sprite.x - SpritePlayer.scroll_sum
         self.sprite.rect.top -= 1
@@ -251,11 +260,21 @@ class Kinoko(AbstractSpriteAppear):
 
 # 叩くと毒キノコ
 class PoisonKinoko(AbstractSpriteAppear):
+    generate_count = 0
+
     def __init__(self, screen, block, isLot=False):
-        super().__init__(screen, block, 'item4', isLot=isLot)
+        super().__init__(screen, block, 'item4')
+        self.isLot = isLot  # 大量に生成させるか
+        self.GENERATE_MAX = -1  # 生成する個数
+        self.sprite.x_speed = 1.0 if isLot else 0.5  # 移動速度
 
     def move_animation(self):
         super().move_animation()
+
+    def appear_animation(self):
+        super().appear_animation()
+        if self.isAppear:
+            self.isGenerate = self.isLot
 
     def collision(self):
         super().collision()
