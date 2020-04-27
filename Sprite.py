@@ -64,9 +64,10 @@ class SpriteObject(pygame.sprite.Sprite):
         self.isDraw = False
         self.isRemove = False
 
-        # 当たり判定を行わない背景画像
-        self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
-                   'triangle', 'goal_pole']
+    # イベントスプライトとしてセット
+    def set_event(self):
+        self.rect.bottom = 0
+        self.isPhysics = False
 
     def update(self, list_number=0):
         if self.isDraw or self.x - SpritePlayer.scroll_sum < self.END_RANGE_X:
@@ -113,7 +114,7 @@ class SpriteObject(pygame.sprite.Sprite):
                 collide_right = new_rect_right.colliderect(block.rect)
 
                 # 歩く先にブロックがある場合向きを変える
-                if block.name not in self.bg:
+                if block.name not in SpriteBlock.BG:
                     if collide_left:
                         self.direction = -1
                     elif collide_right:
@@ -138,7 +139,7 @@ class SpriteObject(pygame.sprite.Sprite):
                 collide_top = new_rect_top.colliderect(block.rect)
                 collide_bottom = new_rect_bottom.colliderect(block.rect)
 
-                if block.name not in self.bg:
+                if block.name not in SpriteBlock.BG:
                     # 上にある場合
                     if collide_top:
                         self.rect.top = block.rect.bottom
@@ -221,10 +222,16 @@ class SpriteObject(pygame.sprite.Sprite):
 
 # ブロックのスプライト
 class SpriteBlock(pygame.sprite.Sprite):
-    def __init__(self, screen, img_name, data, x, y, tweak_x=0, tweak_y=0, group=''):
+    # 当たり判定を行わない背景画像
+    BG = ['bg', 'mountain', 'grass', 'cloud1', 'cloud2', 'cloud3',
+          'cloud4', 'end', 'halfway', 'round', 'triangle', 'goal_pole', 'beam']
+
+    def __init__(self, screen, img_name, data, x, y, tweak_x=0, tweak_y=0, group='', hide=False):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
+
         self.data = data  # 画像のExcel番号
+        self.isHide = hide  # 隠しスプライトかどうか
         self.isFall_animation = False  # アニメーション中か
         self.group = group  # グループ化されている場合 "start" -> "end" が格納
 
@@ -258,10 +265,6 @@ class SpriteBlock(pygame.sprite.Sprite):
         self.thorns_img = LoadImage.image_list['block38']
         self.thorns_tweak_x = self.width / 2 - self.thorns_img.get_width() / 2 - 1
         self.thorns_tweak_y = self.height / 2 - self.thorns_img.get_height() / 2 - 1
-
-        # 隠しスプライト
-        hide = ['block3', 'cloud4', 'beam']
-        self.isHide = True if img_name in hide else False
 
     def update(self):
         # 画面スクロール

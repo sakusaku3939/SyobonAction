@@ -4,7 +4,7 @@ import numpy as np
 
 import Block
 from Image import LoadImage
-from Sprite import SpritePlayer
+from Sprite import SpritePlayer, SpriteBlock
 from Sound import Sound
 from Stage import Stage
 from Text import Text
@@ -64,11 +64,9 @@ class Player:
         Block.Beam.instance = False  # インスタンス状態を初期化
         Block.Coin.generate_count = Block.PoisonKinoko.generate_count = 0  # 生成数を初期化
 
-        # 当たり判定を行わない背景画像
-        self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
-                   'triangle', 'goal_pole', 'beam']
-
     def update(self):
+        # print(self.player.x, self.player.y, SpritePlayer.scroll_sum)  # プレイヤー座標（デバック用）
+
         # 強制アニメーション中は戻る
         if not (self._death_init and self._dokan_init and (self._goal_init or self.goal_isMove)):
             return
@@ -181,7 +179,7 @@ class Player:
     # 背景画像の描画
     def bg_update(self):
         for image in Stage.block_object_list:
-            if image.name in self.bg:
+            if image.name in SpriteBlock.BG:
                 image.update()
 
     # アイテムなどのアニメーション
@@ -339,7 +337,7 @@ class Player:
             collide_left = new_rect_left.colliderect(block.rect)
 
             # 当たり判定に背景画像・隠しブロックを除く
-            if block.name not in self.bg and not block.isHide:
+            if block.name not in SpriteBlock.BG and not block.isHide:
                 # pygame.draw.rect(self.screen, (255, 0, 0), block.rect)  # 当たり判定可視化 （デバック用）
 
                 # 左にある場合
@@ -389,7 +387,7 @@ class Player:
             collide_bottom = new_rect_bottom.colliderect(block.rect)
             collide_block = new_rect_block.colliderect(block.rect)
 
-            if block.name not in self.bg:
+            if block.name not in SpriteBlock.BG:
                 # 叩けないブロック
                 if collide_block and not block.isHide:
                     self.block_animation('TOP_BLOCK', block)
@@ -426,7 +424,7 @@ class Player:
         # 近づくとアニメーション開始
         if block is None:
             for block in Stage.block_object_list:
-                # ジャンプすると光線を放つ
+                # ジャンプするとビームを放つ
                 if block.data == 9.3 and not Block.Beam.instance and not self.player.isGrounding:
                     if block.rect.left - self.player.rect.left < 82:
                         if block.y - self.player.y > -10:
@@ -530,7 +528,7 @@ class Player:
             if direction == 'BOTTOM' and block.data == 8.1 and not block.isFall_animation:
                 add_block(Block.RideFall())
 
-            # 光線の当たり判定
+            # ビームの当たり判定
             if block.name == 'beam' and not block.isHide and self.player.y + self.player.height > block.y + 25:
                 self.player.isDeath = True
 

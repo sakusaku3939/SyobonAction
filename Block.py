@@ -189,7 +189,7 @@ class NearFall(AbstractBlock):
                     block.isFall_animation = False
 
 
-# 近づいてジャンプすると光線を放つ
+# 近づいてジャンプするとビームを放つ
 class Beam(AbstractBlock):
     instance = False
 

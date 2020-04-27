@@ -48,14 +48,10 @@ class Stage:
         self.stage_data = [[item for item in row if item != ''] for row in sheet_data]
         self.draw()
 
-        # 当たり判定を行わない背景画像
-        self.bg = ['mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4', 'end', 'halfway', 'round',
-                   'triangle', 'goal_pole']
-
     def update(self):
         for image in self.block_object_list:
             # 背景画像を以外を描画
-            if image.name not in self.bg:
+            if image.name not in SpriteBlock.BG:
                 image.update()
 
             # 画面外になったらオブジェクト削除
@@ -92,7 +88,7 @@ class Stage:
                 self.block_add('block2', data, x, y, start=3, end=4.1, color=True)
 
                 # 隠しブロック
-                self.block_add('block3', data, x, y, start=5, end=6.1, color=True)
+                self.block_add('block3', data, x, y, start=5, end=6.1, color=True, hide=True)
 
                 # 硬いブロック
                 self.block_add('block4', data, x, y, start=7, end=7.1, color=True)
@@ -119,14 +115,14 @@ class Stage:
                 # ポール
                 self.block_add('goal_pole', data, x, y, 9.1, tweak_x=3, tweak_y=-10)
 
-                # 光線
-                self.block_add('beam', data, x, y, 9.3, tweak_x=-88, tweak_y=4)
+                # ビーム
+                self.block_add('beam', data, x, y, 9.3, tweak_x=-88, tweak_y=4, hide=True)
 
                 # 顔付きの雲
                 self.block_add('cloud2', data, x, y, start=19.1, end=19.2)
 
                 # 透明のうめぇ
-                self.block_add('cloud4', data, x, y, 19.3)
+                self.block_add('cloud4', data, x, y, 19.3, hide=True)
 
                 # 土管
                 self.block_add('dokan1', data, x, y, 20)
@@ -162,14 +158,17 @@ class Stage:
                 self.enemy_add('fish1', data, x, y, 29, tweak_x=10)
                 self.enemy_add('fish2', data, x, y, start=29.1, end=29.2, tweak_x=-10)
 
+                # イベントポイント
+                self.block_add('bg', data, x, y, start=39, end=39.2, hide=True)
+
     def block_add(self, img_name, data, img_x, img_y, match=0.0,
-                  start=0.0, end=0.0, tweak_x=0, tweak_y=0, group='', color=False):
+                  start=0.0, end=0.0, tweak_x=0, tweak_y=0, group='', color=False, hide=False):
         # ブロックの色を変更
         name = f'block{int(img_name[-1:]) + self._mode}' if color else img_name
 
         # block_object_listに追加
         append = (lambda: self.block_object_list.append(
-            SpriteBlock(self.screen, name, data, img_x, img_y, tweak_x, tweak_y, group)
+            SpriteBlock(self.screen, name, data, img_x, img_y, tweak_x, tweak_y, group, hide)
         ))
 
         self._add(append, data, match, start, end)
