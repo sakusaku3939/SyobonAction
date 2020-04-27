@@ -48,19 +48,19 @@ class Coin(AbstractBlock):
         self.y_speed = 4.0
 
     def update(self):
-        self.x = self.block.x - SpritePlayer.scroll_sum
-        self.y -= self.y_speed
-        self.y_speed -= 0.1
-        self.screen.blit(self.image, (self.x, round(self.y)))
-
         # 大量に出現させる場合、新たにコインを生成
         if self.isLot and self.start_y - self.y > 20:
             self.isLot = False
             self.isGenerate = True
 
         # 一定の高さまで上がったらアニメーション完了
-        if self.start_y - self.y > 72:
+        if self.start_y - self.y > 70:
             self.isSuccess = True
+
+        self.x = self.block.x - SpritePlayer.scroll_sum
+        self.y -= self.y_speed
+        self.y_speed -= 0.1
+        self.screen.blit(self.image, (self.x, round(self.y)))
 
 
 # 叩くと壊れる
