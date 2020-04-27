@@ -213,12 +213,20 @@ class EventEnemy(AbstractBlock):
         self.block = block
         block.isAnimation = True
 
-        _event_enemy_number = [27.2]  # 敵出現イベントを適用する敵リスト
-        self.enemy_list = [enemy for enemy in Stage.enemy_object_list if enemy.data in _event_enemy_number]
+        _event_enemy_number = [27.2]  # 敵イベントのExcel番号
+        self.enemy_list = []  # イベントを適用する敵リスト
 
+        # 範囲内のイベント敵をリストに追加
+        for enemy in Stage.enemy_object_list:
+            if enemy.data in _event_enemy_number:
+                if block.x - 210 < enemy.x < block.x + 210:
+                    self.enemy_list.append(enemy)
+
+        # 初期設定
         for enemy in self.enemy_list:
             enemy.rect.bottom = 0
             enemy.x -= 1
+            enemy.y_speed += 0.5
             enemy.direction = 0
 
     def update(self):

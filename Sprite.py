@@ -196,7 +196,8 @@ class SpriteObject(pygame.sprite.Sprite):
 
             start_x = sprite.rect.left + 4
             end_x = sprite.width - 8
-            start_y += end_y * 2
+            start_y += end_y + 6
+            end_y += 6
             new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
 
             # 当たり判定可視化 （デバック用）
@@ -305,8 +306,9 @@ class SpritePlayer(pygame.sprite.Sprite):
 
         self.x_speed = self.y_speed = 0.0  # 速度
         self.max_speed = 0  # x方向の最大速度 （変数）
-        self.AIR_MAX_SPEED = 0  # 空中加速時の最大速度
         self.JUMP_SPEED = 0  # ジャンプ速度
+
+        self.AIR_MAX_SPEED = 3  # 空中加速時の最大速度
 
         self.isGrounding = True  # 地面に着地しているか
         self.isJump = False  # ジャンプモーション中か
