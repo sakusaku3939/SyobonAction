@@ -174,7 +174,6 @@ class SpriteObject(pygame.sprite.Sprite):
                 end_y = sprite.height
 
             new_rect = Rect(start_x, start_y, end_x, end_y)
-
             # pygame.draw.rect(self.screen, (255, 0, 0), new_rect)  # 当たり判定可視化 （デバック用）
 
             collide = new_rect.colliderect(self.rect)
@@ -196,7 +195,7 @@ class SpriteObject(pygame.sprite.Sprite):
 
             start_x = sprite.rect.left + 4
             end_x = sprite.width - 8
-            start_y += end_y + 6
+            start_y += end_y + 3
             end_y += 6
             new_rect_bottom = Rect(start_x, start_y, end_x, end_y)
 

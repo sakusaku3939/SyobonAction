@@ -319,13 +319,13 @@ class Player:
         y = self.player.y + self.player.y_speed
 
         # 移動先の座標と矩形を求める
-        start_x = (x - SpritePlayer.scroll) + 2
+        start_x = (x - SpritePlayer.scroll)
         start_y = y + SpritePlayer.FALL_ACCELERATION * 2 + 15
         end_x = self.player.width / 2
         end_y = self.player.height - 30
 
         new_rect_left = Rect(start_x, start_y, end_x, end_y)
-        new_rect_right = Rect(start_x + end_x - 4, start_y, end_x, end_y)
+        new_rect_right = Rect(start_x + end_x, start_y, end_x, end_y)
 
         # 当たり判定可視化 （デバック用）
         # pygame.draw.rect(self.screen, (255, 0, 0), new_rect_left)
@@ -373,7 +373,7 @@ class Player:
         end_y = self.player.height / 4
 
         new_rect_top = Rect(start_x + 10, self.player.y, end_x - 18, end_y + 5)
-        new_rect_bottom = Rect(start_x + 5, start_y + end_y * 3, end_x - 10, end_y)
+        new_rect_bottom = Rect(start_x + 4, start_y + end_y * 3, end_x - 8, end_y)
         new_rect_block = Rect(start_x + 1, start_y - 10, end_x - 2, end_y * 3)
 
         # 当たり判定可視化 （デバック用）
@@ -393,10 +393,10 @@ class Player:
 
                 # 上にある場合
                 if collide_top and self.player.y_speed < -1 and not self.player.isGrounding:
+                    self.player.y_speed = 2
                     self.block_animation('TOP', block)
                     self.player.y = block.rect.bottom
                     self.player.isJump = False
-                    self.player.y_speed /= -2
                     self._img_number = 2
                     return False
 
@@ -494,7 +494,7 @@ class Player:
             # 隠しブロック
             if direction == 'TOP' and block.name == 'block3' and block.isHide:
                 block.isHide = False
-                self.player.y_speed /= -2
+                self.player.y_speed /= 4
 
                 # 叩くとコインが出る
                 if block.data == 5:

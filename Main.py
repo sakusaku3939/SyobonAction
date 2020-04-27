@@ -110,9 +110,9 @@ def remain_show():
 def state_change(state_number):
     global GAME_STATE
     GAME_STATE = state_number
-    SpritePlayer.initial_x = 210  # 55
-    SpritePlayer.initial_y = 243  # 320
-    SpritePlayer.initial_scroll_sum = 2555  # 0
+    SpritePlayer.initial_x = 55
+    SpritePlayer.initial_y = 320
+    SpritePlayer.initial_scroll_sum = 0
 
 
 # タイトル画面
@@ -197,7 +197,7 @@ class Stage_1:
         self.Enemy = Enemy(screen)
 
         remain_show()
-        # Sound.play_BGM('titerman')
+        Sound.play_BGM('titerman')
 
         self.main()
 
