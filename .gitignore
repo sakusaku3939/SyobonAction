@@ -1,4 +1,4 @@
 node_modules/
 ゲームexe化
 __pycache__
-build
+build/exe.win-amd64-3.8/
