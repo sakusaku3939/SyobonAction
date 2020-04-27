@@ -393,8 +393,12 @@ class Player:
 
                 # 上にある場合
                 if collide_top and self.player.y_speed < -1 and not self.player.isGrounding:
-                    self.player.y_speed = 2
+                    if block.isHide:
+                        self.player.y_speed /= -3
+                    else:
+                        self.player.y_speed = 2
                     self.block_animation('TOP', block)
+
                     self.player.y = block.rect.bottom
                     self.player.isJump = False
                     self._img_number = 2
@@ -494,7 +498,6 @@ class Player:
             # 隠しブロック
             if direction == 'TOP' and block.name == 'block3' and block.isHide:
                 block.isHide = False
-                self.player.y_speed /= 4
 
                 # 叩くとコインが出る
                 if block.data == 5:
