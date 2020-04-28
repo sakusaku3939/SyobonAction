@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a32f5cf3-4e0f-4aab-930f-ffdbdc5985b1" name="Default Changelist" comment="" />
+    <list default="true" id="a32f5cf3-4e0f-4aab-930f-ffdbdc5985b1" name="Default Changelist" comment="workspace更新">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -59,7 +61,7 @@
     </favorite-branches>
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="develop" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -193,20 +195,6 @@
       <workItem from="1588094872780" duration="410000" />
       <workItem from="1588095304419" duration="491000" />
       <workItem from="1588095810170" duration="1118000" />
-    </task>
-    <task id="LOCAL-00045" summary="蹴ることが出来る甲羅を追加">
-      <created>1587531824134</created>
-      <option name="number" value="00045" />
-      <option name="presentableId" value="LOCAL-00045" />
-      <option name="project" value="LOCAL" />
-      <updated>1587531824134</updated>
-    </task>
-    <task id="LOCAL-00046" summary="敵に倒された時に出る文字を追加">
-      <created>1587531841033</created>
-      <option name="number" value="00046" />
-      <option name="presentableId" value="LOCAL-00046" />
-      <option name="project" value="LOCAL" />
-      <updated>1587531841033</updated>
     </task>
     <task id="LOCAL-00047" summary="敵実装クラスの仕様変更">
       <created>1587544420699</created>
@@ -537,7 +525,21 @@
       <option name="project" value="LOCAL" />
       <updated>1588094755898</updated>
     </task>
-    <option name="localTasksCounter" value="94" />
+    <task id="LOCAL-00094" summary="workspace更新">
+      <created>1588100364348</created>
+      <option name="number" value="00094" />
+      <option name="presentableId" value="LOCAL-00094" />
+      <option name="project" value="LOCAL" />
+      <updated>1588100364348</updated>
+    </task>
+    <task id="LOCAL-00095" summary="workspace更新">
+      <created>1588100428450</created>
+      <option name="number" value="00095" />
+      <option name="presentableId" value="LOCAL-00095" />
+      <option name="project" value="LOCAL" />
+      <updated>1588100428450</updated>
+    </task>
+    <option name="localTasksCounter" value="96" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -572,7 +574,6 @@
       <path value="$PROJECT_DIR$/../git" />
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="ステージ未実装メッセージ追加" />
     <MESSAGE value="exeファイルの更新" />
     <MESSAGE value="グループ化した部分のみアニメーションする機能を追加" />
     <MESSAGE value="変数のリネーム" />
@@ -597,7 +598,8 @@
     <MESSAGE value="設定ファイル追加" />
     <MESSAGE value="exeファイルの設定を変更" />
     <MESSAGE value=".ideaフォルダを含めないよう設定" />
-    <option name="LAST_COMMIT_MESSAGE" value=".ideaフォルダを含めないよう設定" />
+    <MESSAGE value="workspace更新" />
+    <option name="LAST_COMMIT_MESSAGE" value="workspace更新" />
   </component>
   <component name="WindowStateProjectService">
     <state x="552" y="178" key="#Inspections" timestamp="1585394034820">
@@ -628,10 +630,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="690" y="267" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1585322670816" />
-    <state x="545" y="112" key="CommitChangelistDialog2" timestamp="1588100363829">
+    <state x="545" y="112" key="CommitChangelistDialog2" timestamp="1588100459826">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="545" y="112" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1588100363829" />
+    <state x="545" y="112" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1588100459826" />
     <state x="92" y="92" width="1736" height="856" key="DiffContextDialog" timestamp="1588097014971">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -696,14 +698,14 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="468" y="162" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1588068839415" />
-    <state x="727" y="224" key="VCS.ChangeListViewerDialog" timestamp="1588097015956">
+    <state x="727" y="224" key="VCS.ChangeListViewerDialog" timestamp="1588114457870">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="727" y="224" key="VCS.ChangeListViewerDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588097015956" />
-    <state x="552" y="253" key="Vcs.Push.Dialog.v2" timestamp="1588100365872">
+    <state x="727" y="224" key="VCS.ChangeListViewerDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588114457870" />
+    <state x="552" y="253" key="Vcs.Push.Dialog.v2" timestamp="1588100429669">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="552" y="253" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1588100365872" />
+    <state x="552" y="253" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1588100429669" />
     <state x="660" y="254" key="VcsDiffUtil.ChangesDialog" timestamp="1588064824092">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -712,10 +714,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="92" y="92" width="1736" height="856" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588097069281" />
-    <state x="634" y="344" key="com.intellij.ide.util.TipDialog" timestamp="1588095810008">
+    <state x="634" y="344" key="com.intellij.ide.util.TipDialog" timestamp="1588114365900">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="634" y="344" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588095810008" />
+    <state x="634" y="344" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588114365900" />
     <state x="530" y="122" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1587367807362">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -736,14 +738,14 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="771" y="311" key="git4idea.merge.GitMergeDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588094192788" />
-    <state x="668" y="311" key="git4idea.merge.GitPullDialog" timestamp="1588096909663">
+    <state x="668" y="311" key="git4idea.merge.GitPullDialog" timestamp="1588100483385">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="668" y="311" key="git4idea.merge.GitPullDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588096909663" />
-    <state x="795" y="384" key="git4idea.rebase.GitRebaseDialog" timestamp="1588005001698">
+    <state x="668" y="311" key="git4idea.merge.GitPullDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588100483385" />
+    <state x="795" y="384" key="git4idea.rebase.GitRebaseDialog" timestamp="1588114458999">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="795" y="384" key="git4idea.rebase.GitRebaseDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588005001698" />
+    <state x="795" y="384" key="git4idea.rebase.GitRebaseDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588114458999" />
     <state x="780" y="414" key="git4idea.ui.GitResetDialog" timestamp="1588097016814">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
