@@ -12,4 +12,4 @@ if sys.platform == 'win32':
 setup(name='CHOOOSEFILE',
       version='1.0',
       description='converter',
-      executables=[Executable("Main.py", base=base)])
+      executables=[Executable("Main.py", targetName="しょぼんのアクション.exe", base=base)])
