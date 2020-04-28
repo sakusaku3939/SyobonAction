@@ -1,0 +1,4 @@
+pygame==1.9.6
+numpy==1.18.3
+xlrd==1.2.0
+cx-Freeze==6.1
