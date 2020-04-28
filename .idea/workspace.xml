@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a32f5cf3-4e0f-4aab-930f-ffdbdc5985b1" name="Default Changelist" comment="workspace更新">
+    <list default="true" id="a32f5cf3-4e0f-4aab-930f-ffdbdc5985b1" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -195,13 +195,7 @@
       <workItem from="1588094872780" duration="410000" />
       <workItem from="1588095304419" duration="491000" />
       <workItem from="1588095810170" duration="1118000" />
-    </task>
-    <task id="LOCAL-00047" summary="敵実装クラスの仕様変更">
-      <created>1587544420699</created>
-      <option name="number" value="00047" />
-      <option name="presentableId" value="LOCAL-00047" />
-      <option name="project" value="LOCAL" />
-      <updated>1587544420699</updated>
+      <workItem from="1588114365575" duration="635000" />
     </task>
     <task id="LOCAL-00048" summary="蹴った甲羅が敵を倒す機能追加">
       <created>1587549415664</created>
@@ -539,7 +533,14 @@
       <option name="project" value="LOCAL" />
       <updated>1588100428450</updated>
     </task>
-    <option name="localTasksCounter" value="96" />
+    <task id="LOCAL-00096" summary="設定の更新">
+      <created>1588114482057</created>
+      <option name="number" value="00096" />
+      <option name="presentableId" value="LOCAL-00096" />
+      <option name="project" value="LOCAL" />
+      <updated>1588114482057</updated>
+    </task>
+    <option name="localTasksCounter" value="97" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -574,7 +575,6 @@
       <path value="$PROJECT_DIR$/../git" />
       <path value="$PROJECT_DIR$" />
     </ignored-roots>
-    <MESSAGE value="exeファイルの更新" />
     <MESSAGE value="グループ化した部分のみアニメーションする機能を追加" />
     <MESSAGE value="変数のリネーム" />
     <MESSAGE value="ビームの追加・ジャンプ係数調整" />
@@ -599,7 +599,8 @@
     <MESSAGE value="exeファイルの設定を変更" />
     <MESSAGE value=".ideaフォルダを含めないよう設定" />
     <MESSAGE value="workspace更新" />
-    <option name="LAST_COMMIT_MESSAGE" value="workspace更新" />
+    <MESSAGE value="設定の更新" />
+    <option name="LAST_COMMIT_MESSAGE" value="設定の更新" />
   </component>
   <component name="WindowStateProjectService">
     <state x="552" y="178" key="#Inspections" timestamp="1585394034820">
@@ -630,10 +631,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="690" y="267" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1585322670816" />
-    <state x="545" y="112" key="CommitChangelistDialog2" timestamp="1588100459826">
+    <state x="545" y="112" key="CommitChangelistDialog2" timestamp="1588115005104">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="545" y="112" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1588100459826" />
+    <state x="545" y="112" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1588115005104" />
     <state x="92" y="92" width="1736" height="856" key="DiffContextDialog" timestamp="1588097014971">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -702,10 +703,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="727" y="224" key="VCS.ChangeListViewerDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1588114457870" />
-    <state x="552" y="253" key="Vcs.Push.Dialog.v2" timestamp="1588100429669">
+    <state x="552" y="253" key="Vcs.Push.Dialog.v2" timestamp="1588114484199">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="552" y="253" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1588100429669" />
+    <state x="552" y="253" key="Vcs.Push.Dialog.v2/0.0.1920.1040@0.0.1920.1040" timestamp="1588114484199" />
     <state x="660" y="254" key="VcsDiffUtil.ChangesDialog" timestamp="1588064824092">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
