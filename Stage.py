@@ -5,6 +5,7 @@ import tkinter
 from tkinter import messagebox
 
 from Sprite import SpriteBlock, SpriteObject, SpritePlayer
+from Text import Text
 
 
 class Stage:
@@ -19,9 +20,10 @@ class Stage:
         self.screen = screen
         Stage.player_object = SpritePlayer(screen)
 
-        # オブジェクトリストの初期化
+        # リストの初期化
         Stage.block_object_list.clear()
         Stage.enemy_object_list.clear()
+        Text.text_list.clear()
 
         # ステージのブロックの色 （1～4）
         self._mode = 7 * (block_color - 1)
@@ -65,10 +67,10 @@ class Stage:
             for y, data in enumerate(list_data):
                 # 一つ前のステージデータを取得
                 try:
-                    stage_position_up = self.stage_data[x][y - 1]
-                    stage_position_down = self.stage_data[x][y + 1]
-                    stage_position_left = self.stage_data[x - 1][y]
-                    stage_position_right = self.stage_data[x + 1][y]
+                    stage_position_up = self.stage_data[x][y-1]
+                    stage_position_down = self.stage_data[x][y+1]
+                    stage_position_left = self.stage_data[x-1][y]
+                    stage_position_right = self.stage_data[x+1][y]
                 except IndexError:
                     stage_position_up = 0
                     stage_position_down = 0
@@ -77,12 +79,20 @@ class Stage:
 
                 # 壊れるブロック
                 self.block_add('block1', data, x, y, start=1, end=1.2, color=True)
-                self.block_add('block1', data, x, y, start=1.4, end=2.6, color=True)
 
                 # 近づくと落ちるブロック
                 if data == 1.3:
                     group = 'end' if stage_position_right != 1.3 else ''
                     self.block_add('block1', data, x, y, group=group, color=True)
+
+                self.block_add('block1', data, x, y, start=1.4, end=2.1, color=True)
+
+                # 叩くとPスイッチが出るブロック
+                if data == 2.2:
+                    self.block_add('block39', data, x, y-1, hide=True)
+                    self.block_add('block1', data, x, y, color=True)
+
+                self.block_add('block1', data, x, y, start=2.3, end=2.6, color=True)
 
                 # はてなブロック
                 self.block_add('block2', data, x, y, start=3, end=4.1, color=True)
@@ -100,14 +110,22 @@ class Stage:
                     else:
                         self.block_add('block6', data, x, y, color=True)
 
-                # 落ちる足場ブロック
+                # 乗ると落ちる足場ブロック
                 if data == 8.1:
                     if stage_position_up != 8.1:
-                        group = 'start' if stage_position_left != 8.1 else ''
+                        if stage_position_left != 8.1:
+                            group = 'start'
+                        elif stage_position_right != 8.1 and stage_position_down != 8.1:
+                            group = 'end'
+                        else:
+                            group = ''
                         self.block_add('block5', data, x, y, group=group, color=True)
                     else:
                         group = 'end' if stage_position_right != 8.1 else ''
                         self.block_add('block6', data, x, y, group=group, color=True)
+
+                # トゲが出る足場ブロック
+                self.block_add('block5', data, x, y, 8.3, color=True)
 
                 # 針
                 self.block_add('block7', data, x, y, 40, color=True)
@@ -117,6 +135,12 @@ class Stage:
 
                 # ビーム
                 self.block_add('beam', data, x, y, 9.3, tweak_x=-88, tweak_y=4, hide=True)
+
+                # Pスイッチ
+                self.block_add('block39', data, x, y, 18)
+
+                # 雲
+                self.block_add('cloud1', data, x, y, 19)
 
                 # 顔付きの雲
                 self.block_add('cloud2', data, x, y, start=19.1, end=19.2)
@@ -147,6 +171,9 @@ class Stage:
 
                 # ゴール塔
                 self.block_add('end', data, x, y, 24.1)
+
+                # コイン
+                self.block_add('item1', data, x, y, 25)
 
                 # まるい敵
                 self.enemy_add('enemy', data, x, y, start=27, end=27.2)

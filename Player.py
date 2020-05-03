@@ -26,12 +26,9 @@ class Player:
         self.MAX_SPEED_X = 4  # x方向の最大速度
         self.MAX_SPEED_Y = 9  # y方向の最大速度
         self.player.max_speed = 0  # x方向の最大速度 （変数）
-
-        # 画面スクロール上限
-        self.SCROLL_LIMIT = 3605
+        self.SCROLL_LIMIT = 3605  # 画面スクロール上限
 
         self.player.isGrounding = True  # 地面に着地しているか
-
         self.player.isJump = False  # ジャンプモーション中か
         self.JUMP_SPEED = -6.0  # ジャンプ速度
         self.player.JUMP_SPEED = self.JUMP_SPEED  # ジャンプ速度 （スプライト用にセット）
@@ -59,8 +56,8 @@ class Player:
         self._goal_count = 0  # ゴールの計るタイマー
         self._goal_scene_y = 500  # ゴール時に次のシーンへ移るy座標
 
+        self.jump_disable_list = []  # ジャンプを無効にするブロックリスト
         self.item_animation_list = []  # ブロックアニメーションのオブジェクトを格納するリスト
-        Block.Beam.instance = False  # インスタンス状態を初期化
         Block.Coin.generate_count = Block.PoisonKinoko.generate_count = 0  # 生成数を初期化
 
     def update(self):
@@ -386,17 +383,15 @@ class Player:
             collide_bottom = new_rect_bottom.colliderect(block.rect)
             collide_block = new_rect_block.colliderect(block.rect)
 
-            if block.name not in SpriteBlock.BG:
+            if block.name not in SpriteBlock.BG and block not in self.jump_disable_list:
                 # 叩けないブロック
                 if collide_block and not block.isHide:
                     self.block_animation('TOP_BLOCK', block)
 
                 # 上にある場合
                 if collide_top and self.player.y_speed < -1 and not self.player.isGrounding:
-                    if block.isHide:
+                    if not block.isHide:
                         self.player.y_speed /= -3
-                    else:
-                        self.player.y_speed = 2
                     self.block_animation('TOP', block)
 
                     self.player.y = block.rect.bottom
@@ -407,9 +402,12 @@ class Player:
                 # 下にある場合
                 if collide_bottom and self.player.y_speed > 0 and not block.isHide:
                     self.block_animation('BOTTOM', block)
-                    self.player.y = block.rect.top - self.player.height + 1
-                    if not block.isAnimation:
-                        self.player.y_speed = 0.0
+                    if block in self.jump_disable_list:
+                        return False
+                    elif self.player.x != block.rect.bottom:
+                        self.player.y = block.rect.top - self.player.height + 1
+                        if not block.isAnimation:
+                            self.player.y_speed = 0.0
                     return True
 
             # 背景画像のアニメーション
@@ -428,10 +426,11 @@ class Player:
         if block is None:
             for block in Stage.block_object_list:
                 # ジャンプするとビームを放つ
-                if block.data == 9.3 and not Block.Beam.instance and not self.player.isGrounding:
+                if block.data == 9.3 and not block.isBeam and not self.player.isGrounding:
                     if block.rect.left - self.player.rect.left < 82:
                         if block.y - self.player.y > -10:
                             block.isHide = False
+                            block.isBeam = True
                             add_block(Block.Beam(block))
                             Text.set(self.screen, 'ビーー', sprite=block, tweak_x=10)
 
@@ -451,12 +450,6 @@ class Player:
         else:
             # 壊れるブロック
             if block.name == 'block1':
-                # トゲを生やす
-                if block.data == 1.1:
-                    block.isThorns = True
-                    self.player.isDeath = True
-                    Text.set(self.screen, 'シャキーン', sprite=block)
-
                 # 近づくと落ちるブロックの当たり判定
                 if block.data == 1.3 and block.isAnimation and direction == 'TOP_BLOCK':
                     self.player.isDeath = True
@@ -465,47 +458,103 @@ class Player:
                     # 叩くと壊れる
                     if block.data == 1:
                         add_block(Block.Break(self.screen, block))
-                        block.remove()
-                        Stage.block_object_list.remove(block)
 
                     # 叩くと大量のコインが出る
                     if block.data == 1.6:
                         add_block(Block.Coin(self.screen, block, isLot=True))
 
-                    # 叩くとスター
-                    if block.data == 2.1:
-                        add_block(Block.Star(self.screen, block))
+                    # 叩くとPスイッチ
+                    if block.data == 2.2:
+                        Sound.play_SE('brockkinoko')
+
+                        # ブロックデータの置き換え
+                        block.name = 'block3'
+                        block.data = 5
+                        block.image = LoadImage.image_list[block.name]
+
+                        # Pスイッチを表示
+                        for p in Stage.block_object_list:
+                            if p.data == 2.2 and block.x == p.x:
+                                p.isHide = False
 
             # はてなブロック
             if block.name == 'block2':
-                if direction == 'TOP':
-                    # 叩くとコインが出る
-                    if block.data == 3:
-                        add_block(Block.Coin(self.screen, block))
-
-                    # 叩くと赤キノコが出る
-                    if block.data == 3.2:
-                        add_block(Block.Kinoko(self.screen, block))
-
-                    # 叩くと敵が出る
-                    if block.data == 3.8:
-                        add_block(Block.Enemy(self.screen, block, 'enemy'))
+                # 叩くとコイン
+                if direction == 'TOP' and block.data == 3:
+                    add_block(Block.Coin(self.screen, block))
 
                 # 叩けないブロック
-                elif direction == 'TOP_BLOCK' and block.data == 3.1 and self.player.y_speed < 0:
+                if direction == 'TOP_BLOCK' and block.data == 3.1 and self.player.y_speed < 0:
                     block.rect.bottom = self.player.rect.top - 10
 
             # 隠しブロック
-            if direction == 'TOP' and block.name == 'block3' and block.isHide:
+            if block.name == 'block3' and direction == 'TOP' and block.isHide:
                 block.isHide = False
 
-                # 叩くとコインが出る
-                if block.data == 5:
+                # 叩くとコイン
+                if block.data in [5, 5.1]:
                     add_block(Block.Coin(self.screen, block))
 
-                # 叩くと大量の毒キノコが出る
-                if block.data == 5.5:
+            # 針
+            if block.name == 'block7' and direction == 'TOP':
+                self.player.isDeath = True
+                Text.set(self.screen, '刺さった!!', sprite=self.player)
+
+            # 叩くアニメーション
+            if direction == 'TOP':
+                # 赤キノコ
+                if block.data in [1.7, 3.2, 5.2]:
+                    add_block(Block.Kinoko(self.screen, block))
+
+                # 毒キノコ
+                if block.data in [1.9, 3.4, 5.4]:
+                    add_block(Block.PoisonKinoko(self.screen, block))
+
+                # 大量の毒キノコ
+                if block.data in [3.5, 5.5]:
                     add_block(Block.PoisonKinoko(self.screen, block, isLot=True))
+
+                # まるい敵
+                if block.data in [2.3, 3.8, 5.8]:
+                    add_block(Block.Enemy(self.screen, block, 'enemy'))
+
+                # 甲羅敵
+                if block.data in [2.4, 3.9, 5.9]:
+                    add_block(Block.Enemy(self.screen, block, 'koura1', tweak=10))
+
+                # スター
+                if block.data in [2.1, 3.7, 5.7]:
+                    add_block(Block.Star(self.screen, block))
+
+            # 乗ると壊れるブロック
+            if direction == 'BOTTOM' and block.data in [1.4, 5.1]:
+                add_block(Block.Break(self.screen, block))
+                self.jump_disable_list.append(block)
+
+            # コイン
+            if block.name == 'item1':
+                Sound.play_SE('coin')
+                block.remove()
+                Stage.block_object_list.remove(block)
+
+            # トゲを生やす
+            if block.data in [1.1, 7.1, 8.3]:
+                block.isThorns = True
+                self.player.isDeath = True
+                Text.set(self.screen, 'シャキーン', sprite=block)
+
+            # Pスイッチ
+            if direction == 'BOTTOM' and block.name == 'block39' and not block.isHide:
+                Sound.play_SE('Pswitch')
+                Sound.stop_BGM()
+                block.isHide = True
+                self.jump_disable_list.append(block)
+
+                # 全てコインに置き換え
+                for b in Stage.block_object_list:
+                    b.name = 'item1'
+                    b.data = 25
+                    b.image = LoadImage.image_list[b.name]
 
             # 土管に入る
             if block.name == 'dokan1':
@@ -532,7 +581,7 @@ class Player:
                 block.isHide = False
                 Text.set(self.screen, 'うめぇ!!', sprite=block)
 
-            # 落ちる足場ブロック
+            # 乗ると落ちる足場ブロック
             if direction == 'BOTTOM' and block.data == 8.1 and not block.isAnimation:
                 add_block(Block.RideFall())
 

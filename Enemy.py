@@ -13,7 +13,8 @@ class Enemy:
         self.player = Stage.player_object
 
         # 敵固有の設定
-        self.specific_settings()
+        for enemy in Stage.enemy_object_list:
+            enemy.specific = self.specific_settings(self.screen, enemy)
 
     def update(self):
         for enemy in Stage.enemy_object_list:
@@ -41,19 +42,21 @@ class Enemy:
                 enemy.remove()
                 Stage.enemy_object_list.remove(enemy)
 
-    def specific_settings(self):
-        for enemy in Stage.enemy_object_list:
-            if enemy.name == "enemy":
-                enemy.specific = Round(self.screen, self.player, enemy)
+    @classmethod
+    def specific_settings(cls, screen, enemy):
+        player = Stage.player_object
 
-            elif enemy.name == 'koura1':
-                enemy.specific = Koura(self.screen, self.player, enemy)
+        if enemy.name == "enemy":
+            return Round(screen, player, enemy)
 
-            elif enemy.name == 'fish1' or enemy.name == 'fish2':
-                enemy.specific = Fish(self.screen, self.player, enemy)
+        elif enemy.name == 'koura1':
+            return Koura(screen, player, enemy)
 
-            else:
-                enemy.specific = Round(self.screen, self.player, enemy)
+        elif enemy.name == 'fish1' or enemy.name == 'fish2':
+            return Fish(screen, player, enemy)
+
+        else:
+            return Round(screen, player, enemy)
 
 
 # 敵を実装する際に継承するクラス
@@ -129,9 +132,8 @@ class Round(AbstractEnemy):
             Stage.enemy_object_list.remove(self.enemy)
 
             # 踏んだ勢いでジャンプ
-            self.player.isGrounding = True
             self.player.isJump = True
-            self.player.y_speed = self.player.JUMP_SPEED + 1.0
+            self.player.y_speed = self.player.JUMP_SPEED + 1
             self.player.y -= 10
             self.player.limit_air_speed()
 
@@ -185,7 +187,6 @@ class Koura(AbstractEnemy):
                 self.enemy.direction = 0
 
         # 踏んだ勢いでジャンプ
-        self.player.isGrounding = True
         self.player.isJump = True
         self.player.y_speed = self.player.JUMP_SPEED + 1
         self.player.y -= 10
@@ -248,7 +249,7 @@ class Fish(AbstractEnemy):
             if collide and block.name == 'dokan1':
                 self.y_speed = 4
                 self.enemy.x += 5
-                self.enemy.rect.top = block.rect.bottom + 10
+                self.enemy.rect.top = block.rect.bottom + 15
                 return True
         return False
 
