@@ -4,7 +4,6 @@ from pygame.locals import *
 from Image import LoadImage
 
 
-# 敵やアイテム等のスプライト
 class SpriteObject(pygame.sprite.Sprite):
     def __init__(self, screen, img_name, data, x, y, tweak_x=0, tweak_y=0):
         pygame.sprite.Sprite.__init__(self)
@@ -115,7 +114,7 @@ class SpriteObject(pygame.sprite.Sprite):
                 collide_right = new_rect_right.colliderect(block.rect)
 
                 # 歩く先にブロックがある場合向きを変える
-                if block.name not in SpriteBlock.BG:
+                if block.name not in SpriteBlock.BG and not block.isHide:
                     if collide_left:
                         self.direction = -1
                     elif collide_right:
@@ -140,7 +139,7 @@ class SpriteObject(pygame.sprite.Sprite):
                 collide_top = new_rect_top.colliderect(block.rect)
                 collide_bottom = new_rect_bottom.colliderect(block.rect)
 
-                if block.name not in SpriteBlock.BG:
+                if block.name not in SpriteBlock.BG and not block.isHide:
                     # 上にある場合
                     if collide_top:
                         self.rect.top = block.rect.bottom
@@ -224,17 +223,19 @@ class SpriteObject(pygame.sprite.Sprite):
 # ブロックのスプライト
 class SpriteBlock(pygame.sprite.Sprite):
     # 当たり判定を行わない背景画像
-    BG = ['bg', 'mountain', 'grass', 'cloud1', 'cloud2', 'cloud3',
-          'cloud4', 'end', 'halfway', 'round', 'triangle', 'goal_pole', 'beam']
+    BG = ['bg', 'mountain', 'grass', 'cloud1', 'cloud2', 'cloud3', 'cloud4',
+          'item1', 'end', 'halfway', 'round', 'triangle', 'goal_pole', 'beam']
 
     def __init__(self, screen, img_name, data, x, y, tweak_x=0, tweak_y=0, group='', hide=False):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
 
         self.data = data  # 画像のExcel番号
-        self.isHide = hide  # 隠しスプライトかどうか
-        self.isAnimation = False  # アニメーション中か
         self.group = group  # グループ化されている場合 "start" -> "end" が格納
+        self.isHide = hide  # 隠しスプライトかどうか
+
+        self.isAnimation = False  # アニメーション中か
+        self.isBeam = False  # ビームを放ったか
 
         # 画像の読み込み
         self.name = img_name

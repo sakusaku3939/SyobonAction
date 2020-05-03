@@ -1,12 +1,12 @@
 import pygame
 from abc import ABCMeta, abstractmethod
 
-from Enemy import Round
 from Image import LoadImage
 from Sound import Sound
 from Sprite import SpritePlayer, SpriteObject
 from Stage import Stage
 from Text import Text
+import Enemy as EnemyMain
 
 
 # ブロック固有のアニメーションを実装する際に継承するクラス
@@ -35,7 +35,6 @@ class Coin(AbstractBlock):
 
         # ブロックデータの置き換え
         block.name = 'block3'
-        block.data = 5
         block.image = LoadImage.image_list[block.name]
 
         # 画像の読み込み
@@ -71,6 +70,10 @@ class Break(AbstractBlock):
         self.screen = screen
 
         self.SPECIFIC_FALL_ACCELERATION = 0.5  # 落下加速度
+
+        # ブロックの削除
+        block.remove()
+        Stage.block_object_list.remove(block)
 
         # 破壊ブロックの座標
         self.x = block.rect.left + int(block.width / 2)
@@ -131,17 +134,21 @@ class RideFall(AbstractBlock):
 
             if end_x != 0:
                 if start_x < self.player.rect.left < end_x:
+                    self.player.y = self.block_list[0].rect.top - self.player.height
+                    self.player.y_speed = 0
                     break
                 else:
                     start_x = end_x = 0
                     self.block_list = []
+
+        for block in self.block_list:
+            block.isAnimation = True
 
     def update(self):
         # 落下アニメーション
         self.y_speed += SpritePlayer.FALL_ACCELERATION
 
         for block in self.block_list:
-            block.isAnimation = True
             block.y += self.y_speed
             block.rect.top = block.y + 1
 
@@ -191,11 +198,8 @@ class NearFall(AbstractBlock):
 
 # 近づいてジャンプするとビームを放つ
 class Beam(AbstractBlock):
-    instance = False
-
     def __init__(self, block):
         super().__init__()
-        Beam.instance = True
         self.block = block
 
     def update(self):
@@ -237,6 +241,7 @@ class EventEnemy(AbstractBlock):
             if enemy.isGrounding:
                 enemy.direction = 1
                 enemy.isEvent = False
+                self.enemy_list.remove(enemy)
 
 
 # ブロックから出現するスプライトを実装する際に継承するクラス
@@ -378,15 +383,16 @@ class Star(AbstractSpriteAppear):
 
 # 叩くと敵
 class Enemy(AbstractSpriteAppear):
-    def __init__(self, screen, block, name):
+    def __init__(self, screen, block, name, tweak=0):
         super().__init__(screen, block, name)
 
         self.sprite.direction = -1
         self.list_number = 0
-        self.sprite.x -= 2
+        self.sprite.rect.left -= 2
+        self.sprite.rect.top -= tweak
 
     def move_animation(self):
-        self.sprite.specific = Round(self.screen, self.player, self.sprite)
+        self.sprite.specific = EnemyMain.Enemy.specific_settings(self.screen, self.sprite)
         Stage.enemy_object_list.append(self.sprite)
 
         self.isSuccess = True
