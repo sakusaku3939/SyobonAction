@@ -13,6 +13,9 @@
 
 ![excel](https://user-images.githubusercontent.com/53967490/80561615-0246c380-8a20-11ea-9f78-7912d588f526.jpg)
 
+>正式リリース版（exeファイルのみ）のダウンロードはこちら  
+>https://github.com/sakusaku3939/ShobonAction/releases  
+
 <br>
 
 # ステージの改造方法
