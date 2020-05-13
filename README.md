@@ -52,7 +52,7 @@ resフォルダの中にあるステージデータ.xlsxのシート「1-1」を
 ※ ダウンロードした場所によって各自変更して下さい
 ```
 (例)
-cd C:\Users\(ユーザー名)\Downloads\SyobonAction.zip\しょぼんのアクションPython版
+cd C:\Users\(ユーザー名)\Downloads\SyobonAction\しょぼんのアクションPython版
 ```
 <br>
 
@@ -77,7 +77,7 @@ Pythonをインストールしてない人でもゲームをプレイできる�
 先程と同様に下記のコマンドを実行し、作業フォルダを変更します。  
 ```
 (例)
-cd C:\Users\(ユーザー名)\Downloads\SyobonAction.zip\しょぼんのアクションPython版
+cd C:\Users\(ユーザー名)\Downloads\SyobonAction\しょぼんのアクションPython版
 ```
 <br>
 
