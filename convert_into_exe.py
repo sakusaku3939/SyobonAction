@@ -12,4 +12,4 @@ if sys.platform == 'win32':
 setup(name='CHOOOSEFILE',
       version='1.0',
       description='converter',
-      executables=[Executable("Main.py", targetName="ShobonAction.exe", icon="res/icon.ico", base=base)])
+      executables=[Executable("Main.py", targetName="SyobonAction.exe", icon="res/icon.ico", base=base)])
