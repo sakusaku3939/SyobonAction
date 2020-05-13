@@ -1,5 +1,5 @@
 # しょぼんのアクション Python版
-![shobon](https://user-images.githubusercontent.com/53967490/80561613-01159680-8a20-11ea-9da6-ab9bf67cada4.jpg)
+![syobon](https://user-images.githubusercontent.com/53967490/80561613-01159680-8a20-11ea-9da6-ab9bf67cada4.jpg)
 
 昔流行った某鬼畜ゲーム「しょぼんのアクション」をPythonで１から作り直したものです。  
 現時点ではまだ1-1に登場する敵・トラップしか実装していません。
@@ -14,7 +14,7 @@
 ![excel](https://user-images.githubusercontent.com/53967490/80561615-0246c380-8a20-11ea-9f78-7912d588f526.jpg)
 
 >正式リリース版（exeファイルのみ）のダウンロードはこちら  
->https://github.com/sakusaku3939/ShobonAction/releases  
+>https://github.com/sakusaku3939/SyobonAction/releases  
 
 <br>
 
@@ -98,7 +98,7 @@ python convert_into_exe.py build
        │  api-ms-win-crt-runtime-l1-1-0.dll
        │  api-ms-win-crt-stdio-l1-1-0.dll
        │  python38.dll
-       │  ShobonAction.exe
+       │  SyobonAction.exe
        └─lib  
 ```
 ⇓
@@ -112,7 +112,7 @@ python convert_into_exe.py build
        │  api-ms-win-crt-runtime-l1-1-0.dll
        │  api-ms-win-crt-stdio-l1-1-0.dll
        │  python38.dll
-       │  ShobonAction.exe
+       │  SyobonAction.exe
        ├─lib   
        ├─BGM  
        ├─res    
