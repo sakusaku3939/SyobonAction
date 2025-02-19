@@ -46,6 +46,7 @@ action_dim = 4
 ppo = PPO(state_dim, action_dim)
 
 num_episodes = 1000
+is_ai_mode = False
 
 
 def main():
@@ -60,6 +61,8 @@ def main():
         # ステージ 1-1
         elif GAME_STATE == 1:
             for episode in range(num_episodes):
+                if GAME_STATE != 1:
+                    break
                 total_reward = 0
 
                 states, actions, rewards, dones = [], [], [], []
@@ -208,8 +211,6 @@ class Title:
 # ステージ1-1
 class Stage_1:
     def __init__(self, states, actions, rewards, dones):
-        is_ai_mode = True
-
         self.Stage = Stage(screen, 1, '1-1')
         self.Player = Player(screen, self.Stage, is_ai_mode=is_ai_mode)
         self.Enemy = Enemy(screen)
@@ -280,7 +281,7 @@ class Stage_1:
                     # F1キーが押されたらタイトルに戻る
                     if event.key == K_F1:
                         state_change(0)
-                        break
+                        return
                     # oキーが押されたら自殺
                     if event.key == K_o:
                         Stage.player_object.isDeath = True
