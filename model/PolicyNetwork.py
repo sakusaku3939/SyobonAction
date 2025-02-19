@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -52,7 +53,7 @@ class PPO:
         return action.item()
 
     def update(self, states, actions, rewards, dones):
-        states = torch.FloatTensor(states)
+        states = torch.FloatTensor(np.array(states))
         actions = torch.FloatTensor(actions)
         rewards = torch.FloatTensor(rewards)
         dones = torch.FloatTensor(dones)
@@ -93,4 +94,6 @@ class PPO:
         for reward, done in zip(reversed(rewards), reversed(dones)):
             R = reward + self.gamma * R * (1 - done)
             returns.insert(0, R)
-        return torch.FloatTensor(returns)
+        returns = torch.FloatTensor(returns)
+        returns = returns.unsqueeze(1)  # 形状を [63] → [63, 1] に変換
+        return returns
