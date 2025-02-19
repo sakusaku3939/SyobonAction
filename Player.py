@@ -21,7 +21,7 @@ class Player:
         self.player.x_speed = self.player.y_speed = 0.0  # 速度
         self.ACCELERATION = 0.1  # 加速度
         self.DASH_ACCELERATION = 0.14  # ダッシュ時・空中反転時の加速度
-        self.TURN_ACCELERATION = 0.21  # 地面反転時の加速度
+        self.TURN_ACCELERATION = 0.22  # 地面反転時の加速度
         self.FRICTION_ACCELERATION = 0.15  # 地面摩擦時の減速度
         self.MAX_SPEED_X = 4  # x方向の最大速度
         self.MAX_SPEED_Y = 9  # y方向の最大速度
