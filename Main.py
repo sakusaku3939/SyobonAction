@@ -192,11 +192,14 @@ class Title:
 # ステージ1-1
 class Stage_1:
     def __init__(self):
+        is_ai_mode = True
+
         self.Stage = Stage(screen, 1, '1-1')
-        self.Player = Player(screen, self.Stage)
+        self.Player = Player(screen, self.Stage, is_ai_mode=is_ai_mode)
         self.Enemy = Enemy(screen)
 
-        remain_show()
+        if not is_ai_mode:
+            remain_show()
         Sound.play_BGM('titerman')
 
         self.main()
@@ -214,7 +217,7 @@ class Stage_1:
             if self.Player.dokan_animation() or self.Player.death_animation():
                 return
 
-            self.Player.update()
+            self.Player.update(operate=[0, 1, 0])
             self.Enemy.update()
             self.Player.item_animation()
             self.Stage.update()

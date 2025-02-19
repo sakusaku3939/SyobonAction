@@ -11,9 +11,10 @@ from Text import Text
 
 
 class Player:
-    def __init__(self, screen, stage):
+    def __init__(self, screen, stage, is_ai_mode=False):
         self.screen = screen
         self.stage = stage
+        self.is_ai_mode = is_ai_mode
 
         # プレイヤースプライトからデータ読み込み
         self.player = Stage.player_object
@@ -60,14 +61,20 @@ class Player:
         self.item_animation_list = []  # ブロックアニメーションのオブジェクトを格納するリスト
         Block.Coin.generate_count = Block.PoisonKinoko.generate_count = 0  # 生成数を初期化
 
-    def update(self):
+    def update(self, operate=None):
         # print(self.player.x, self.player.y, SpritePlayer.scroll_sum)  # プレイヤー座標（デバック用）
 
         # 強制アニメーション中は戻る
         if not (self._death_init and self._dokan_init and (self._goal_init or self.goal_isMove)):
             return
 
-        pressed_key = pygame.key.get_pressed()
+        if self.is_ai_mode:
+            pressed_key = [0] * 323
+            pressed_key[K_LEFT] = operate[0]
+            pressed_key[K_RIGHT] = operate[1]
+            pressed_key[K_UP] = operate[2]
+        else:
+            pressed_key = pygame.key.get_pressed()
 
         # 画像アニメーション
         self._img_number = int((self.player.x + SpritePlayer.scroll_sum) / 20) % 2
@@ -199,6 +206,9 @@ class Player:
 
     # 死亡時のアニメーション
     def death_animation(self):
+        if self.player.isDeath and self.is_ai_mode:
+            return True
+
         if self.player.isDeath:
             # 初期化
             if self._death_init:
