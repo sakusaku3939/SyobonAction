@@ -1,6 +1,7 @@
 import tkinter
 from tkinter import messagebox
 
+import numpy as np
 import pygame
 from pygame.locals import *
 import sys
@@ -13,6 +14,7 @@ from Sound import Sound
 from Stage import Stage
 from Player import Player
 from Text import Text
+from model.PolicyNetwork import PPO
 
 pygame.init()
 
@@ -38,6 +40,13 @@ GAME_STATE = 0
 # 残機数
 REMAIN = 2
 
+# PPOの設定
+state_dim = 2
+action_dim = 4
+ppo = PPO(state_dim, action_dim)
+
+num_episodes = 1000
+
 
 def main():
     LoadImage()
@@ -50,7 +59,14 @@ def main():
             Title()
         # ステージ 1-1
         elif GAME_STATE == 1:
-            Stage_1()
+            for episode in range(num_episodes):
+                total_reward = 0
+
+                states, actions, rewards, dones = [], [], [], []
+                Stage_1(states, actions, rewards, dones)
+                print(f"Episode: {episode}, Total Reward: {total_reward}")
+
+            state_change(0)
         # ステージ 1-2
         elif GAME_STATE == 2:
             Stage_2()
@@ -191,12 +207,17 @@ class Title:
 
 # ステージ1-1
 class Stage_1:
-    def __init__(self):
+    def __init__(self, states, actions, rewards, dones):
         is_ai_mode = True
 
         self.Stage = Stage(screen, 1, '1-1')
         self.Player = Player(screen, self.Stage, is_ai_mode=is_ai_mode)
         self.Enemy = Enemy(screen)
+
+        self.states = states
+        self.actions = actions
+        self.rewards = rewards
+        self.dones = dones
 
         if not is_ai_mode:
             remain_show()
@@ -205,7 +226,12 @@ class Stage_1:
         self.main()
 
     def main(self):
+        total_reward = 0
+        state = np.array([0, 0])
+
         while 1:
+            action = ppo.act(state)
+
             screen.fill((160, 180, 250))
 
             # 強制アニメーション
@@ -213,11 +239,21 @@ class Stage_1:
                 global REMAIN
                 REMAIN += 1
                 state_change(2)
-                return
+                break
             if self.Player.dokan_animation() or self.Player.death_animation():
-                return
+                break
 
-            self.Player.update(operate=[0, 1, 0])
+            next_state, reward, done, _ = self.Player.update(action)
+
+            if next_state is not None:
+                self.states.append(state)
+                self.actions.append(action)
+                self.rewards.append(reward)
+                self.dones.append(done)
+
+                state = next_state
+                total_reward += reward
+
             self.Enemy.update()
             self.Player.item_animation()
             self.Stage.update()
@@ -244,11 +280,12 @@ class Stage_1:
                     # F1キーが押されたらタイトルに戻る
                     if event.key == K_F1:
                         state_change(0)
-                        return
+                        break
                     # oキーが押されたら自殺
                     if event.key == K_o:
                         Stage.player_object.isDeath = True
 
+        ppo.update(self.states, self.actions, self.rewards, self.dones)
 
 # ステージ1-2
 class Stage_2:

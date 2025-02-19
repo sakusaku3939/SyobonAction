@@ -15,6 +15,8 @@ class Player:
         self.screen = screen
         self.stage = stage
         self.is_ai_mode = is_ai_mode
+        self.stack_time = 0
+        self.latest_scroll_sum = 0
 
         # プレイヤースプライトからデータ読み込み
         self.player = Stage.player_object
@@ -61,18 +63,22 @@ class Player:
         self.item_animation_list = []  # ブロックアニメーションのオブジェクトを格納するリスト
         Block.Coin.generate_count = Block.PoisonKinoko.generate_count = 0  # 生成数を初期化
 
-    def update(self, operate=None):
+    def update(self, action=None):
         # print(self.player.x, self.player.y, SpritePlayer.scroll_sum)  # プレイヤー座標（デバック用）
 
         # 強制アニメーション中は戻る
         if not (self._death_init and self._dokan_init and (self._goal_init or self.goal_isMove)):
-            return
+            return None, None, False, {}
 
         if self.is_ai_mode:
             pressed_key = [0] * 323
-            pressed_key[K_LEFT] = operate[0]
-            pressed_key[K_RIGHT] = operate[1]
-            pressed_key[K_UP] = operate[2]
+            # print(action)
+            if action == 0:
+                pressed_key[K_LEFT] = 1
+            elif action == 1:
+                pressed_key[K_RIGHT] = 1
+            elif action == 2:
+                pressed_key[K_UP] = 1
         else:
             pressed_key = pygame.key.get_pressed()
 
@@ -178,6 +184,23 @@ class Player:
         self.block_animation()
         self.bg_update()
         self.player.update(self._direction(self._img_number))
+
+        agent_pos = np.array([SpritePlayer.scroll_sum, self.player.y])
+        goal_pos = np.array([3477, 100])
+        distance_to_goal = np.linalg.norm(agent_pos[0] - goal_pos[0])
+        reward = -distance_to_goal
+
+        # 終了条件
+        done = distance_to_goal < 1
+
+        if SpritePlayer.scroll_sum == self.latest_scroll_sum:
+            self.stack_time += 1
+        self.latest_scroll_sum = SpritePlayer.scroll_sum
+
+        if self.stack_time > 300:
+            self.player.isDeath = True
+
+        return agent_pos, reward, done, {}
 
     # 背景画像の描画
     def bg_update(self):
