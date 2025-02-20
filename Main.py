@@ -14,7 +14,7 @@ from Sound import Sound
 from Stage import Stage
 from Player import Player
 from Text import Text
-from model.PolicyNetwork import PPO
+from model.PolicyNetwork import PPO, SimpleRewardSystem
 
 pygame.init()
 
@@ -42,12 +42,15 @@ REMAIN = 2
 
 # PPOの設定
 state_dim = 2
-action_dim = 4
-ppo = PPO(state_dim, action_dim)
+action_dim = 6
+ppo = PPO(state_dim, action_dim, ent_coef=0.1)
+
+is_speed_up = True
+prev_player_movement = 0
+reward_system = SimpleRewardSystem()
 
 num_episodes = 1000
-is_ai_mode = False
-
+is_ai_mode = True
 
 def main():
     LoadImage()
@@ -63,12 +66,12 @@ def main():
             for episode in range(num_episodes):
                 if GAME_STATE != 1:
                     break
-                total_reward = 0
-
                 states, actions, rewards, dones = [], [], [], []
                 Stage_1(states, actions, rewards, dones)
-                print(f"Episode: {episode}, Total Reward: {total_reward}")
+                reward_system.update_episode(episode)
+                print(f"Episode: {episode}, reward: {rewards[-1]}")
 
+            reward_system.reset()
             state_change(0)
         # ステージ 1-2
         elif GAME_STATE == 2:
@@ -219,6 +222,7 @@ class Stage_1:
         self.actions = actions
         self.rewards = rewards
         self.dones = dones
+        self.movements = []
 
         if not is_ai_mode:
             remain_show()
@@ -229,6 +233,7 @@ class Stage_1:
     def main(self):
         total_reward = 0
         state = np.array([0, 0])
+        global prev_player_movement
 
         while 1:
             action = ppo.act(state)
@@ -244,13 +249,14 @@ class Stage_1:
             if self.Player.dokan_animation() or self.Player.death_animation():
                 break
 
-            next_state, reward, done, _ = self.Player.update(action)
+            next_state, reward, done, movement = self.Player.update(action, prev_player_movement)
 
             if next_state is not None:
                 self.states.append(state)
                 self.actions.append(action)
                 self.rewards.append(reward)
                 self.dones.append(done)
+                self.movements.append(movement)
 
                 state = next_state
                 total_reward += reward
@@ -262,7 +268,10 @@ class Stage_1:
             Text.update()
 
             # スペースキーで2倍速
-            variable_FPS = FPS * (2 if pygame.key.get_pressed()[K_SPACE] else 1)
+            global is_speed_up
+            if pygame.key.get_pressed()[K_SPACE]:
+                is_speed_up = not is_speed_up
+            variable_FPS = FPS * (2 if is_speed_up else 1)
             clock.tick(variable_FPS)
 
             pygame.display.update(Rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -286,6 +295,7 @@ class Stage_1:
                     if event.key == K_o:
                         Stage.player_object.isDeath = True
 
+        prev_player_movement = self.movements[-1]
         ppo.update(self.states, self.actions, self.rewards, self.dones)
 
 # ステージ1-2

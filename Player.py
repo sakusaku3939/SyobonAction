@@ -8,6 +8,7 @@ from Sprite import SpritePlayer, SpriteBlock
 from Sound import Sound
 from Stage import Stage
 from Text import Text
+from model.PolicyNetwork import SimpleRewardSystem
 
 
 class Player:
@@ -17,6 +18,8 @@ class Player:
         self.is_ai_mode = is_ai_mode
         self.stack_time = 0
         self.latest_scroll_sum = 0
+
+        self.reward_system = SimpleRewardSystem()
 
         # プレイヤースプライトからデータ読み込み
         self.player = Stage.player_object
@@ -63,12 +66,12 @@ class Player:
         self.item_animation_list = []  # ブロックアニメーションのオブジェクトを格納するリスト
         Block.Coin.generate_count = Block.PoisonKinoko.generate_count = 0  # 生成数を初期化
 
-    def update(self, action=None):
+    def update(self, action=None, prev_player_movement=0):
         # print(self.player.x, self.player.y, SpritePlayer.scroll_sum)  # プレイヤー座標（デバック用）
 
         # 強制アニメーション中は戻る
         if not (self._death_init and self._dokan_init and (self._goal_init or self.goal_isMove)):
-            return None, None, False, {}
+            return None, None, None, None
 
         if self.is_ai_mode:
             pressed_key = [0] * 323
@@ -78,6 +81,12 @@ class Player:
             elif action == 1:
                 pressed_key[K_RIGHT] = 1
             elif action == 2:
+                pressed_key[K_UP] = 1
+            elif action == 3:
+                pressed_key[K_LEFT] = 1
+                pressed_key[K_UP] = 1
+            elif action == 4:
+                pressed_key[K_RIGHT] = 1
                 pressed_key[K_UP] = 1
         else:
             pressed_key = pygame.key.get_pressed()
@@ -185,13 +194,11 @@ class Player:
         self.bg_update()
         self.player.update(self._direction(self._img_number))
 
-        agent_pos = np.array([SpritePlayer.scroll_sum, self.player.y])
-        goal_pos = np.array([3477, 100])
-        distance_to_goal = np.linalg.norm(agent_pos[0] - goal_pos[0])
-        reward = -distance_to_goal
+        # 報酬の計算
+        current_position = self.player.x + SpritePlayer.scroll_sum
+        reward, done = self.reward_system.calculate_reward(current_position)
 
-        # 終了条件
-        done = distance_to_goal < 1
+        agent_pos = np.array([current_position, self.player.y])
 
         if SpritePlayer.scroll_sum == self.latest_scroll_sum:
             self.stack_time += 1
@@ -200,7 +207,7 @@ class Player:
         if self.stack_time > 300:
             self.player.isDeath = True
 
-        return agent_pos, reward, done, {}
+        return agent_pos, reward, done, current_position
 
     # 背景画像の描画
     def bg_update(self):
@@ -623,7 +630,7 @@ class Player:
                 self.player.isDeath = True
 
             # 中間地点
-            if block.name == 'halfway':
+            if block.name == 'halfway' and not self.is_ai_mode:
                 SpritePlayer.initial_x = 210
                 SpritePlayer.initial_y = block.y
                 SpritePlayer.initial_scroll_sum = block.x - 210
