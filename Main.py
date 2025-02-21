@@ -224,19 +224,36 @@ class Stage_1:
         self.dones = dones
         self.movements = []
 
+        # 状態空間の拡張
+        self.state_dim = 6  # x, y, x_speed, y_speed, isGrounding, isJump
+        self.action_dim = 6
+        self.ppo = PPO(self.state_dim, self.action_dim)
+        
+        # 報酬システムの初期化を追加
+        self.reward_system = SimpleRewardSystem()
+
         if not is_ai_mode:
             remain_show()
         Sound.play_BGM('titerman')
 
         self.main()
 
+    def get_state(self, player):
+        return np.array([
+            player.x + SpritePlayer.scroll_sum,  # x座標
+            player.y,                            # y座標
+            player.x_speed,                      # x方向速度
+            player.y_speed,                      # y方向速度
+            float(player.isGrounding),           # 地面接地状態
+            float(player.isJump)                 # ジャンプ状態
+        ])
+
     def main(self):
+        state = self.get_state(self.Player.player)
         total_reward = 0
-        state = np.array([0, 0])
-        global prev_player_movement
 
         while 1:
-            action = ppo.act(state)
+            action = self.ppo.act(state)
 
             screen.fill((160, 180, 250))
 
@@ -249,14 +266,26 @@ class Stage_1:
             if self.Player.dokan_animation() or self.Player.death_animation():
                 break
 
-            next_state, reward, done, movement = self.Player.update(action, prev_player_movement)
+            # プレイヤーの更新処理を追加
+            self.Player.update(action)
+
+            next_state = self.get_state(self.Player.player)
+            reward, done = self.reward_system.calculate_reward(self.Player.player)
 
             if next_state is not None:
                 self.states.append(state)
                 self.actions.append(action)
                 self.rewards.append(reward)
                 self.dones.append(done)
-                self.movements.append(movement)
+                self.movements.append(self.Player.player.x - state[0])
+
+                # バッファに追加
+                self.ppo.rewards_buffer.append(reward)
+                self.ppo.dones_buffer.append(done)
+                
+                # 定期的に更新
+                if len(self.ppo.states_buffer) >= self.ppo.buffer_size:
+                    self.ppo.update()
 
                 state = next_state
                 total_reward += reward
@@ -296,7 +325,7 @@ class Stage_1:
                         Stage.player_object.isDeath = True
 
         prev_player_movement = self.movements[-1]
-        ppo.update(self.states, self.actions, self.rewards, self.dones)
+        self.ppo.update()
 
 # ステージ1-2
 class Stage_2:

@@ -196,7 +196,7 @@ class Player:
 
         # 報酬の計算
         current_position = self.player.x + SpritePlayer.scroll_sum
-        reward, done = self.reward_system.calculate_reward(current_position)
+        reward, done = self.reward_system.calculate_reward(self.player)
 
         agent_pos = np.array([current_position, self.player.y])
 
