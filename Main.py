@@ -89,8 +89,8 @@ def main():
             episodes = range(len(all_rewards))
             
             # 報酬のプロット（左軸）
-            ax1.plot(episodes, all_rewards, 'r-', label='Reward (per episode)')
-            ax1.tick_params(axis='y', labelcolor='r')
+            ax1.plot(episodes, all_rewards, 'b-', alpha=0.3, label='Reward (per episode)')
+            ax1.tick_params(axis='y', labelcolor='b')
             
             # 報酬の軸範囲を設定
             min_reward = min(all_rewards)
@@ -109,9 +109,9 @@ def main():
                 
                 # 移動平均をプロット（0, 2, 4, ...のインデックスに対応）
                 plot_indices = range(0, len(all_distances) - WINDOW_SIZE + 1, WINDOW_SIZE)
-                ax2.plot(plot_indices, moving_avg_distances, 'b-',
+                ax2.plot(plot_indices, moving_avg_distances, 'r-',
                         label=f'Distance ({WINDOW_SIZE}-episode average)')
-                ax2.tick_params(axis='y', labelcolor='b')
+                ax2.tick_params(axis='y', labelcolor='r')
                 
                 # 距離の軸範囲を設定
                 min_dist = -1.0
