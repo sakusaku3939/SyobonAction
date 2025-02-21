@@ -50,7 +50,7 @@ is_speed_up = True
 prev_player_movement = 0
 reward_system = SimpleRewardSystem()
 
-num_episodes = 1000
+num_episodes = 2000
 is_ai_mode = True
 
 def main():
@@ -83,26 +83,52 @@ def main():
                 print(f"Episode: {episode}, reward: {rewards[-1]}, distance: {current_x:.1f}")
 
             # 全エピソード終了後にプロット
-            fig, ax = plt.subplots(figsize=(10, 6))
+            fig, ax1 = plt.subplots(figsize=(10, 6))
             
-            # 報酬のプロット
-            ax.plot(range(len(all_rewards)), all_rewards, 'b-', alpha=0.3, label='Raw reward')
+            # x軸の範囲を設定
+            episodes = range(len(all_rewards))
             
-            # 移動平均のプロット
-            if len(all_rewards) > WINDOW_SIZE:
-                moving_avg_rewards = np.convolve(all_rewards, np.ones(WINDOW_SIZE)/WINDOW_SIZE, mode='valid')
+            # 報酬のプロット（左軸）
+            ax1.plot(episodes, all_rewards, 'r-', label='Reward (per episode)')
+            ax1.tick_params(axis='y', labelcolor='r')
+            
+            # 報酬の軸範囲を設定
+            min_reward = min(all_rewards)
+            max_reward = max(all_rewards)
+            margin = (max_reward - min_reward) * 0.1
+            ax1.set_ylim([min_reward - margin, max_reward + margin])
 
-                ax.plot(range(WINDOW_SIZE-1, len(all_rewards)), moving_avg_rewards, 'r-',
-                       label=f'{WINDOW_SIZE}-episode moving average')
+            # 距離の移動平均プロット（右軸）
+            ax2 = ax1.twinx()
+            if len(all_distances) >= WINDOW_SIZE:
+                moving_avg_distances = []
+                for i in range(0, len(all_distances) - WINDOW_SIZE + 1, WINDOW_SIZE):
+                    window = all_distances[i:i + WINDOW_SIZE]
+                    avg = sum(window) / WINDOW_SIZE
+                    moving_avg_distances.append(avg)
+                
+                # 移動平均をプロット（0, 2, 4, ...のインデックスに対応）
+                plot_indices = range(0, len(all_distances) - WINDOW_SIZE + 1, WINDOW_SIZE)
+                ax2.plot(plot_indices, moving_avg_distances, 'b-',
+                        label=f'Distance ({WINDOW_SIZE}-episode average)')
+                ax2.tick_params(axis='y', labelcolor='b')
+                
+                # 距離の軸範囲を設定
+                min_dist = -1.0
+                max_dist = max(moving_avg_distances)
+                margin = max_dist * 0.1
+                ax2.set_ylim([min_dist, max_dist + margin])
+
+            # x軸の設定
+            ax1.set_xlabel('Episode')
             
+            # 凡例をグラフ内に配置
+            lines1, labels1 = ax1.get_legend_handles_labels()
+            lines2, labels2 = ax2.get_legend_handles_labels()
+            ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
+
             plt.title('Learning Progress')
-            plt.xlabel('Episode')
-            plt.ylabel('Average Reward')
             plt.grid(True, alpha=0.3)
-            
-            # 凡例を右側に配置
-            plt.legend(bbox_to_anchor=(1.15, 1), loc='upper left')
-            
             plt.tight_layout()
             plt.show()
 
