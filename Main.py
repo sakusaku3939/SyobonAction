@@ -60,7 +60,8 @@ def main():
 
     # 学習結果の記録用
     all_rewards = []
-    all_progress = []
+    all_distances = []
+    WINDOW_SIZE = 20
 
     while 1:
         # タイトル画面
@@ -74,40 +75,33 @@ def main():
                 states, actions, rewards, dones = [], [], [], []
                 Stage_1(states, actions, rewards, dones)
                 reward_system.update_episode(episode)
-                print(f"Episode: {episode}, reward: {rewards[-1]}")
                 
-                # 報酬と進捗を記録
+                # 報酬と距離を記録
                 all_rewards.append(rewards[-1])
                 current_x = states[-1][0] if states else 0
-                progress = (current_x / (3477 + 210)) * 100
-                all_progress.append(progress)
+                all_distances.append(current_x)
+                print(f"Episode: {episode}, reward: {rewards[-1]}, distance: {current_x:.1f}")
 
             # 全エピソード終了後にプロット
-            plt.figure(figsize=(10, 8))
+            fig, ax = plt.subplots(figsize=(10, 6))
             
             # 報酬のプロット
-            plt.subplot(2, 1, 1)
-            plt.plot(range(len(all_rewards)), all_rewards, 'b-', alpha=0.3, label='Reward')
-            if len(all_rewards) > 20:  # 十分なデータがある場合のみ移動平均を表示
-                moving_avg = np.convolve(all_rewards, np.ones(20)/20, mode='valid')
-                plt.plot(range(19, len(all_rewards)), moving_avg, 'r-', label='Moving Average')
-            plt.title('Training Rewards')
-            plt.xlabel('Episode')
-            plt.ylabel('Reward')
-            plt.grid(True)
-            plt.legend()
+            ax.plot(range(len(all_rewards)), all_rewards, 'b-', alpha=0.3, label='Raw reward')
             
-            # 進捗のプロット
-            plt.subplot(2, 1, 2)
-            plt.plot(range(len(all_progress)), all_progress, 'b-', alpha=0.3, label='Progress')
-            if len(all_progress) > 20:  # 十分なデータがある場合のみ移動平均を表示
-                moving_avg = np.convolve(all_progress, np.ones(20)/20, mode='valid')
-                plt.plot(range(19, len(all_progress)), moving_avg, 'r-', label='Moving Average')
-            plt.title('Training Progress')
+            # 移動平均のプロット
+            if len(all_rewards) > WINDOW_SIZE:
+                moving_avg_rewards = np.convolve(all_rewards, np.ones(WINDOW_SIZE)/WINDOW_SIZE, mode='valid')
+
+                ax.plot(range(WINDOW_SIZE-1, len(all_rewards)), moving_avg_rewards, 'r-',
+                       label=f'{WINDOW_SIZE}-episode moving average')
+            
+            plt.title('Learning Progress')
             plt.xlabel('Episode')
-            plt.ylabel('Progress (%)')
-            plt.grid(True)
-            plt.legend()
+            plt.ylabel('Average Reward')
+            plt.grid(True, alpha=0.3)
+            
+            # 凡例を右側に配置
+            plt.legend(bbox_to_anchor=(1.15, 1), loc='upper left')
             
             plt.tight_layout()
             plt.show()
