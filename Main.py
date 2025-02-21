@@ -327,7 +327,6 @@ class Stage_1:
         total_reward = 0
 
         while 1:
-
             screen.fill((160, 180, 250))
 
             # 強制アニメーション

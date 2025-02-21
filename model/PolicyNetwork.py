@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.distributions import Categorical
+import torch.nn.functional as F
 
 from Sprite import SpritePlayer
 
@@ -39,14 +40,20 @@ class ValueNetwork(nn.Module):
 
 
 class PPO:
-    def __init__(self, state_dim, action_dim, ent_coef=0.01):
+    def __init__(self, state_dim, action_dim, lr=1e-4, gamma=0.99, epsilon=0.2, ent_coef=0.1):
         self.policy = PolicyNetwork(state_dim, action_dim)
         self.value = ValueNetwork(state_dim)
         self.optimizer = optim.Adam(
             list(self.policy.parameters()) + list(self.value.parameters()),
-            lr=3e-4
+            lr=lr
         )
+        self.gamma = gamma
+        self.clip_epsilon = epsilon
         self.ent_coef = ent_coef
+        self.lambda_ = 0.95
+
+        self.buffer_size = 2048
+        self.batch_size = 64
 
         # バッファの初期化
         self.states_buffer = []
@@ -58,12 +65,6 @@ class PPO:
         self.advantages_buffer = []
         self.log_probs_buffer = []
         self.next_state = None
-
-        self.buffer_size = 1024
-        self.batch_size = 64
-        self.clip_epsilon = 0.2
-        self.gamma = 0.99
-        self.lambda_ = 0.95
 
         # 損失値の記録用
         self.policy_losses = []
@@ -77,16 +78,21 @@ class PPO:
 
     def act(self, state, env):
         with torch.no_grad():
-            state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
-            action_probs = self.policy(state_tensor)
-            value = self.value(state_tensor)
+            state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
+            action_probs = self.policy(state)
             
+            # 行動確率の温度パラメータ（高いほどランダム性が増す）
+            temperature = 0.2
+            action_probs = F.softmax(action_probs / temperature, dim=-1)
+
+            # より探索的な行動選択
             dist = Categorical(action_probs)
-            action = dist.sample()
+            action = dist.sample()  # ランダムサンプリング
             log_prob = dist.log_prob(action)
+            value = self.value(state)
             
-            # NumPy配列としてバッファに追加
-            self.states_buffer.append(state)
+            # エピソード情報の保存
+            self.states_buffer.append(state.squeeze(0).cpu().numpy())
             self.actions_buffer.append(action.item())
             self.log_probs_buffer.append(log_prob.item())
             self.values_buffer.append(value.item())
@@ -100,21 +106,21 @@ class PPO:
     def compute_gae(self, rewards, values, dones):
         advantages = []
         gae = 0
-        
+
         # 最後の状態の価値を使用
         next_value = values[-1]  # 最後の状態の価値
-        
+
         # len(rewards) - 1 から 0 まで逆順に処理
         for step in reversed(range(len(rewards))):
             if step == len(rewards) - 1:
                 next_val = next_value
             else:
                 next_val = values[step + 1]
-            
+
             delta = rewards[step] + self.gamma * next_val * (1 - dones[step]) - values[step]
             gae = delta + self.gamma * self.lambda_ * (1 - dones[step]) * gae
             advantages.insert(0, gae)
-        
+
         return advantages
 
     def update(self):
@@ -245,24 +251,25 @@ class SimpleRewardSystem:
 
     def calculate_reward(self, player_obj):
         current_x = player_obj.x + SpritePlayer.scroll_sum
+        self.current_x = current_x
 
         # 基本的な移動報酬
-        velocity = current_x - self.prev_x
-        velocity_reward = 0.2 * velocity if velocity > 0 else -0.1 * abs(velocity)
+        # velocity = current_x - self.prev_x
+        # velocity_reward = 0.01 * velocity if velocity > 0 else 0.02 * velocity
 
         # 進捗報酬
         progress_ratio = current_x / self.goal_x
-        progress_reward = 10 * progress_ratio ** 2
+        progress_reward = 50 * progress_ratio ** 2
 
         # 停滞ペナルティ
-        stagnation_factor = min(self.stagnation_count / self.max_stagnation, 1.0)
-        time_penalty = -0.1 * (1.0 + stagnation_factor)
+        stagnation_factor = min(self.stagnation_count, self.max_stagnation)
+        time_penalty = -0.1 * stagnation_factor
 
-        # ジャンプ報酬
-        jump_reward = 0.5 if player_obj.isJump and not player_obj.isGrounding else 0
-
-        # 地面接地ボーナス
-        grounding_bonus = 1.0 if player_obj.isGrounding else 0
+        # # ジャンプ報酬
+        # jump_reward = 0.5 if player_obj.isJump and not player_obj.isGrounding else 0
+        #
+        # # 地面接地ボーナス
+        # grounding_bonus = 1.0 if player_obj.isGrounding else 0
 
         # ゴール報酬
         if current_x >= self.goal_x:
@@ -272,19 +279,21 @@ class SimpleRewardSystem:
         else:
             goal_bonus = 0
 
+        # print(f"Reward: velocity={velocity_reward:.2f}, progress={progress_reward:.2f}, "
+        #       f"time_penalty={time_penalty:.2f}, goal_bonus={goal_bonus:.2f}")
+
         total_reward = (
-            velocity_reward +
+            # velocity_reward +
             progress_reward +
             time_penalty +
-            jump_reward +
-            grounding_bonus +
+            # jump_reward +
+            # grounding_bonus +
             goal_bonus
         )
 
         # 報酬のクリッピング
         total_reward = np.clip(total_reward, -20, 100)
 
-        self.prev_x = current_x
         return total_reward, (current_x >= self.goal_x or player_obj.isDeath)
 
     def update_episode(self, episode_count):
