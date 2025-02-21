@@ -6,6 +6,7 @@ import pygame
 from pygame.locals import *
 import sys
 from time import *
+import matplotlib.pyplot as plt
 
 from Enemy import Enemy
 from Image import LoadImage
@@ -57,6 +58,10 @@ def main():
     Text()
     Sound()
 
+    # 学習結果の記録用
+    all_rewards = []
+    all_progress = []
+
     while 1:
         # タイトル画面
         if GAME_STATE == 0:
@@ -70,6 +75,42 @@ def main():
                 Stage_1(states, actions, rewards, dones)
                 reward_system.update_episode(episode)
                 print(f"Episode: {episode}, reward: {rewards[-1]}")
+                
+                # 報酬と進捗を記録
+                all_rewards.append(rewards[-1])
+                current_x = states[-1][0] if states else 0
+                progress = (current_x / (3477 + 210)) * 100
+                all_progress.append(progress)
+
+            # 全エピソード終了後にプロット
+            plt.figure(figsize=(10, 8))
+            
+            # 報酬のプロット
+            plt.subplot(2, 1, 1)
+            plt.plot(range(len(all_rewards)), all_rewards, 'b-', alpha=0.3, label='Reward')
+            if len(all_rewards) > 20:  # 十分なデータがある場合のみ移動平均を表示
+                moving_avg = np.convolve(all_rewards, np.ones(20)/20, mode='valid')
+                plt.plot(range(19, len(all_rewards)), moving_avg, 'r-', label='Moving Average')
+            plt.title('Training Rewards')
+            plt.xlabel('Episode')
+            plt.ylabel('Reward')
+            plt.grid(True)
+            plt.legend()
+            
+            # 進捗のプロット
+            plt.subplot(2, 1, 2)
+            plt.plot(range(len(all_progress)), all_progress, 'b-', alpha=0.3, label='Progress')
+            if len(all_progress) > 20:  # 十分なデータがある場合のみ移動平均を表示
+                moving_avg = np.convolve(all_progress, np.ones(20)/20, mode='valid')
+                plt.plot(range(19, len(all_progress)), moving_avg, 'r-', label='Moving Average')
+            plt.title('Training Progress')
+            plt.xlabel('Episode')
+            plt.ylabel('Progress (%)')
+            plt.grid(True)
+            plt.legend()
+            
+            plt.tight_layout()
+            plt.show()
 
             reward_system.reset()
             state_change(0)

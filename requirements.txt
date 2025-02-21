@@ -3,3 +3,4 @@ numpy==1.22.0
 xlrd==1.2.0
 cx-Freeze==6.1
 torch~=2.4.1
+matplotlib~=3.7.5
