@@ -42,7 +42,7 @@ GAME_STATE = 0
 REMAIN = 2
 
 # PPOの設定
-state_dim = 2
+state_dim = 6  # x, y, x_speed, y_speed, isGrounding, isJump
 action_dim = 6
 ppo = PPO(state_dim, action_dim, ent_coef=0.1)
 
@@ -61,7 +61,11 @@ def main():
     # 学習結果の記録用
     all_rewards = []
     all_distances = []
-    WINDOW_SIZE = 20
+    all_policy_losses = []
+    all_value_losses = []
+    all_entropy_losses = []
+    all_total_losses = []
+    WINDOW_SIZE = 2
 
     while 1:
         # タイトル画面
@@ -74,23 +78,31 @@ def main():
                     break
                 states, actions, rewards, dones = [], [], [], []
                 Stage_1(states, actions, rewards, dones)
-                reward_system.update_episode(episode)
+                
+                # 損失値を取得
+                policy_loss, value_loss, entropy_loss, total_loss = ppo.get_latest_losses()
+                if total_loss is not None:
+                    all_policy_losses.append(policy_loss)
+                    all_value_losses.append(value_loss)
+                    all_entropy_losses.append(entropy_loss)
+                    all_total_losses.append(total_loss)
                 
                 # 報酬と距離を記録
                 all_rewards.append(rewards[-1])
                 current_x = states[-1][0] if states else 0
                 all_distances.append(current_x)
-                print(f"Episode: {episode}, reward: {rewards[-1]}, distance: {current_x:.1f}")
+                
+                # エピソード情報の出力
+                loss_str = f", loss: {total_loss:.4f}" if total_loss is not None else ""
+                print(f"Episode: {episode}, reward: {rewards[-1]}, distance: {current_x:.1f}{loss_str}")
 
             # 全エピソード終了後にプロット
-            fig, ax1 = plt.subplots(figsize=(10, 6))
+            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), height_ratios=[2, 1])
             
-            # x軸の範囲を設定
+            # 報酬と距離のプロット（上段）
             episodes = range(len(all_rewards))
-            
-            # 報酬のプロット（左軸）
-            ax1.plot(episodes, all_rewards, 'b-', alpha=0.3, label='Reward (per episode)')
-            ax1.tick_params(axis='y', labelcolor='b')
+            ax1.plot(episodes, all_rewards, 'r-', label='Reward (per episode)')
+            ax1.tick_params(axis='y', labelcolor='r')
             
             # 報酬の軸範囲を設定
             min_reward = min(all_rewards)
@@ -98,8 +110,7 @@ def main():
             margin = (max_reward - min_reward) * 0.1
             ax1.set_ylim([min_reward - margin, max_reward + margin])
 
-            # 距離の移動平均プロット（右軸）
-            ax2 = ax1.twinx()
+            # 距離の移動平均プロット
             if len(all_distances) >= WINDOW_SIZE:
                 moving_avg_distances = []
                 for i in range(0, len(all_distances) - WINDOW_SIZE + 1, WINDOW_SIZE):
@@ -107,28 +118,35 @@ def main():
                     avg = sum(window) / WINDOW_SIZE
                     moving_avg_distances.append(avg)
                 
-                # 移動平均をプロット（0, 2, 4, ...のインデックスに対応）
                 plot_indices = range(0, len(all_distances) - WINDOW_SIZE + 1, WINDOW_SIZE)
-                ax2.plot(plot_indices, moving_avg_distances, 'r-',
+                ax1_twin = ax1.twinx()
+                ax1_twin.plot(plot_indices, moving_avg_distances, 'b-',
                         label=f'Distance ({WINDOW_SIZE}-episode average)')
-                ax2.tick_params(axis='y', labelcolor='r')
+                ax1_twin.tick_params(axis='y', labelcolor='b')
                 
                 # 距離の軸範囲を設定
                 min_dist = -1.0
                 max_dist = max(moving_avg_distances)
                 margin = max_dist * 0.1
-                ax2.set_ylim([min_dist, max_dist + margin])
+                ax1_twin.set_ylim([min_dist, max_dist + margin])
 
-            # x軸の設定
-            ax1.set_xlabel('Episode')
-            
-            # 凡例をグラフ内に配置
+            # 損失値のプロット（下段）
+            episodes = range(len(all_total_losses))
+            ax2.plot(episodes, all_policy_losses, 'r-', label='Policy Loss', alpha=0.5)
+            ax2.plot(episodes, all_value_losses, 'b-', label='Value Loss', alpha=0.5)
+            ax2.plot(episodes, all_entropy_losses, 'g-', label='Entropy Loss', alpha=0.5)
+            ax2.plot(episodes, all_total_losses, 'k-', label='Total Loss')
+            ax2.set_xlabel('Episode')
+            ax2.set_ylabel('Loss')
+            ax2.grid(True, alpha=0.3)
+            ax2.legend(loc='upper left')
+
+            # 凡例の設定（上段）
             lines1, labels1 = ax1.get_legend_handles_labels()
-            lines2, labels2 = ax2.get_legend_handles_labels()
+            lines2, labels2 = ax1_twin.get_legend_handles_labels()
             ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
 
-            plt.title('Learning Progress')
-            plt.grid(True, alpha=0.3)
+            plt.suptitle('Learning Progress')
             plt.tight_layout()
             plt.show()
 
@@ -284,11 +302,6 @@ class Stage_1:
         self.rewards = rewards
         self.dones = dones
         self.movements = []
-
-        # 状態空間の拡張
-        self.state_dim = 6  # x, y, x_speed, y_speed, isGrounding, isJump
-        self.action_dim = 6
-        self.ppo = PPO(self.state_dim, self.action_dim)
         
         # 報酬システムの初期化を追加
         self.reward_system = SimpleRewardSystem()
@@ -314,7 +327,6 @@ class Stage_1:
         total_reward = 0
 
         while 1:
-            action = self.ppo.act(state)
 
             screen.fill((160, 180, 250))
 
@@ -328,7 +340,7 @@ class Stage_1:
                 break
 
             # プレイヤーの更新処理を追加
-            self.Player.update(action)
+            action = ppo.act(state, self.Player.update)
 
             next_state = self.get_state(self.Player.player)
             reward, done = self.reward_system.calculate_reward(self.Player.player)
@@ -341,12 +353,12 @@ class Stage_1:
                 self.movements.append(self.Player.player.x - state[0])
 
                 # バッファに追加
-                self.ppo.rewards_buffer.append(reward)
-                self.ppo.dones_buffer.append(done)
+                ppo.rewards_buffer.append(reward)
+                ppo.dones_buffer.append(done)
                 
                 # 定期的に更新
-                if len(self.ppo.states_buffer) >= self.ppo.buffer_size:
-                    self.ppo.update()
+                if len(ppo.states_buffer) >= ppo.buffer_size:
+                    ppo.update()
 
                 state = next_state
                 total_reward += reward
@@ -385,8 +397,7 @@ class Stage_1:
                     if event.key == K_o:
                         Stage.player_object.isDeath = True
 
-        prev_player_movement = self.movements[-1]
-        self.ppo.update()
+        ppo.update()
 
 # ステージ1-2
 class Stage_2:

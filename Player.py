@@ -66,7 +66,7 @@ class Player:
         self.item_animation_list = []  # ブロックアニメーションのオブジェクトを格納するリスト
         Block.Coin.generate_count = Block.PoisonKinoko.generate_count = 0  # 生成数を初期化
 
-    def update(self, action=None, prev_player_movement=0):
+    def update(self, action=None):
         # print(self.player.x, self.player.y, SpritePlayer.scroll_sum)  # プレイヤー座標（デバック用）
 
         # 強制アニメーション中は戻る

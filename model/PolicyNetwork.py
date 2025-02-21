@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.distributions import Categorical
-from torch.utils.data import DataLoader, TensorDataset
 
 from Sprite import SpritePlayer
 
@@ -40,79 +39,110 @@ class ValueNetwork(nn.Module):
 
 
 class PPO:
-    def __init__(self, state_dim, action_dim, lr=3e-4, gamma=0.99, epsilon=0.2, ent_coef=0.01):
+    def __init__(self, state_dim, action_dim, ent_coef=0.01):
         self.policy = PolicyNetwork(state_dim, action_dim)
         self.value = ValueNetwork(state_dim)
-        self.optimizer = optim.Adam(list(self.policy.parameters()) + list(self.value.parameters()), lr=lr)
-        
-        self.gamma = gamma
-        self.epsilon = epsilon
+        self.optimizer = optim.Adam(
+            list(self.policy.parameters()) + list(self.value.parameters()),
+            lr=3e-4
+        )
         self.ent_coef = ent_coef
-        
-        # バッファサイズとバッチサイズの設定
-        self.buffer_size = 2048
-        self.batch_size = 64
-        
+
         # バッファの初期化
         self.states_buffer = []
         self.actions_buffer = []
         self.rewards_buffer = []
         self.dones_buffer = []
         self.values_buffer = []
+        self.returns_buffer = []
+        self.advantages_buffer = []
         self.log_probs_buffer = []
-        
+        self.next_state = None
+
+        self.buffer_size = 1024
+        self.batch_size = 64
+        self.clip_epsilon = 0.2
+        self.gamma = 0.99
+        self.lambda_ = 0.95
+
+        # 損失値の記録用
+        self.policy_losses = []
+        self.value_losses = []
+        self.entropy_losses = []
+        self.total_losses = []
+
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.policy.to(self.device)
         self.value.to(self.device)
 
-    def act(self, state):
+    def act(self, state, env):
         with torch.no_grad():
-            state = torch.FloatTensor(state).unsqueeze(0).to(self.device)
-            action_probs = self.policy(state)
-            value = self.value(state)
+            state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
+            action_probs = self.policy(state_tensor)
+            value = self.value(state_tensor)
             
             dist = Categorical(action_probs)
             action = dist.sample()
             log_prob = dist.log_prob(action)
             
-            self.states_buffer.append(state.squeeze(0).cpu().numpy())
+            # NumPy配列としてバッファに追加
+            self.states_buffer.append(state)
             self.actions_buffer.append(action.item())
             self.log_probs_buffer.append(log_prob.item())
             self.values_buffer.append(value.item())
-            
-        return action.item()
+        
+        # 環境で行動を実行し、次の状態を取得
+        next_state, reward, done, _ = env(action.item())
+        self.next_state = next_state  # 次の状態を保存
+        
+        return action.item(), reward, done
 
-    def compute_gae(self, rewards, values, dones, next_value):
+    def compute_gae(self, rewards, values, dones):
         advantages = []
         gae = 0
-        for r, v, done in zip(reversed(rewards), reversed(values), reversed(dones)):
-            delta = r + self.gamma * next_value * (1 - done) - v
-            gae = delta + self.gamma * 0.95 * (1 - done) * gae
+        
+        # 最後の状態の価値を使用
+        next_value = values[-1]  # 最後の状態の価値
+        
+        # len(rewards) - 1 から 0 まで逆順に処理
+        for step in reversed(range(len(rewards))):
+            if step == len(rewards) - 1:
+                next_val = next_value
+            else:
+                next_val = values[step + 1]
+            
+            delta = rewards[step] + self.gamma * next_val * (1 - dones[step]) - values[step]
+            gae = delta + self.gamma * self.lambda_ * (1 - dones[step]) * gae
             advantages.insert(0, gae)
-            next_value = v
+        
         return advantages
 
     def update(self):
+        print(f"Current buffer size: {len(self.states_buffer)}/{self.buffer_size}")
         if len(self.states_buffer) < self.buffer_size:
-            return
+            return None, None, None, None
 
-        # バッファからデータを取得
-        states = torch.FloatTensor(self.states_buffer).to(self.device)
+        # バッファをテンソルに変換
+        states = torch.FloatTensor(np.vstack(self.states_buffer)).to(self.device)
         actions = torch.LongTensor(self.actions_buffer).to(self.device)
         old_log_probs = torch.FloatTensor(self.log_probs_buffer).to(self.device)
-        
-        # 価値の計算
+        rewards = torch.FloatTensor(self.rewards_buffer).to(self.device)
+        dones = torch.FloatTensor(self.dones_buffer).to(self.device)
+        values = torch.FloatTensor(self.values_buffer).to(self.device)
+
+        # 最後の状態の価値を計算
         with torch.no_grad():
-            next_value = self.value(states[-1:]).item()
-        
+            last_state = states[-1].unsqueeze(0)  # 最後の状態を使用
+            next_value = self.value(last_state).cpu().item()
+
         # GAEの計算
-        advantages = self.compute_gae(self.rewards_buffer, self.values_buffer, 
-                                    self.dones_buffer, next_value)
+        advantages = self.compute_gae(rewards.cpu().numpy(), 
+                                    values.cpu().numpy(), 
+                                    dones.cpu().numpy())
         advantages = torch.FloatTensor(advantages).to(self.device)
-        returns = advantages + torch.FloatTensor(self.values_buffer).to(self.device)
-        
-        # 正規化
-        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+        returns = advantages + values
+
+        loss = None
 
         # ミニバッチ学習
         for _ in range(10):  # エポック数
@@ -129,22 +159,22 @@ class PPO:
                 action_probs = self.policy(batch_states)
                 dist = Categorical(action_probs)
                 new_log_probs = dist.log_prob(batch_actions)
-                
+
                 # 方策比率
                 ratio = torch.exp(new_log_probs - batch_old_log_probs)
-                
+
                 # PPOの目的関数
                 surr1 = ratio * batch_advantages
-                surr2 = torch.clamp(ratio, 1 - self.epsilon, 1 + self.epsilon) * batch_advantages
+                surr2 = torch.clamp(ratio, 1 - self.clip_epsilon, 1 + self.clip_epsilon) * batch_advantages
                 policy_loss = -torch.min(surr1, surr2).mean()
-                
+
                 # 価値関数の損失
                 value_pred = self.value(batch_states).squeeze()
                 value_loss = 0.5 * (batch_returns - value_pred).pow(2).mean()
-                
+
                 # エントロピーボーナス
                 entropy = dist.entropy().mean()
-                
+
                 # 総損失
                 loss = policy_loss + 0.5 * value_loss - self.ent_coef * entropy
 
@@ -155,8 +185,21 @@ class PPO:
                 torch.nn.utils.clip_grad_norm_(self.value.parameters(), 0.5)
                 self.optimizer.step()
 
+        # 損失値を記録
+        policy_loss_val = policy_loss.item()
+        value_loss_val = value_loss.item()
+        entropy_loss_val = entropy.item()
+        total_loss_val = loss.item()
+
+        self.policy_losses.append(policy_loss_val)
+        self.value_losses.append(value_loss_val)
+        self.entropy_losses.append(entropy_loss_val)
+        self.total_losses.append(total_loss_val)
+
         # バッファのクリア
         self.clear_buffers()
+
+        return policy_loss_val, value_loss_val, entropy_loss_val, total_loss_val
 
     def clear_buffers(self):
         self.states_buffer = []
@@ -177,10 +220,16 @@ class PPO:
             float(player.isJump),                # ジャンプ状態
             float(player.isDeath),               # 死亡状態
         ])
-        
+
         # 周辺の環境情報（例：前方の地形、敵の位置など）も追加可能
-        
+
         return base_state
+
+    def get_latest_losses(self):
+        if not self.total_losses:
+            return None, None, None, None
+        return (self.policy_losses[-1], self.value_losses[-1],
+                self.entropy_losses[-1], self.total_losses[-1])
 
 
 class SimpleRewardSystem:
@@ -193,7 +242,7 @@ class SimpleRewardSystem:
         self.episode_count = 0
         self.max_stagnation = 50
         self.goal_bonus = 200
-        
+
     def calculate_reward(self, player_obj):
         current_x = player_obj.x + SpritePlayer.scroll_sum
 
@@ -222,7 +271,7 @@ class SimpleRewardSystem:
             goal_bonus = self.goal_bonus * 0.7
         else:
             goal_bonus = 0
-        
+
         total_reward = (
             velocity_reward +
             progress_reward +
@@ -231,21 +280,21 @@ class SimpleRewardSystem:
             grounding_bonus +
             goal_bonus
         )
-        
+
         # 報酬のクリッピング
         total_reward = np.clip(total_reward, -20, 100)
-        
+
         self.prev_x = current_x
         return total_reward, (current_x >= self.goal_x or player_obj.isDeath)
 
     def update_episode(self, episode_count):
         self.delta_x = self.current_x - self.prev_x
-        
+
         if abs(self.delta_x) < 10:
             self.stagnation_count += 1
         else:
             self.stagnation_count = 0
-            
+
         self.prev_x = self.current_x
         self.episode_count = episode_count
 
