@@ -182,38 +182,34 @@ class SimpleRewardSystem:
         self.stagnation_count = 0
         self.episode_count = 0
         self.max_stagnation = 50
-        self.death_penalty = -50
-        self.goal_bonus = 100
+        self.goal_bonus = 200
         
     def calculate_reward(self, player_obj):
         current_x = player_obj.x + SpritePlayer.scroll_sum
-        
+
         # 基本的な移動報酬
         velocity = current_x - self.prev_x
-        velocity_reward = 0.2 * velocity if velocity > 0 else -0.3 * velocity
-        
+        velocity_reward = 0.2 * velocity if velocity > 0 else -0.1 * abs(velocity)
+
         # 進捗報酬
         progress_ratio = current_x / self.goal_x
-        progress_reward = 5 * progress_ratio ** 2
-        
+        progress_reward = 10 * progress_ratio ** 2
+
         # 停滞ペナルティ
         stagnation_factor = min(self.stagnation_count / self.max_stagnation, 1.0)
-        time_penalty = -0.2 * (1.0 + 2.0 * stagnation_factor)
-        
+        time_penalty = -0.1 * (1.0 + stagnation_factor)
+
         # ジャンプ報酬
         jump_reward = 0.5 if player_obj.isJump and not player_obj.isGrounding else 0
-        
+
         # 地面接地ボーナス
-        grounding_bonus = 0.1 if player_obj.isGrounding else 0
-        
-        # 死亡ペナルティ
-        death_penalty = self.death_penalty if player_obj.isDeath else 0
-        
+        grounding_bonus = 1.0 if player_obj.isGrounding else 0
+
         # ゴール報酬
         if current_x >= self.goal_x:
             goal_bonus = self.goal_bonus
         elif current_x > self.goal_x * 0.9:
-            goal_bonus = self.goal_bonus * 0.5
+            goal_bonus = self.goal_bonus * 0.7
         else:
             goal_bonus = 0
         
@@ -223,12 +219,11 @@ class SimpleRewardSystem:
             time_penalty +
             jump_reward +
             grounding_bonus +
-            death_penalty +
             goal_bonus
         )
         
         # 報酬のクリッピング
-        total_reward = np.clip(total_reward, -100, 100)
+        total_reward = np.clip(total_reward, -20, 100)
         
         self.prev_x = current_x
         return total_reward, (current_x >= self.goal_x or player_obj.isDeath)

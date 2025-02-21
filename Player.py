@@ -202,6 +202,8 @@ class Player:
 
         if SpritePlayer.scroll_sum == self.latest_scroll_sum:
             self.stack_time += 1
+        else:
+            self.stack_time = 0
         self.latest_scroll_sum = SpritePlayer.scroll_sum
 
         if self.stack_time > 300:
