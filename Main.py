@@ -65,7 +65,7 @@ def main():
     all_value_losses = []
     all_entropy_losses = []
     all_total_losses = []
-    WINDOW_SIZE = 2
+    WINDOW_SIZE = 20
 
     while 1:
         # タイトル画面
@@ -91,6 +91,7 @@ def main():
                 all_rewards.append(rewards[-1])
                 current_x = states[-1][0] if states else 0
                 all_distances.append(current_x)
+                reward_system.update_episode(episode)
                 
                 # エピソード情報の出力
                 loss_str = f", loss: {total_loss:.4f}" if total_loss is not None else ""
@@ -101,8 +102,8 @@ def main():
             
             # 報酬と距離のプロット（上段）
             episodes = range(len(all_rewards))
-            ax1.plot(episodes, all_rewards, 'r-', label='Reward (per episode)')
-            ax1.tick_params(axis='y', labelcolor='r')
+            ax1.plot(episodes, all_rewards, 'b-', alpha=0.3, label='Reward (per episode)')
+            ax1.tick_params(axis='y', labelcolor='b')
             
             # 報酬の軸範囲を設定
             min_reward = min(all_rewards)
@@ -120,9 +121,9 @@ def main():
                 
                 plot_indices = range(0, len(all_distances) - WINDOW_SIZE + 1, WINDOW_SIZE)
                 ax1_twin = ax1.twinx()
-                ax1_twin.plot(plot_indices, moving_avg_distances, 'b-',
+                ax1_twin.plot(plot_indices, moving_avg_distances, 'r-',
                         label=f'Distance ({WINDOW_SIZE}-episode average)')
-                ax1_twin.tick_params(axis='y', labelcolor='b')
+                ax1_twin.tick_params(axis='y', labelcolor='r')
                 
                 # 距離の軸範囲を設定
                 min_dist = -1.0
@@ -142,13 +143,14 @@ def main():
             ax2.legend(loc='upper left')
 
             # 凡例の設定（上段）
-            lines1, labels1 = ax1.get_legend_handles_labels()
-            lines2, labels2 = ax1_twin.get_legend_handles_labels()
-            ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
+            if len(all_distances) >= WINDOW_SIZE:
+                lines1, labels1 = ax1.get_legend_handles_labels()
+                lines2, labels2 = ax1_twin.get_legend_handles_labels()
+                ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper left')
 
-            plt.suptitle('Learning Progress')
-            plt.tight_layout()
-            plt.show()
+                plt.suptitle('Learning Progress')
+                plt.tight_layout()
+                plt.show()
 
             reward_system.reset()
             state_change(0)
@@ -302,9 +304,6 @@ class Stage_1:
         self.rewards = rewards
         self.dones = dones
         self.movements = []
-        
-        # 報酬システムの初期化を追加
-        self.reward_system = SimpleRewardSystem()
 
         if not is_ai_mode:
             remain_show()
@@ -342,7 +341,7 @@ class Stage_1:
             action = ppo.act(state, self.Player.update)
 
             next_state = self.get_state(self.Player.player)
-            reward, done = self.reward_system.calculate_reward(self.Player.player)
+            reward, done = reward_system.calculate_reward(self.Player.player)
 
             if next_state is not None:
                 self.states.append(state)

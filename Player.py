@@ -8,7 +8,6 @@ from Sprite import SpritePlayer, SpriteBlock
 from Sound import Sound
 from Stage import Stage
 from Text import Text
-from model.PolicyNetwork import SimpleRewardSystem
 
 
 class Player:
@@ -18,8 +17,6 @@ class Player:
         self.is_ai_mode = is_ai_mode
         self.stack_time = 0
         self.latest_scroll_sum = 0
-
-        self.reward_system = SimpleRewardSystem()
 
         # プレイヤースプライトからデータ読み込み
         self.player = Stage.player_object
@@ -194,10 +191,8 @@ class Player:
         self.bg_update()
         self.player.update(self._direction(self._img_number))
 
-        # 報酬の計算
+        # 強化学習用
         current_position = self.player.x + SpritePlayer.scroll_sum
-        reward, done = self.reward_system.calculate_reward(self.player)
-
         agent_pos = np.array([current_position, self.player.y])
 
         if SpritePlayer.scroll_sum == self.latest_scroll_sum:
@@ -209,7 +204,7 @@ class Player:
         if self.stack_time > 300:
             self.player.isDeath = True
 
-        return agent_pos, reward, done, current_position
+        return agent_pos
 
     # 背景画像の描画
     def bg_update(self):

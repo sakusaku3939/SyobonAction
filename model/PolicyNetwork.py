@@ -98,10 +98,10 @@ class PPO:
             self.values_buffer.append(value.item())
         
         # 環境で行動を実行し、次の状態を取得
-        next_state, reward, done, _ = env(action.item())
+        next_state = env(action.item())
         self.next_state = next_state  # 次の状態を保存
         
-        return action.item(), reward, done
+        return action.item()
 
     def compute_gae(self, rewards, values, dones):
         advantages = []
@@ -244,6 +244,7 @@ class SimpleRewardSystem:
         self.prev_x = 0
         self.current_x = 0
         self.delta_x = 0
+        self.best_x = 0
         self.stagnation_count = 0
         self.episode_count = 0
         self.max_stagnation = 50
@@ -253,23 +254,13 @@ class SimpleRewardSystem:
         current_x = player_obj.x + SpritePlayer.scroll_sum
         self.current_x = current_x
 
-        # 基本的な移動報酬
-        # velocity = current_x - self.prev_x
-        # velocity_reward = 0.01 * velocity if velocity > 0 else 0.02 * velocity
-
         # 進捗報酬
         progress_ratio = current_x / self.goal_x
         progress_reward = 50 * progress_ratio ** 2
 
         # 停滞ペナルティ
         stagnation_factor = min(self.stagnation_count, self.max_stagnation)
-        time_penalty = -0.1 * stagnation_factor
-
-        # # ジャンプ報酬
-        # jump_reward = 0.5 if player_obj.isJump and not player_obj.isGrounding else 0
-        #
-        # # 地面接地ボーナス
-        # grounding_bonus = 1.0 if player_obj.isGrounding else 0
+        time_penalty = -0.3 * stagnation_factor
 
         # ゴール報酬
         if current_x >= self.goal_x:
@@ -283,11 +274,8 @@ class SimpleRewardSystem:
         #       f"time_penalty={time_penalty:.2f}, goal_bonus={goal_bonus:.2f}")
 
         total_reward = (
-            # velocity_reward +
             progress_reward +
             time_penalty +
-            # jump_reward +
-            # grounding_bonus +
             goal_bonus
         )
 
