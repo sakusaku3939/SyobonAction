@@ -244,8 +244,9 @@ class SimpleRewardSystem:
         self.prev_x = 0
         self.current_x = 0
         self.delta_x = 0
-        self.best_x = 0
+        # self.best_x = 0
         self.stagnation_count = 0
+        # self.best_stagnation_count = 0
         self.episode_count = 0
         self.max_stagnation = 50
         self.goal_bonus = 200
@@ -258,9 +259,9 @@ class SimpleRewardSystem:
         progress_ratio = current_x / self.goal_x
         progress_reward = 50 * progress_ratio ** 2
 
-        # 停滞ペナルティ
-        stagnation_factor = min(self.stagnation_count, self.max_stagnation)
-        time_penalty = -0.3 * stagnation_factor
+        # 停滞ペナルティ (これをつけると前に進みづらくなる)
+        # stagnation_factor = min(self.stagnation_count, self.max_stagnation)
+        # time_penalty = -0.3 * stagnation_factor
 
         # ゴール報酬
         if current_x >= self.goal_x:
@@ -275,7 +276,6 @@ class SimpleRewardSystem:
 
         total_reward = (
             progress_reward +
-            time_penalty +
             goal_bonus
         )
 
@@ -287,10 +287,17 @@ class SimpleRewardSystem:
     def update_episode(self, episode_count):
         self.delta_x = self.current_x - self.prev_x
 
-        if abs(self.delta_x) < 10:
-            self.stagnation_count += 1
-        else:
-            self.stagnation_count = 0
+        # if abs(self.delta_x) < 10:
+        #     self.stagnation_count += 1
+        # else:
+        #     self.stagnation_count = 0
+
+        # # 自己記録を基準に停滞ペナルティ
+        # if self.current_x > self.best_x:
+        #     self.best_x = self.current_x
+        #     self.best_stagnation_count = 0
+        # else:
+        #     self.best_stagnation_count += 1
 
         self.prev_x = self.current_x
         self.episode_count = episode_count
